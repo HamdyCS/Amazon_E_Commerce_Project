@@ -13,7 +13,7 @@ public partial class Person
 
     public DateOnly? DateOfBirth { get; set; }
 
-    public virtual ICollection<PeopleAddress> PeopleAddresses { get; set; } = new List<PeopleAddress>();
+    public virtual ICollection<PersonAddress> PeopleAddresses { get; set; } = new List<PersonAddress>();
 
     public virtual ICollection<Phone> Phones { get; set; } = new List<Phone>();
 }

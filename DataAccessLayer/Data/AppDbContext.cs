@@ -43,7 +43,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentsType> PaymentsTypes { get; set; }
 
-    public virtual DbSet<PeopleAddress> PeopleAddresses { get; set; }
+    public virtual DbSet<PersonAddress> PeopleAddresses { get; set; }
 
     public virtual DbSet<Person> People { get; set; }
 
@@ -84,7 +84,7 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC072B1F9265");
 
-            entity.ToTable("Application");
+            entity.ToTable("Applications");
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
 
@@ -200,7 +200,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<PeopleAddress>(entity =>
+        modelBuilder.Entity<PersonAddress>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__PeopleAd__3214EC071308F9C3");
 

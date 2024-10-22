@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataAccessLayer.Entities;
 
-public partial class PeopleAddress
+public partial class PersonAddress
 {
     public long Id { get; set; }
 
