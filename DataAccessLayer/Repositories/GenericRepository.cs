@@ -52,7 +52,8 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                _context.Set<T>().Remove(entity);
+                _context.Set<T>().Attach(entity);
+                _context.Set<T>().Remove(entity);// تحتاج ال attach قبلها
             }
             catch (Exception ex)
             {
@@ -64,6 +65,7 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
+                _context.Set<T>().AttachRange(entites);
                 _context.Set<T>().RemoveRange(entites);
             }
             catch (Exception ex)
@@ -175,7 +177,7 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                _context.Set<T>().Update(entity);
+                _context.Set<T>().Update(entity);// لا تحتاج الي attach قبلها
             }
             catch (Exception ex)
             {
@@ -185,16 +187,31 @@ namespace DataAccessLayer.Repositories
             
         }
 
-        public void UpdateRange(IEnumerable<T> entites)
+        public void UpdateRange(IEnumerable<T> entities)
         {
             try
             {
-                _context.Set<T>().UpdateRange(entites);
+                _context.Set<T>().UpdateRange(entities);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error on updated range of entites ,The entity name is {nameof(T)}");
 
+            }
+        }
+
+        public async Task<bool> IsExistById(long id)
+        {
+            try
+            {
+                var result = await _context.Set<T>().FindAsync(id);
+
+                return result != null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error on check if is exist by id, Id = {id}");
+                return false;
             }
         }
     }

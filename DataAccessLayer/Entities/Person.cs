@@ -16,9 +16,9 @@ public partial class Person
 
 
     [Required]
-    public DateOnly DateOfBirth { get; set; }
+    public DateTime DateOfBirth { get; set; }
 
-    public virtual ICollection<PersonAddress> PeopleAddresses { get; set; } = new List<PersonAddress>();
+    public virtual IEnumerable<PersonAddress> PeopleAddresses { get; set; } = new List<PersonAddress>();
 
-    public virtual ICollection<Phone> Phones { get; set; } = new List<Phone>();
+    public virtual IEnumerable<Phone> Phones { get; set; } = new List<Phone>();
 }

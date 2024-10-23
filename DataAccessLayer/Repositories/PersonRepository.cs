@@ -12,8 +12,13 @@ namespace DataAccessLayer.Repositories
 {
     public class PersonRepository : GenericRepository<Person>, IPersonRepository
     {
+        private readonly AppDbContext _context;
+        private readonly ILogger<GenericRepository<Person>> _logger;
+
         public PersonRepository(AppDbContext context, ILogger<GenericRepository<Person>> logger) : base(context, logger)
         {
+            _context = context;
+            _logger = logger;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Data;
+﻿using DataAccessLayer.Contracks;
+using DataAccessLayer.Data;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
@@ -13,13 +14,17 @@ namespace DataAccessLayer.UnitOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
-        private readonly Logger<UnitOfWork> _logger;
+        private readonly ILogger<UnitOfWork> _logger;
         private IDbContextTransaction _transaction;
-        public UnitOfWork(AppDbContext context,Logger<UnitOfWork> logger) 
+        public IPersonRepository personRepository { get; private set; }
+
+        public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,IPersonRepository personRepository) 
         {
             _context = context;
             _logger = logger;
+            this.personRepository = personRepository;
         }
+
         public async Task BeginTransactionAsync()
         {
             try
@@ -55,7 +60,6 @@ namespace DataAccessLayer.UnitOfWork
         {
            return await _context.SaveChangesAsync();
         }
-
         public async void Dispose()
         {
            await _context.DisposeAsync();

@@ -3,6 +3,10 @@ using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ApiLayer.Extensions;
+using BusinessLayer.Mapper;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -15,8 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString")));
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
+builder.Services.AddAutoMapper(typeof(PersonProfile));
+
+
 builder.UseSerilog();
 
+builder.Services.AddCustomServiceseFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 
 var app = builder.Build();
 
