@@ -13,16 +13,4 @@ namespace ApiLayer.Extensions
             return builder;
         }
     }
-
-
-    public static class ServiceExtensions
-    {
-        public static IServiceCollection AddCustomServicese(this IServiceCollection services)
-        {
-
-            return services;
-           
-        }
-
-    }
 }

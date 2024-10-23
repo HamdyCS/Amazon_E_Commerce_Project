@@ -20,19 +20,21 @@ namespace DataAccessLayer.Contracks
 
         public Task AddAsync(T entity);
 
-        public Task AddRangeAsync(IEnumerable<T> entites);
+        public Task AddRangeAsync(IEnumerable<T> entities);
 
         public void Update(T entity);
 
-        public void UpdateRange(IEnumerable<T> entites);
+        public void UpdateRange(IEnumerable<T> entities);
 
-        public void Delete(T  entity);
+        public void Delete(T entity);
 
-        public void DeleteRange(IEnumerable<T> entites);
+        public void DeleteRange(IEnumerable<T> entities);
 
         public Task<IEnumerable<T>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize);
 
         public Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize);
+
+        public Task<bool> IsExistById(long id);
     }
 
 }

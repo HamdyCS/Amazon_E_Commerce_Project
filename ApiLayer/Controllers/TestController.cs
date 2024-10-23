@@ -1,5 +1,9 @@
-﻿using DataAccessLayer.Data;
+﻿using BusinessLayer.Contracks;
+using BusinessLayer.Dtos;
+using DataAccessLayer.Contracks;
+using DataAccessLayer.Data;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiLayer.Controllers
@@ -8,19 +12,35 @@ namespace ApiLayer.Controllers
     [ApiController]
     public class TestController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPersonServices _personServices;
 
-        public TestController(AppDbContext context)
+        public TestController(IPersonServices personServices)
              
         {
-            _context = context;
         }
 
         [HttpGet]
-        public ActionResult Get()
+        public async Task<IActionResult>GetById()
         {
+            return Ok();
+        }
 
-            return Ok(_context.People.ToList());
+        [HttpPost]
+        public async Task<IActionResult> Add(PersonDto personDto)
+        {
+            return Ok();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> update(PersonDto personDto)
+        {
+            return Ok(personDto);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(PersonDto personDto)
+        {
+            return Ok("Ok");
         }
     }
 }

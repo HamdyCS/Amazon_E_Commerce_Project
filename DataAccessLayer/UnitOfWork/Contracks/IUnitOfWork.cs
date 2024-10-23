@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccessLayer.Contracks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 {
     public interface IUnitOfWork : IDisposable
     {
-
+        public IPersonRepository personRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();
