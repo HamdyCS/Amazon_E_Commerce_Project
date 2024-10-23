@@ -8,12 +8,13 @@ namespace DataAccessLayer.Contracks
 {
     public interface IGenericRepository<T> where T : class
     {
-        public Task<T> GetByIdAsync(long id);
+        public Task<T> GetByIdAsTrackingAsync(long id);
+
+        public Task<T> GetByIdAsNoTrackingAsync(long id);
 
         public Task<IEnumerable<T>> GetAllNoTrackingAsync();
 
         public Task<IEnumerable<T>> GetAllTrackingAsync();
-
 
         public Task<long> GetCountAsync();
 
@@ -30,6 +31,8 @@ namespace DataAccessLayer.Contracks
         public void DeleteRange(IEnumerable<T> entites);
 
         public Task<IEnumerable<T>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize);
+
+        public Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize);
     }
 
 }
