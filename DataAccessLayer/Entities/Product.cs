@@ -8,25 +8,25 @@ public partial class Product
 {
     public long Id { get; set; }
 
-    public string? NameEn { get; set; }
+    public string NameEn { get; set; }
 
-    public string? NameAr { get; set; }
+    public string NameAr { get; set; }
 
-    public string? Size { get; set; }
+    public string Size { get; set; }
 
-    public string? Color { get; set; }
+    public string Color { get; set; }
 
-    public decimal? Height { get; set; }
+    public decimal Height { get; set; }
 
-    public decimal? Length { get; set; }
+    public decimal Length { get; set; }
 
-    public string? UserId { get; set; }
+    public string UserId { get; set; }
 
-    public virtual User? user { get; set; }
+    public virtual User user { get; set; }
 
-    public long? ProductCategoryId { get; set; }
+    public long ProductCategoryId { get; set; }
 
-    public long? BrandId { get; set; }
+    public long BrandId { get; set; }
 
     public virtual Brand? Brand { get; set; }
 

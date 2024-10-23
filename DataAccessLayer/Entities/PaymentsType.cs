@@ -7,7 +7,7 @@ public partial class PaymentsType
 {
     public long Id { get; set; }
 
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

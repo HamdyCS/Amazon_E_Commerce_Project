@@ -7,19 +7,19 @@ public partial class ApplicationOrder
 {
     public long Id { get; set; }
 
-    public long? ApplicationId { get; set; }
+    public long ApplicationId { get; set; }
 
-    public long? ApplicationOrderTypeId { get; set; }
+    public long ApplicationOrderTypeId { get; set; }
 
-    public decimal? ShippingCost { get; set; }
+    public decimal ShippingCost { get; set; }
 
-    public long? ShoppingCartId { get; set; }
+    public long ShoppingCartId { get; set; }
 
-    public string? PersonAddress { get; set; }
+    public string PersonAddress { get; set; }
 
-    public long? PaymentId { get; set; }
+    public long PaymentId { get; set; }
 
-    public long? DeliveryId { get; set; }
+    public long DeliveryId { get; set; }
 
     public virtual Application? Application { get; set; }
 

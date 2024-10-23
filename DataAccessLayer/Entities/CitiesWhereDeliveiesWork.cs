@@ -7,9 +7,9 @@ public partial class CitiesWhereDeliveiesWork
 {
     public long Id { get; set; }
 
-    public long? CityId { get; set; }
+    public long CityId { get; set; }
 
-    public long? DeliveryId { get; set; }
+    public long DeliveryId { get; set; }
 
     public virtual City? City { get; set; }
 

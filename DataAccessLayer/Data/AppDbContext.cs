@@ -69,13 +69,13 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
 
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
 
         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -364,8 +364,9 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasKey(e => e.Id).HasName("PK__Shopping__3214EC07B8EE46F4");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<IdentityUser>(entity =>
         {
+            entity.ToTable("Users");
             entity.Ignore(p => p.PhoneNumber);
             entity.Ignore(p => p.PhoneNumberConfirmed);
         });
@@ -376,11 +377,22 @@ public class AppDbContext : IdentityDbContext<User>
         modelBuilder.Ignore<IdentityUserToken<string>>();
 
         modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
-        modelBuilder.Entity<IdentityUser>().ToTable("Users");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
-
+        
+        ApplyDeleteRestrict(modelBuilder);
     }
 
+    private void ApplyDeleteRestrict(ModelBuilder modelBuilder)
+    {
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            var foreignKeys = entity.GetForeignKeys();
+            foreach (var foreignKey in foreignKeys)
+            {
+                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+            }
+        }
+    }
 }
 

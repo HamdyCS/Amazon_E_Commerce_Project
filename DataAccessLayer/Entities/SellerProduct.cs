@@ -7,13 +7,13 @@ public partial class SellerProduct
 {
     public long Id { get; set; }
 
-    public long? SellerId { get; set; }
+    public long SellerId { get; set; }
 
-    public decimal? Price { get; set; }
+    public decimal Price { get; set; }
 
-    public int? NumberInStock { get; set; }
+    public int NumberInStock { get; set; }
 
-    public long? ProductId { get; set; }
+    public long ProductId { get; set; }
 
     public virtual Product? Product { get; set; }
 

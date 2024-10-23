@@ -6,8 +6,16 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.UnitOfWork.Contracks
 {
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
+
+        public Task<long> CompleteAsync();
+
+        public Task BeginTransactionAsync();
+
+        public void CommitTransactionAsync();
+
+        public Task RollbackTransactionAsync();
 
     }
 }
