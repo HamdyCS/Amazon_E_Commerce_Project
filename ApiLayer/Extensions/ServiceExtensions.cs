@@ -16,7 +16,11 @@ namespace ApiLayer.Extensions
 
             services.AddScoped<IGenericMapper, GenericMapper>();
 
+<<<<<<< HEAD
             services.AddScoped<IPersonService, PersonService>();
+=======
+            services.AddScoped<IPersonServices, PersonServicese>();
+>>>>>>> cc8c5f0f0dc7b9ce001b93e674c52e553a9adc0b
             return services;
            
         }
@@ -24,7 +28,11 @@ namespace ApiLayer.Extensions
         public static IServiceCollection AddCustomServiceseFromDataAccessLayer(this IServiceCollection services)
         {
             services.AddScoped<IPersonRepository, PersonRepository>();
+<<<<<<< HEAD
             services.AddScoped<IUserRepository, UserRepository>();
+=======
+
+>>>>>>> cc8c5f0f0dc7b9ce001b93e674c52e553a9adc0b
 
 
 
