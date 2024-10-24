@@ -24,7 +24,7 @@ namespace ApiLayer.Extensions
         public static IServiceCollection AddCustomServiceseFromDataAccessLayer(this IServiceCollection services)
         {
             services.AddScoped<IPersonRepository, PersonRepository>();
-
+            services.AddScoped<IUserRepository, UserRepository>();
 
 
 

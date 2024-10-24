@@ -10,6 +10,8 @@ namespace DataAccessLayer.UnitOfWork.Contracks
     public interface IUnitOfWork : IDisposable
     {
         public IPersonRepository personRepository { get; }
+
+        public IUserRepository userRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();

@@ -364,7 +364,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasKey(e => e.Id).HasName("PK__Shopping__3214EC07B8EE46F4");
         });
 
-        modelBuilder.Entity<IdentityUser>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users");
             entity.Ignore(p => p.PhoneNumber);

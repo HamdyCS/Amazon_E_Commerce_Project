@@ -14,6 +14,9 @@ namespace DataAccessLayer.Identity.Entities
         [Required]
         public long PersonId { get; set; }
 
+        [Required]
+        public DateTime CreatedAt { get; set; }
+
         public virtual Person? Person { get; set; }
     }
 }

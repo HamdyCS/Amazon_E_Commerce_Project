@@ -18,11 +18,14 @@ namespace DataAccessLayer.UnitOfWork
         private IDbContextTransaction _transaction;
         public IPersonRepository personRepository { get; private set; }
 
-        public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,IPersonRepository personRepository) 
+        public IUserRepository userRepository { get; private set; }
+
+        public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger, IPersonRepository personRepository, IUserRepository userRepository)
         {
             _context = context;
             _logger = logger;
             this.personRepository = personRepository;
+            this.userRepository = userRepository;
         }
 
         public async Task BeginTransactionAsync()
