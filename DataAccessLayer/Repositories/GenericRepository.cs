@@ -17,60 +17,71 @@ namespace DataAccessLayer.Repositories
 
         public GenericRepository(AppDbContext context, ILogger<GenericRepository<T>> logger)
         {
-            _context = context;
-            _logger = logger;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        private Exception _HandleDatabaseException(Exception ex, string tableName)
+        {
+            _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}", tableName, ex.Message);
+            return new Exception($"Database error occurred while accessing {tableName}. Error: {ex.Message}");
         }
 
         public async Task AddAsync(T entity)
         {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
             try
             {
                 await _context.Set<T>().AddAsync(entity);
-
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on added a new entity ,The entity name is {nameof(T)}");
+                throw _HandleDatabaseException(ex, nameof(T));
             }
-
         }
 
-        public async Task AddRangeAsync(IEnumerable<T> entites)
+        public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            
+            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
+
             try
             {
-                await _context.Set<T>().AddRangeAsync(entites);
+                await _context.Set<T>().AddRangeAsync(entities);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on added a new Range Entities ,The entity name is {nameof(T)}");
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
         public void Delete(T entity)
         {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
             try
             {
                 _context.Set<T>().Attach(entity);
-                _context.Set<T>().Remove(entity);// تحتاج ال attach قبلها
+                _context.Set<T>().Remove(entity);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on Removed a Entity ,The entity name is {nameof(T)}");
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
-        public void DeleteRange(IEnumerable<T> entites)
+        public void DeleteRange(IEnumerable<T> entities)
         {
+            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
+
             try
             {
-                _context.Set<T>().AttachRange(entites);
-                _context.Set<T>().RemoveRange(entites);
+                _context.Set<T>().AttachRange(entities);
+                _context.Set<T>().RemoveRange(entities);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on Removed a Range Entities ,The entity name is {nameof(T)}");
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -82,38 +93,37 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got all as no tracking ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
         public async Task<IEnumerable<T>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize)
         {
+            if (pageNumber < 1) throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+            if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+
             try
             {
                 return await _context.Set<T>().AsNoTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got all Paged As No Tracting ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
-            
         }
 
         public async Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize)
         {
+            if (pageNumber < 1) throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+            if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+
             try
             {
                 return await _context.Set<T>().AsTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got all Paged As Tracting ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -125,9 +135,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got all as tracking ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -135,13 +143,13 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                return await _context.Set<T>().FindAsync(id);
+                var entity = await _context.Set<T>().FindAsync(id);
+                if (entity == null) throw new ArgumentException($"Entity with ID {id} not found");
+                return entity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got by id as tracking ,Id = {id} ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -149,13 +157,13 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                return await _context.Set<T>().FindAsync(id);
+                var entity = await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id);
+                if (entity == null) throw new ArgumentException($"Entity with ID {id} not found");
+                return entity;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got by id as no tracking ,Id = {id} ,The entity name is {nameof(T)}");
-
-                return null;
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -163,56 +171,42 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                return await _context.Set<T>().CountAsync();
+                return await _context.Set<T>().LongCountAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on got Number of rows ,The entity name is {nameof(T)}");
-
-                return -1;
-            }            
+                throw _HandleDatabaseException(ex, nameof(T));
+            }
         }
 
         public void Update(T entity)
         {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
             try
             {
-                _context.Set<T>().Update(entity);// لا تحتاج الي attach قبلها
+                _context.Set<T>().Update(entity);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on updated entity ,The entity name is {nameof(T)}");
-
+                throw _HandleDatabaseException(ex, nameof(T));
             }
-            
         }
 
         public void UpdateRange(IEnumerable<T> entities)
         {
+            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
+
             try
             {
                 _context.Set<T>().UpdateRange(entities);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error on updated range of entites ,The entity name is {nameof(T)}");
-
+                throw _HandleDatabaseException(ex, nameof(T));
             }
         }
-
-        public async Task<bool> IsExistById(long id)
-        {
-            try
-            {
-                var result = await _context.Set<T>().FindAsync(id);
-
-                return result != null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error on check if is exist by id, Id = {id}");
-                return false;
-            }
-        }
+      
     }
+
 }

@@ -34,7 +34,7 @@ namespace DataAccessLayer.Contracks
 
         public Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize);
 
-        public Task<bool> IsExistById(long id);
+       
     }
 
 }
