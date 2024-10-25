@@ -24,7 +24,7 @@ builder.Services.AddAutoMapper(typeof(PersonProfile));
 
 builder.UseSerilog();
 
-builder.Services.AddCustomServiceseFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
+builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 
 var app = builder.Build();
 

@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Identity.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccessLayer.Entities;
 
@@ -18,4 +19,6 @@ public partial class RefreshToken
 
     public virtual User? user { get; set; }
 
+    [NotMapped]
+    public bool IsActive => ExpiresAt > DateTime.UtcNow;
 }

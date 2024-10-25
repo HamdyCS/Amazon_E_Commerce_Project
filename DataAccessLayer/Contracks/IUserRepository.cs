@@ -37,16 +37,20 @@ namespace DataAccessLayer.Contracks
         public Task<long> GetCountAsync();
 
 
-        public Task<User> GetUserByEmailAndPassword(string email, string password);
+        public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);
 
 
-        public Task UpdateEmailByEmail(string email, string NewEmail);
+        public Task UpdateEmailByEmailAsync(string email, string NewEmail);
 
 
-        public Task UpdatePasswordByEmail(User user, string password, string Newpassword);
+        public Task UpdatePasswordByEmailAsync(User user, string password, string Newpassword);
 
+        public Task<IEnumerable<string>> GetUserRolesByEmailAsync(string Email);
 
+        public Task<bool> CheckIfUserInRoleByEmailAsync(string Email,string Role);
 
+        Task<  bool> DeleteUserFromRolesByEmailAsync(IEnumerable<string> roles,string Email);
 
+        Task<bool> DeleteUserFromRoleByEmailAsync(string Role,string Email);
     }
 }

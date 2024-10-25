@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Linq.Expressions;
@@ -22,11 +23,11 @@ namespace DataAccessLayer.Repositories
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
 
-        private Exception _HandelDataBaseException(Exception ex,string TableName)
+        private Exception _HandelDataBaseException(Exception ex)
         {
-            _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}",TableName,ex.Message);
+            _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}","Users",ex.Message);
 
-            return new Exception($"Database error occurred while accessing {TableName}. Error: {ex.Message}");
+            return new Exception($"Database error occurred while accessing Users. Error: {ex.Message}");
         }
         public UserRepository(AppDbContext context, ILogger<UserRepository> logger, UserManager<User> userManager, SignInManager<User> signInManager)
         {
@@ -49,12 +50,13 @@ namespace DataAccessLayer.Repositories
             catch (Exception ex)
             {
                 
-                throw _HandelDataBaseException(ex,"Users");
+                throw _HandelDataBaseException(ex);
             }
         }
         public async Task<bool> CheckIfEmailInSystem(string email)
         {
             
+
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
 
             try
@@ -63,15 +65,16 @@ namespace DataAccessLayer.Repositories
 
                 return user != null;
 
+               
 
             }
             catch (Exception ex)
             {
-                throw _HandelDataBaseException(ex, "Users");
+                throw _HandelDataBaseException(ex);
             }
 
-
         }
+
         public void Delete(User user)
         {
             if (user == null) throw new ArgumentNullException("User");
@@ -81,9 +84,11 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
+
+           
         }
 
         public async Task DeleteUserByEmail(string email)
@@ -97,13 +102,13 @@ namespace DataAccessLayer.Repositories
                 if (user == null)
                 {
                     _logger.LogInformation("User is null");
-                    return;
+                    throw new Exception("User is null");
                 }
             }
             catch (Exception ex)
             {
-               
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -116,7 +121,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandelDataBaseException(ex, "Users");
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -132,7 +137,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandelDataBaseException(ex, "Users");
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -147,7 +152,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandelDataBaseException(ex, "Users");
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -161,7 +166,7 @@ namespace DataAccessLayer.Repositories
             catch (Exception ex)
             {
 
-                throw _HandelDataBaseException(ex, "Users");
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -176,8 +181,8 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-               
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
         }
 
@@ -190,12 +195,12 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-             
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
         }
 
-        public async Task<User> GetUserByEmailAndPassword(string email, string password)
+        public async Task<User> GetUserByEmailAndPasswordAsync(string email, string password)
         {
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
             if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password cannot be null or empty");
@@ -217,12 +222,12 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-               
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
         }
 
-        public async Task UpdateEmailByEmail(string email, string NewEmail)
+        public async Task UpdateEmailByEmailAsync(string email, string NewEmail)
         {
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
             if (string.IsNullOrEmpty(NewEmail)) throw new ArgumentException("New Email cannot be null or empty");
@@ -255,12 +260,12 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
         }
 
-        public async Task UpdatePasswordByEmail(User user,string password, string Newpassword)
+        public async Task UpdatePasswordByEmailAsync(User user,string password, string Newpassword)
         {
             if(user == null) throw new ArgumentNullException("User");
 
@@ -284,13 +289,162 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-               
-                throw _HandelDataBaseException(ex, "Users");
+
+                throw _HandelDataBaseException(ex);
             }
 
         }
-        
+      
+        public async Task<IEnumerable<string>> GetUserRolesByEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
 
-       
+            User user = null;
+            try
+            {
+                user = await _userManager.FindByEmailAsync(email);
+
+                if(user == null)
+                {
+                    var message = "user is null";
+                    _logger.LogInformation(message);
+                    throw new Exception(message);
+                }
+            }
+            catch(Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+
+            try
+            {
+                var UserRoles = await  _userManager.GetRolesAsync(user);
+                return UserRoles;
+
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public async Task<bool> CheckIfUserInRoleByEmailAsync(string Email, string Role)
+        {
+            if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Email cannot be null or empty");
+            if (string.IsNullOrEmpty(Role)) throw new ArgumentException("Role cannot be null or empty");
+
+            User user = null;
+            try
+            {
+                user = await _userManager.FindByEmailAsync(Email);
+
+                if (user == null)
+                {
+                    var message = "user is null";
+                    _logger.LogInformation(message);
+                    throw new Exception(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+
+            try
+            {
+                var result = await _userManager.IsInRoleAsync(user,Role);
+                return result;
+
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public async Task<bool> DeleteUserFromRolesByEmailAsync(IEnumerable<string> roles, string Email)
+        {
+            if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Email cannot be null or empty");
+            if (roles==null || !roles.Any()) throw new ArgumentException("roles cannot be null or empty");
+
+            User user = null;
+            try
+            {
+                user = await _userManager.FindByEmailAsync(Email);
+
+                if (user == null)
+                {
+                    var message = "user is null";
+                    _logger.LogInformation(message);
+                    throw new Exception(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+
+            try
+            {
+                var result = await _userManager.RemoveFromRolesAsync(user,roles);
+                
+                if(!result.Succeeded)
+                {
+                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+
+                    _logger.LogInformation("Error"+errorMesssage);
+
+                    throw new InvalidOperationException(errorMesssage);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public async Task<bool> DeleteUserFromRoleByEmailAsync(string Role, string Email)
+        {
+            if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Email cannot be null or empty");
+            if (string.IsNullOrEmpty(Role)) throw new ArgumentException("ROle cannot be null or empty");
+            User user = null;
+            try
+            {
+                user = await _userManager.FindByEmailAsync(Email);
+
+                if (user == null)
+                {
+                    var message = "user is null";
+                    _logger.LogInformation(message);
+                    throw new Exception(message);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+
+            try
+            {
+                var result = await _userManager.RemoveFromRoleAsync(user, Role);
+
+                if (!result.Succeeded)
+                {
+                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+
+                    _logger.LogInformation("Error" + errorMesssage);
+
+                    throw new InvalidOperationException(errorMesssage);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+        }
     }
 }

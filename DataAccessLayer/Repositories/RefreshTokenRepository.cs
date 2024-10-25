@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
-    public class PersonRepository : GenericRepository<Person>, IPersonRepository
+    public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshTokenRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<PersonRepository> _logger;
+        private readonly ILogger<RefreshTokenRepository> _logger;
 
-        public PersonRepository(AppDbContext context, ILogger<PersonRepository> logger) : base(context, logger)
+        public RefreshTokenRepository(AppDbContext context, ILogger<RefreshTokenRepository> logger) : base(context, logger)
         {
             _context = context;
             _logger = logger;
