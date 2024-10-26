@@ -27,12 +27,21 @@ namespace ApiLayer.Extensions
 
         public static IServiceCollection AddCustomRepositoriesFromDataAccessLayer(this IServiceCollection services)
         {
+            services.AddScoped<ICityRepository,CityRepository>();
+
             services.AddScoped<IPersonRepository, PersonRepository>();
+
+            services.AddScoped<IPhoneRepository, PhoneRepository>();
+
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+            services.AddScoped<IRoleManager, RoleManager>();
+
+            services.AddScoped<IUserAdderssRepository,UserAddressRepository>();
 
             services.AddScoped<IUserRepository, UserRepository>();
 
-
-
+           
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

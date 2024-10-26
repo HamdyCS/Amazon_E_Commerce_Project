@@ -43,7 +43,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentsType> PaymentsTypes { get; set; }
 
-    public virtual DbSet<UserAddress> PeopleAddresses { get; set; }
+    public virtual DbSet<UserAddress> UsersAddresses { get; set; }
 
     public virtual DbSet<Person> People { get; set; }
 

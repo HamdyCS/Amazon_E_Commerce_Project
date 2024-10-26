@@ -21,7 +21,7 @@ namespace DataAccessLayer.Repositories
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private Exception _HandleDatabaseException(Exception ex, string tableName)
+        protected Exception HandleDatabaseException(Exception ex, string tableName)
         {
             _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}", tableName, ex.Message);
             return new Exception($"Database error occurred while accessing {tableName}. Error: {ex.Message}");
@@ -37,7 +37,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -51,7 +51,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -66,7 +66,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -81,7 +81,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -93,7 +93,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -108,7 +108,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -123,7 +123,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -135,7 +135,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -149,7 +149,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -163,7 +163,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -175,7 +175,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -189,7 +189,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 
@@ -203,7 +203,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw _HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex, nameof(T));
             }
         }
 

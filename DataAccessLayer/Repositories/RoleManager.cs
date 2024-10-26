@@ -47,6 +47,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> IsRoleExistByName(string roleName)
         {
+            if (string.IsNullOrEmpty(roleName)) throw new ArgumentException("RoleName cannot be null or empty");
             try
             {
                 var result = await _roleManager.FindByNameAsync(roleName);
