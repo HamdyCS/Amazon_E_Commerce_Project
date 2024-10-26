@@ -9,7 +9,7 @@ namespace BusinessLayer.Contracks
 {
     public interface ITokenService
     {
-        public Task<string> GenerateToken(UserDto userDto);
+        public Task<string> GenerateToken(string UserId,string Email);
 
         public Task<string> GenerateRefreshToken();
     }

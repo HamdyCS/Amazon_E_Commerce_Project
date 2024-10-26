@@ -30,6 +30,7 @@ namespace DataAccessLayer.Repositories
             _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error {Error Message}", "Roles", ex.Message);
             return new Exception($"Database error occurred while accessing Roles. Error {ex.Message}");
         }
+
         public async Task<IEnumerable<string>> GetAllRolesAsync()
         {
             try

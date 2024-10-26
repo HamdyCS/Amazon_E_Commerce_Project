@@ -70,15 +70,13 @@ namespace DataAccessLayer.Migrations
                     b.Property<long>("PaymentId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PersonAddress")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<decimal>("ShippingCost")
                         .HasColumnType("decimal(10, 2)");
 
                     b.Property<long>("ShoppingCartId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserAddressId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id")
@@ -93,6 +91,8 @@ namespace DataAccessLayer.Migrations
                     b.HasIndex("PaymentId");
 
                     b.HasIndex("ShoppingCartId");
+
+                    b.HasIndex("UserAddressId");
 
                     b.ToTable("ApplicationOrders");
                 });
@@ -318,35 +318,6 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("People");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Entities.PersonAddress", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<long>("CityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PersonId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id")
-                        .HasName("PK__PeopleAd__3214EC071308F9C3");
-
-                    b.HasIndex("CityId");
-
-                    b.HasIndex("PersonId");
-
-                    b.ToTable("PeopleAddresses");
-                });
-
             modelBuilder.Entity("DataAccessLayer.Entities.Phone", b =>
                 {
                     b.Property<long>("Id")
@@ -355,18 +326,17 @@ namespace DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("PersonId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("userId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id")
                         .HasName("PK__Phones__3214EC076BAE186A");
-
-                    b.HasIndex("PersonId");
 
                     b.ToTable("Phones");
                 });
@@ -697,6 +667,35 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("ShoppingCarts");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Entities.UserAddress", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UsersAddresses", (string)null);
+                });
+
             modelBuilder.Entity("DataAccessLayer.Identity.Entities.User", b =>
                 {
                     b.Property<string>("Id")
@@ -739,6 +738,9 @@ namespace DataAccessLayer.Migrations
                     b.Property<long>("PersonId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("PhoneId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -760,6 +762,9 @@ namespace DataAccessLayer.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.HasIndex("PersonId");
+
+                    b.HasIndex("PhoneId")
+                        .IsUnique();
 
                     b.ToTable("Users", (string)null);
                 });
@@ -863,6 +868,12 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ApplicationOrders_ShoppingCartId");
 
+                    b.HasOne("DataAccessLayer.Entities.UserAddress", "UserAddress")
+                        .WithMany()
+                        .HasForeignKey("UserAddressId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Application");
 
                     b.Navigation("ApplicationOrderType");
@@ -872,6 +883,8 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Payment");
 
                     b.Navigation("ShoppingCart");
+
+                    b.Navigation("UserAddress");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Brand", b =>
@@ -927,39 +940,6 @@ namespace DataAccessLayer.Migrations
                         .HasConstraintName("FK_Payments_PaymentTypeId");
 
                     b.Navigation("PaymentType");
-                });
-
-            modelBuilder.Entity("DataAccessLayer.Entities.PersonAddress", b =>
-                {
-                    b.HasOne("DataAccessLayer.Entities.City", "City")
-                        .WithMany("PeopleAddresses")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeopleAddresses_CityId");
-
-                    b.HasOne("DataAccessLayer.Entities.Person", "Person")
-                        .WithMany("PeopleAddresses")
-                        .HasForeignKey("PersonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_PeopleAddresses_PersonId");
-
-                    b.Navigation("City");
-
-                    b.Navigation("Person");
-                });
-
-            modelBuilder.Entity("DataAccessLayer.Entities.Phone", b =>
-                {
-                    b.HasOne("DataAccessLayer.Entities.Person", "Person")
-                        .WithMany("Phones")
-                        .HasForeignKey("PersonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_Phones_PersonId");
-
-                    b.Navigation("Person");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Product", b =>
@@ -1121,6 +1101,26 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("user");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Entities.UserAddress", b =>
+                {
+                    b.HasOne("DataAccessLayer.Entities.City", "City")
+                        .WithMany("PeopleAddresses")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_UsersAddresses_CityId");
+
+                    b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
+                        .WithMany("UserAddresses")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("user");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Identity.Entities.User", b =>
                 {
                     b.HasOne("DataAccessLayer.Entities.Person", "Person")
@@ -1129,7 +1129,16 @@ namespace DataAccessLayer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DataAccessLayer.Entities.Phone", "phone")
+                        .WithOne("user")
+                        .HasForeignKey("DataAccessLayer.Identity.Entities.User", "PhoneId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("Fk_Users_PhoneId");
+
                     b.Navigation("Person");
+
+                    b.Navigation("phone");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -1193,11 +1202,9 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("Payments");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Entities.Person", b =>
+            modelBuilder.Entity("DataAccessLayer.Entities.Phone", b =>
                 {
-                    b.Navigation("PeopleAddresses");
-
-                    b.Navigation("Phones");
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Product", b =>
@@ -1226,6 +1233,11 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("ApplicationOrders");
 
                     b.Navigation("ProductsInShoppingCarts");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Identity.Entities.User", b =>
+                {
+                    b.Navigation("UserAddresses");
                 });
 #pragma warning restore 612, 618
         }

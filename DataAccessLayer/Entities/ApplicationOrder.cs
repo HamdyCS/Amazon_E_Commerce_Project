@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace DataAccessLayer.Entities;
 
@@ -15,8 +16,10 @@ public partial class ApplicationOrder
 
     public long ShoppingCartId { get; set; }
 
-    public string PersonAddress { get; set; }
+    [Required]
+    public long UserAddressId { get; set; }
 
+    public virtual UserAddress? UserAddress { get; set; }
     public long PaymentId { get; set; }
 
     public long DeliveryId { get; set; }

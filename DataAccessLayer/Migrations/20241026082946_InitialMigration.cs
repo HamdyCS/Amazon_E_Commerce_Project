@@ -82,6 +82,20 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Phones",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    userId = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK__Phones__3214EC076BAE186A", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -117,59 +131,13 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PeopleAddresses",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    CityId = table.Column<long>(type: "bigint", nullable: false),
-                    PersonId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__PeopleAd__3214EC071308F9C3", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PeopleAddresses_CityId",
-                        column: x => x.CityId,
-                        principalTable: "Cities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_PeopleAddresses_PersonId",
-                        column: x => x.PersonId,
-                        principalTable: "People",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Phones",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    PersonId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Phones__3214EC076BAE186A", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Phones_PersonId",
-                        column: x => x.PersonId,
-                        principalTable: "People",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PersonId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    PhoneId = table.Column<long>(type: "bigint", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -190,6 +158,12 @@ namespace DataAccessLayer.Migrations
                         name: "FK_Users_People_PersonId",
                         column: x => x.PersonId,
                         principalTable: "People",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "Fk_Users_PhoneId",
+                        column: x => x.PhoneId,
+                        principalTable: "Phones",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -377,6 +351,33 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UsersAddresses",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    CityId = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsersAddresses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UsersAddresses_CityId",
+                        column: x => x.CityId,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UsersAddresses_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CitiesWhereDeliveiesWorks",
                 columns: table => new
                 {
@@ -471,7 +472,7 @@ namespace DataAccessLayer.Migrations
                     ApplicationOrderTypeId = table.Column<long>(type: "bigint", nullable: false),
                     ShippingCost = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     ShoppingCartId = table.Column<long>(type: "bigint", nullable: false),
-                    PersonAddress = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    UserAddressId = table.Column<long>(type: "bigint", nullable: false),
                     PaymentId = table.Column<long>(type: "bigint", nullable: false),
                     DeliveryId = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -506,6 +507,12 @@ namespace DataAccessLayer.Migrations
                         name: "FK_ApplicationOrders_ShoppingCartId",
                         column: x => x.ShoppingCartId,
                         principalTable: "ShoppingCarts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ApplicationOrders_UsersAddresses_UserAddressId",
+                        column: x => x.UserAddressId,
+                        principalTable: "UsersAddresses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -635,6 +642,11 @@ namespace DataAccessLayer.Migrations
                 column: "ShoppingCartId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ApplicationOrders_UserAddressId",
+                table: "ApplicationOrders",
+                column: "UserAddressId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Applications_ApplicationTypeId",
                 table: "Applications",
                 column: "ApplicationTypeId");
@@ -668,21 +680,6 @@ namespace DataAccessLayer.Migrations
                 name: "IX_Payments_PaymentTypeId",
                 table: "Payments",
                 column: "PaymentTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PeopleAddresses_CityId",
-                table: "PeopleAddresses",
-                column: "CityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PeopleAddresses_PersonId",
-                table: "PeopleAddresses",
-                column: "PersonId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Phones_PersonId",
-                table: "Phones",
-                column: "PersonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductCategories_UserId",
@@ -794,11 +791,27 @@ namespace DataAccessLayer.Migrations
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Users_PhoneId",
+                table: "Users",
+                column: "PhoneId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "Users",
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsersAddresses_CityId",
+                table: "UsersAddresses",
+                column: "CityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsersAddresses_UserId",
+                table: "UsersAddresses",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -809,12 +822,6 @@ namespace DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "CitiesWhereDeliveiesWorks");
-
-            migrationBuilder.DropTable(
-                name: "PeopleAddresses");
-
-            migrationBuilder.DropTable(
-                name: "Phones");
 
             migrationBuilder.DropTable(
                 name: "ProductCategoryImages");
@@ -847,6 +854,9 @@ namespace DataAccessLayer.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
+                name: "UsersAddresses");
+
+            migrationBuilder.DropTable(
                 name: "Deliveries");
 
             migrationBuilder.DropTable(
@@ -856,9 +866,6 @@ namespace DataAccessLayer.Migrations
                 name: "ShoppingCarts");
 
             migrationBuilder.DropTable(
-                name: "Cities");
-
-            migrationBuilder.DropTable(
                 name: "Roles");
 
             migrationBuilder.DropTable(
@@ -866,6 +873,9 @@ namespace DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentsTypes");
+
+            migrationBuilder.DropTable(
+                name: "Cities");
 
             migrationBuilder.DropTable(
                 name: "Products");
@@ -881,6 +891,9 @@ namespace DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "People");
+
+            migrationBuilder.DropTable(
+                name: "Phones");
         }
     }
 }

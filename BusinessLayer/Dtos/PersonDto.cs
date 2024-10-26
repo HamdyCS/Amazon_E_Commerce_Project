@@ -9,9 +9,6 @@ namespace BusinessLayer.Dtos
 {
     public class PersonDto
     {
-
-       
-
         [Required]
         public string FirstName { get; set; }
 

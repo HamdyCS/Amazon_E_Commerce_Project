@@ -18,5 +18,12 @@ namespace DataAccessLayer.Identity.Entities
         public DateTime CreatedAt { get; set; }
 
         public virtual Person? Person { get; set; }
+
+        [Required]
+        public long PhoneId { get; set; }
+
+        public virtual Phone? phone { get; set; }
+
+        public virtual IEnumerable<UserAddress> UserAddresses { get; set; } = new List<UserAddress>();
     }
 }

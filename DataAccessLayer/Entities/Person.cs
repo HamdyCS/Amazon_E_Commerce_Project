@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccessLayer.Validitions;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,10 +16,10 @@ public partial class Person
     public string LastName { get; set; }
 
 
-    [Required]
+    [Required,CustomValidation(typeof(PersonValidtion), "DateOfBirthValidtion")]
     public DateTime DateOfBirth { get; set; }
 
-    public virtual IEnumerable<PersonAddress> PeopleAddresses { get; set; } = new List<PersonAddress>();
+   
 
-    public virtual IEnumerable<Phone> Phones { get; set; } = new List<Phone>();
+   
 }

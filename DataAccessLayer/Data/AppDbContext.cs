@@ -43,7 +43,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentsType> PaymentsTypes { get; set; }
 
-    public virtual DbSet<PersonAddress> PeopleAddresses { get; set; }
+    public virtual DbSet<UserAddress> PeopleAddresses { get; set; }
 
     public virtual DbSet<Person> People { get; set; }
 
@@ -99,7 +99,7 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC07270C916F");
 
-            entity.Property(e => e.PersonAddress).HasMaxLength(500);
+            
             entity.Property(e => e.ShippingCost).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Application).WithMany(p => p.ApplicationOrders)
@@ -121,6 +121,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.ShoppingCart).WithMany(p => p.ApplicationOrders)
                 .HasForeignKey(d => d.ShoppingCartId)
                 .HasConstraintName("FK_ApplicationOrders_ShoppingCartId");
+
+            entity.HasOne(a => a.UserAddress).WithMany().HasForeignKey(a => a.UserAddressId);
         });
 
         modelBuilder.Entity<ApplicationOrdersType>(entity =>
@@ -200,19 +202,19 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<PersonAddress>(entity =>
+        modelBuilder.Entity<UserAddress>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__PeopleAd__3214EC071308F9C3");
+            entity.ToTable("UsersAddresses");
+            entity.HasKey(e => e.Id);
+            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Address).HasMaxLength(500);
 
             entity.HasOne(d => d.City).WithMany(p => p.PeopleAddresses)
                 .HasForeignKey(d => d.CityId)
-                .HasConstraintName("FK_PeopleAddresses_CityId");
+                .HasConstraintName("FK_UsersAddresses_CityId");
 
-            entity.HasOne(d => d.Person).WithMany(p => p.PeopleAddresses)
-                .HasForeignKey(d => d.PersonId)
-                .HasConstraintName("FK_PeopleAddresses_PersonId");
+            
         });
 
         modelBuilder.Entity<Person>(entity =>
@@ -229,9 +231,7 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.Property(e => e.PhoneNumber).HasMaxLength(50);
 
-            entity.HasOne(d => d.Person).WithMany(p => p.Phones)
-                .HasForeignKey(d => d.PersonId)
-                .HasConstraintName("FK_Phones_PersonId");
+          
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -369,6 +369,10 @@ public class AppDbContext : IdentityDbContext<User>
             entity.ToTable("Users");
             entity.Ignore(p => p.PhoneNumber);
             entity.Ignore(p => p.PhoneNumberConfirmed);
+
+            entity.HasOne(u=>u.phone).WithOne(p=>p.user).HasForeignKey<User>(u=>u.PhoneId).HasConstraintName("Fk_Users_PhoneId");
+            entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a=>a.UserId);
+
         });
 
         modelBuilder.Ignore<IdentityUserClaim<string>>();
