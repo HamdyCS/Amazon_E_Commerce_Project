@@ -15,18 +15,35 @@ namespace DataAccessLayer.UnitOfWork
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UnitOfWork> _logger;
-        private IDbContextTransaction _transaction;
-        public IPersonRepository personRepository { get; private set; }
 
+        private IDbContextTransaction _transaction;
+
+        public ICityRepository cityRepository { get; private set; }
+        public IPersonRepository personRepository { get; private set; }
+        public IPhoneRepository phoneRepository { get; private set; }
+        public IRefreshTokenRepository refreshTokenRepository { get; private set; }
+        public IRoleManagerRepository roleManagerRepository { get; private set; }
+        public IUserAdderssRepository userAdderssRepository { get; private set; }
         public IUserRepository userRepository { get; private set; }
 
-        public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,IPersonRepository personRepository) 
+       
+
+       
+        public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
+            ICityRepository cityRepository,IPersonRepository personRepository,IPhoneRepository phoneRepository,
+            IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
+            IUserAdderssRepository userAdderssRepository,IUserRepository userRepository) 
         {
             _context = context;
-            _logger = logger;
+            this._logger = logger;
+            this.cityRepository = cityRepository;
             this.personRepository = personRepository;
-
+            this.phoneRepository = phoneRepository;
+            this.refreshTokenRepository = refreshTokenRepository;
+            this.roleManagerRepository = roleManagerRepository;
+            this.userAdderssRepository = userAdderssRepository;
             this.userRepository = userRepository;
+
 
         }
 
@@ -42,7 +59,7 @@ namespace DataAccessLayer.UnitOfWork
             }
         }
 
-        public async void CommitTransactionAsync()
+        public async Task CommitTransactionAsync()
         {
             if(_transaction == null)
             {
@@ -65,6 +82,7 @@ namespace DataAccessLayer.UnitOfWork
         {
            return await _context.SaveChangesAsync();
         }
+
         public async void Dispose()
         {
            await _context.DisposeAsync();

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Contracks
 {
-    public interface IPhoneServicese
+    public interface IPhoneService
     {
        
     }

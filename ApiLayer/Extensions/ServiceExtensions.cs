@@ -19,7 +19,7 @@ namespace ApiLayer.Extensions
 
             services.AddScoped<IPersonService, PersonService>();
 
-            services.AddScoped<IPersonServices, PersonServicese>();
+            services.AddScoped<ICityService, CityService>();
 
             return services;
            
@@ -33,13 +33,16 @@ namespace ApiLayer.Extensions
 
             services.AddScoped<IPhoneRepository, PhoneRepository>();
 
+            services.AddScoped<IUserRepository, UserRepository>();
+
+
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
-            services.AddScoped<IRoleManager, RoleManager>();
+            services.AddScoped<IRoleManagerRepository, RoleManagerRepository>();
 
             services.AddScoped<IUserAdderssRepository,UserAddressRepository>();
 
-            services.AddScoped<IUserRepository, UserRepository>();
+
 
            
             services.AddScoped<IUnitOfWork, UnitOfWork>();

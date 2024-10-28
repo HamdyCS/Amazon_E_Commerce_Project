@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Contracks
 {
-    public interface IRoleManager
+    public interface IRoleManagerRepository
     {
         Task<IEnumerable<string>> GetAllRolesAsync();
 

@@ -41,22 +41,28 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<bool> AddAsync(PersonDto personDto)
+        public async Task<PersonDto> AddAsync(PersonDto personDto)
         {
             if (personDto == null) throw new ArgumentNullException(nameof(personDto));
 
             try
             {
-                var person = _genericMapper.MapModel<PersonDto, Person>(personDto);
+                var person = _genericMapper.MapSingle<PersonDto, Person>(personDto);
 
                 if (person == null)
                 {
-                    return false;
+                    return null;
                 }
 
                 await _unitOfWork.personRepository.AddAsync(person);
 
-                var result = await _completeAsync();
+                var IsComoleted = await _completeAsync();
+
+                if (!IsComoleted)
+                    return null;
+
+
+                var result = _genericMapper.MapSingle<Person, PersonDto>(person);
 
                 return result;
 
@@ -67,18 +73,19 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> AddRangeAsync(IEnumerable<PersonDto> peopleDtos)
+        public async Task<IEnumerable<PersonDto>> AddRangeAsync(IEnumerable<PersonDto> peopleDtos)
         {
             try
             {
-                var People = _genericMapper.MapModels<PersonDto, Person>(peopleDtos);
+                var People = _genericMapper.MapCollection<PersonDto, Person>(peopleDtos);
 
                 if (People == null)
-                    return false;
+                    return null;
 
                 await _unitOfWork.personRepository.AddRangeAsync(People);
 
-                return await _completeAsync();
+                var result =  _genericMapper.MapCollection<Person, PersonDto>(People);
+                return result;
             }
             catch (Exception ex)
             {
@@ -87,8 +94,94 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<bool> DeleteByIdAsync(int Id)
+        public async Task<PersonDto> FindByIdAsync(long id)
         {
+            if (id < 1) throw new ArgumentException("Id cannot be smaller than 1");
+            try
+            {
+                var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(id);
+
+                if (person == null)
+                    return null;
+
+                var personDto = _genericMapper.MapSingle<Person, PersonDto>(person);
+
+                return personDto;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+        }
+
+        public async Task<IEnumerable<PersonDto>> GetAllAsync()
+        {
+            try
+            {
+
+                var People = await _unitOfWork.personRepository.GetAllNoTrackingAsync();
+
+                if (People == null)
+                    return null;
+
+                var PeopleDtos = _genericMapper.MapCollection<Person, PersonDto>(People);
+
+                return PeopleDtos;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<long> GetCountOfAsync()
+        {
+            try
+            {
+
+                var result = await _unitOfWork.personRepository.GetCountAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateAsync(PersonDto dto)
+        {
+            if (dto.Id < 1) throw new ArgumentException("Id cannot be smaller than 1");
+            if (dto == null) throw new ArgumentNullException("PersonDto cannot be null");
+            try
+            {
+
+                var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(dto.Id);
+
+                if (person == null)
+                    return false;
+
+                _genericMapper.MapSingle(dto, person);
+
+                _unitOfWork.personRepository.Update(person);
+
+                var IsCompleted = await _completeAsync();
+
+                return IsCompleted;
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteByIdAsync(long Id)
+        {
+            if(Id < 1) throw new ArgumentException("cannot be smaller than 1",nameof(Id));
             try
             {
                 var Person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(Id);
@@ -106,62 +199,13 @@ namespace BusinessLayer.Servicese
             {
                 throw;
             }
-
         }
 
-        public async Task<bool> DeleteRangeByIdAsync(IEnumerable<int> Ids)
+        public async Task<IEnumerable<PersonDto>> GetPagedAllAsync(int pageNumber, int pageSize)
         {
-            try
-            {
-                var People = new List<Person>();
+            if (pageNumber < 1) throw new ArgumentException("Must be greater than zero", nameof(pageNumber));
+            if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
 
-
-                foreach (var id in Ids)
-                {
-                    var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(id);
-
-                    if (person != null)
-                        People.Add(person);
-                }
-
-                if (People.Count < 1)
-                {
-                    return false;
-                }
-
-                _unitOfWork.personRepository.DeleteRange(People);
-
-                return await _completeAsync();
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
-        }
-
-        public async Task<PersonDto> FindByIdAsync(long id)
-        {
-            try
-            {
-                var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(id);
-
-                if (person == null)
-                    return null;
-
-                var personDto = _genericMapper.MapModel<Person, PersonDto>(person);
-
-                return personDto;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-
-        }
-
-        public async Task<IEnumerable<PersonDto>> GetAllPagedAsync(int pageNumber, int pageSize)
-        {
             try
             {
                 var People = await _unitOfWork.personRepository.GetAllPagedAsNoTractingAsync(pageNumber, pageSize);
@@ -169,7 +213,7 @@ namespace BusinessLayer.Servicese
                 if (People == null)
                     return null;
 
-                var PeopleDtos = _genericMapper.MapModels<Person, PersonDto>(People);
+                var PeopleDtos = _genericMapper.MapCollection<Person, PersonDto>(People);
 
                 return PeopleDtos;
             }
@@ -177,103 +221,9 @@ namespace BusinessLayer.Servicese
             {
                 throw;
             }
-
         }
 
-        public async Task<IEnumerable<PersonDto>> GetAllPeopleAsync()
-        {
-            try
-            {
-
-                var People = await _unitOfWork.personRepository.GetAllNoTrackingAsync();
-
-                if (People == null)
-                    return null;
-
-                var PeopleDtos = _genericMapper.MapModels<Person, PersonDto>(People);
-
-                return PeopleDtos;
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
-
-        public async Task<long> GetCountOfPeopleAsync()
-        {
-            try
-            {
-
-                var result = await _unitOfWork.personRepository.GetCountAsync();
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
-
-        public async Task<bool> UpdateAsync(int Id, PersonDto personDto)
-        {
-            try
-            {
-
-                if (personDto == null || Id < 1)
-                    return false;
-
-                var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(Id);
-
-                if (person == null)
-                    return false;
-
-                person = _genericMapper.MapModel<PersonDto, Person>(personDto);
-
-                return await _completeAsync();
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
-
-        public async Task<bool> UpdateRangeAsync(List<int> Ids, List<PersonDto> peopleDtos)
-        {
-            try
-            {
-
-                if (!Ids.Any() || !peopleDtos.Any())
-                    return false;
-
-                var PeopleDtosCount = peopleDtos.Count();
-
-                if (Ids.Count() != PeopleDtosCount)
-                    return false;
-
-                for (int i = 0; i < PeopleDtosCount; i++)
-                {
-                    var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(Ids[i]);
-
-                    if (person == null)
-                        return false;
-
-                    person = _genericMapper.MapModel<PersonDto, Person>(peopleDtos[i]);
-
-                    _unitOfWork.personRepository.Update(person);
-                }
-
-                return await _completeAsync();
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-        }
+      
     }
 
 }

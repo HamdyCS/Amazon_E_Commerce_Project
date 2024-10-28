@@ -9,5 +9,9 @@ namespace DataAccessLayer.Contracks
 {
     public interface ICityRepository : IGenericRepository<City>
     {
+        Task<City> GetByNameEnAsync(string cityNameEn);
+        Task<City> GetByNameArAsync(string cityNameAr);
+        Task DeleteByNameEnAsync(string cityNameEn);
+        Task DeleteByNameArAsync(string cityNameAr);
     }
 }

@@ -210,7 +210,7 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.Property(e => e.Address).HasMaxLength(500);
 
-            entity.HasOne(d => d.City).WithMany(p => p.PeopleAddresses)
+            entity.HasOne(d => d.City).WithMany(p => p.UsersAddresses)
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_UsersAddresses_CityId");
 

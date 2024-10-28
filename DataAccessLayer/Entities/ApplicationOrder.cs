@@ -16,7 +16,6 @@ public partial class ApplicationOrder
 
     public long ShoppingCartId { get; set; }
 
-    [Required]
     public long UserAddressId { get; set; }
 
     public virtual UserAddress? UserAddress { get; set; }

@@ -11,7 +11,6 @@ public partial class Phone
 
     public string PhoneNumber { get; set; }
 
-    [Required]
     public string userId { get; set; }
 
     public virtual User? user { get; set; }

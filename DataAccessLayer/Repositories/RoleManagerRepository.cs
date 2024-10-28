@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
-    public class RoleManager : IRoleManager
+    public class RoleManagerRepository : IRoleManagerRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<RoleManager> _logger;
-        private readonly RoleManager<User> _roleManager;
+        private readonly ILogger<RoleManagerRepository> _logger;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public RoleManager(AppDbContext context,ILogger<RoleManager> logger,RoleManager<User> roleManager)
+        public RoleManagerRepository(AppDbContext context,ILogger<RoleManagerRepository> logger,RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _logger = logger;

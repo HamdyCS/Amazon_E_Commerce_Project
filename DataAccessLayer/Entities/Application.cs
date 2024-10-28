@@ -12,7 +12,6 @@ public partial class Application
 
     public DateTime CreatedAt { get; set; }
 
-    [Required]
     public string UserId { get; set; }
 
     public virtual User? user { get; set; }

@@ -20,7 +20,7 @@ namespace BusinessLayer.Mapper
             _logger = logger;
         }
 
-        public TDestination MapModel<TSourse, TDestination>(TSourse sourse) where TDestination : class
+        public TDestination MapSingle<TSourse, TDestination>(TSourse sourse) where TDestination : class where TSourse : class
         {
             try
             {
@@ -34,7 +34,21 @@ namespace BusinessLayer.Mapper
             
         }
 
-        public IEnumerable<TDestination> MapModels<TSourse, TDestination>(IEnumerable<TSourse> sourse) where TDestination : class
+        public void MapSingle<TSourse, TDestination>(TSourse sourse, TDestination destination) where TDestination : class where TSourse : class
+        {
+            try
+            {
+                 _mapper.Map(sourse,destination);
+            }
+            catch (Exception ex)
+            {
+                
+                _logger.LogError(ex, $"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
+                throw new Exception($"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
+            }
+
+        }
+        public IEnumerable<TDestination> MapCollection<TSourse, TDestination>(IEnumerable<TSourse> sourse) where TDestination : class where TSourse : class
         {
             try
             {

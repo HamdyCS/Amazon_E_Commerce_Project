@@ -114,7 +114,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize)
         {
-            if (pageNumber < 1) throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
+            if (pageNumber < 1) throw new ArgumentException("Must be greater than zero", nameof(pageNumber));
             if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
 
             try

@@ -13,7 +13,7 @@ public partial class City
 
     public virtual ICollection<CitiesWhereDeliveiesWork> CitiesWhereDeliveiesWorks { get; set; } = new List<CitiesWhereDeliveiesWork>();
 
-    public virtual ICollection<UserAddress> PeopleAddresses { get; set; } = new List<UserAddress>();
+    public virtual ICollection<UserAddress> UsersAddresses { get; set; } = new List<UserAddress>();
 
     public virtual ICollection<ShippingCost> ShippingCosts { get; set; } = new List<ShippingCost>();
 }

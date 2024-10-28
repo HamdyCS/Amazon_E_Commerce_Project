@@ -9,14 +9,18 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 {
     public interface IUnitOfWork : IDisposable
     {
+        public ICityRepository cityRepository { get; }
         public IPersonRepository personRepository { get; }
-
+        public IPhoneRepository phoneRepository { get; }
+        public IRefreshTokenRepository refreshTokenRepository { get; }
+        public IRoleManagerRepository roleManagerRepository { get; }
+        public IUserAdderssRepository userAdderssRepository { get; }
         public IUserRepository userRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();
 
-        public void CommitTransactionAsync();
+        public Task CommitTransactionAsync();
 
         public Task RollbackTransactionAsync();
 
