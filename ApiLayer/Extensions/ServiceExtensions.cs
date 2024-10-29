@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Contracks;
+﻿using BusinessLayer.Authentication;
+using BusinessLayer.Contracks;
 using BusinessLayer.Mapper;
 using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Servicese;
@@ -6,8 +7,11 @@ using DataAccessLayer.Contracks;
 using DataAccessLayer.Repositories;
 using DataAccessLayer.UnitOfWork;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
-namespace ApiLayer.Extensions
+namespace BusinessLayer.Extensions
 {
     public static class ServiceExtensions
     {
@@ -22,12 +26,12 @@ namespace ApiLayer.Extensions
             services.AddScoped<ICityService, CityService>();
 
             return services;
-           
+
         }
 
         public static IServiceCollection AddCustomRepositoriesFromDataAccessLayer(this IServiceCollection services)
         {
-            services.AddScoped<ICityRepository,CityRepository>();
+            services.AddScoped<ICityRepository, CityRepository>();
 
             services.AddScoped<IPersonRepository, PersonRepository>();
 
@@ -40,16 +44,45 @@ namespace ApiLayer.Extensions
 
             services.AddScoped<IRoleManagerRepository, RoleManagerRepository>();
 
-            services.AddScoped<IUserAdderssRepository,UserAddressRepository>();
+            services.AddScoped<IUserAdderssRepository, UserAddressRepository>();
 
 
 
-           
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
 
-        
+        public static IServiceCollection AddCustomJwtBearer(this IServiceCollection services, JwtOptions jwtOptions)
+        {
+            services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,opt =>
+                {
+                    opt.SaveToken = true;
+                    opt.TokenValidationParameters = new()
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions.Issuar,
+
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions.Audience,
+
+                        ValidateLifetime = true,
+                        
+
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+
+                        ClockSkew = TimeSpan.Zero,
+
+                        TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey)),
+                    };
+
+
+                });
+
+            return services;
+        }
+
     }
+
 }

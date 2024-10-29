@@ -2,8 +2,9 @@ using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ApiLayer.Extensions;
+using BusinessLayer.Extensions;
 using BusinessLayer.Mapper;
+using BusinessLayer.Authentication;
 
 
 
@@ -21,6 +22,21 @@ builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppD
 
 builder.Services.AddAutoMapper(typeof(PersonProfile));
 
+
+
+var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
+
+
+if (jwtOptions != null)
+{
+    builder.Services.AddSingleton(jwtOptions);
+}
+else
+{
+    Environment.Exit(0);
+}
+
+builder.Services.AddCustomJwtBearer(jwtOptions);
 
 builder.UseSerilog();
 

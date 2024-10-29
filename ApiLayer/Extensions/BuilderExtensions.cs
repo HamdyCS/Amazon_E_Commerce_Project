@@ -1,6 +1,6 @@
 ﻿using Serilog;
 
-namespace ApiLayer.Extensions
+namespace BusinessLayer.Extensions
 {
     public static class BuilderExtensions
     {

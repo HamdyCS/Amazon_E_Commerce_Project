@@ -9,8 +9,13 @@ namespace BusinessLayer.Contracks
 {
     public interface ITokenService
     {
-        public Task<string> GenerateToken(string UserId,string Email);
+        public string GenerateJwtToken(string UserId,string Email);
 
-        public Task<string> GenerateRefreshToken();
+        public Task<string> AddNewRefreshTokenByUserIdAsync(string UserId);
+
+        public Task<bool> CheckIfRefreshTokenIsActiveByUserIdAsync(string UserId,string RefreshTokenString);
+
+        //public Task<string> CheckIfRefreshTokenIsActiveByEmailAsync(string Email, string RefreshTokenString);
+
     }
 }

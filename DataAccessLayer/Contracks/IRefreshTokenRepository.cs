@@ -9,5 +9,8 @@ namespace DataAccessLayer.Contracks
 {
     public interface IRefreshTokenRepository : IGenericRepository<RefreshToken>
     {
+        Task<RefreshToken> GetRefreshTokenByTokenAsync(string Token);
+
+        //bool CheckIfRefreshTokenIsActiveAsync(RefreshToken refreshToken);
     }
 }
