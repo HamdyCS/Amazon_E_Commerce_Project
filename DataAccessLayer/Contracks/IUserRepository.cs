@@ -13,26 +13,26 @@ namespace DataAccessLayer.Contracks
     {
         public Task AddAsync(User user, string Password);
 
-        public Task<bool> CheckIfEmailInSystem(string email);
+        public Task<bool> CheckIfEmailInSystemAsync(string email);
 
-        public void Delete(User entity);
+        public Task DeleteAsync(string Id);
 
-        public Task DeleteUserByEmail(string email);
+        public Task DeleteUserByEmailAsync(string email);
 
 
         public Task<IEnumerable<User>> GetAllNoTrackingAsync();
 
 
-        public Task<IEnumerable<User>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize);
+        public Task<IEnumerable<User>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize);
 
 
-        public Task<IEnumerable<User>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize);
+        public Task<IEnumerable<User>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize);
 
 
         public Task<IEnumerable<User>> GetAllTrackingAsync();
 
 
-        public Task<User> GetById(string id);
+        public Task<User> GetByIdAsync(string id);
 
         public Task<long> GetCountAsync();
 
@@ -40,10 +40,10 @@ namespace DataAccessLayer.Contracks
         public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);
 
 
-        public Task UpdateEmailByEmailAsync(string email, string NewEmail);
+        public Task<bool> UpdateEmailByEmailAsync(string email, string NewEmail);
 
 
-        public Task UpdatePasswordByEmailAsync(User user, string password, string Newpassword);
+        public Task<bool> UpdatePasswordByEmailAsync(User user, string password, string Newpassword);
 
         public Task<IEnumerable<string>> GetUserRolesByEmailAsync(string Email);
 

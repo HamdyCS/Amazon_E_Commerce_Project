@@ -19,10 +19,12 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<T>> AddRangeAsync(IEnumerable<T> dtos);
 
-        public Task<bool> UpdateAsync(T dto);
+        public Task<bool> UpdateByIdAsync(long Id,T dto);
 
         public Task<bool> DeleteByIdAsync(long Id);
 
-        public Task<IEnumerable<T>> GetPagedAllAsync(int pageNumber, int pageSize);
+        public Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids);
+
+        public Task<IEnumerable<T>> GetPagedDataAsync(int pageNumber, int pageSize);
     }
 }

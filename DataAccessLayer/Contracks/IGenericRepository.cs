@@ -14,7 +14,7 @@ namespace DataAccessLayer.Contracks
 
         public Task<IEnumerable<T>> GetAllNoTrackingAsync();
 
-        public Task<IEnumerable<T>> GetAllTrackingAsync();
+        public Task<IEnumerable<T>> GetAllAsTrackingAsync();
 
         public Task<long> GetCountAsync();
 
@@ -22,17 +22,15 @@ namespace DataAccessLayer.Contracks
 
         public Task AddRangeAsync(IEnumerable<T> entities);
 
-        public void Update(T entity);
+        public Task UpdateAsync(long Id,T entity);
 
-        public void UpdateRange(IEnumerable<T> entities);
+        public Task DeleteAsync(long id);
 
-        public void Delete(T entity);
+        public Task DeleteRangeAsync(IEnumerable<long> Ids);
 
-        public void DeleteRange(IEnumerable<T> entities);
+        public Task<IEnumerable<T>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize);
 
-        public Task<IEnumerable<T>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize);
-
-        public Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize);
+        public Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize);
 
        
     }

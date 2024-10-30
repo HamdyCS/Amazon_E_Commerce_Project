@@ -53,7 +53,7 @@ namespace DataAccessLayer.Repositories
                 throw _HandelDataBaseException(ex);
             }
         }
-        public async Task<bool> CheckIfEmailInSystem(string email)
+        public async Task<bool> CheckIfEmailInSystemAsync(string email)
         {
             
 
@@ -75,12 +75,17 @@ namespace DataAccessLayer.Repositories
 
         }
 
-        public void Delete(User user)
+        public async Task DeleteAsync(string Id)
         {
-            if (user == null) throw new ArgumentNullException("User");
+            if(string.IsNullOrEmpty(Id)) throw new ArgumentException("Cannot be null or empty",nameof(Id));
+
             try
             {
-                _context.Users.Remove(user);
+                var existingEntity =await  _userManager.FindByIdAsync(Id);
+
+                if (existingEntity is null) throw new KeyNotFoundException("Not found by id");
+
+                await _userManager.DeleteAsync(existingEntity);
             }
             catch (Exception ex)
             {
@@ -91,7 +96,7 @@ namespace DataAccessLayer.Repositories
            
         }
 
-        public async Task DeleteUserByEmail(string email)
+        public async Task DeleteUserByEmailAsync(string email)
         {
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
 
@@ -125,7 +130,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<User>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<User>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize)
         {
             if (pageNumber < 1) throw new ArgumentException("Page number cannot be smaller than one");
             if (pageNumber < 1) throw new ArgumentException("Page size cannot be smaller than one");
@@ -141,7 +146,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<User>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<User>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
             if (pageNumber < 1) throw new ArgumentException("Page number cannot be smaller than one");
             if (pageNumber < 1) throw new ArgumentException("Page size cannot be smaller than one");
@@ -170,7 +175,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<User> GetById(string Id)
+        public async Task<User> GetByIdAsync(string Id)
         {
           
             if (string.IsNullOrEmpty(Id)) throw new ArgumentException("ID cannot be null or empty");
@@ -227,7 +232,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task UpdateEmailByEmailAsync(string email, string NewEmail)
+        public async Task<bool> UpdateEmailByEmailAsync(string email, string NewEmail)
         {
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null or empty");
             if (string.IsNullOrEmpty(NewEmail)) throw new ArgumentException("New Email cannot be null or empty");
@@ -256,7 +261,7 @@ namespace DataAccessLayer.Repositories
                     throw new InvalidOperationException($"Cannot update email. Error : {errorMessage}");// InvalidOperationException  افضل للوضوح
 
                 }
-
+                return true;
             }
             catch (Exception ex)
             {
@@ -265,7 +270,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task UpdatePasswordByEmailAsync(User user,string password, string Newpassword)
+        public async Task<bool> UpdatePasswordByEmailAsync(User user,string password, string Newpassword)
         {
             if(user == null) throw new ArgumentNullException("User");
 
@@ -286,6 +291,8 @@ namespace DataAccessLayer.Repositories
                     throw new InvalidOperationException($"Cannot update password. Error : {errorMessage}");// InvalidOperationException  افضل للوضوح
 
                 }
+
+                return true;
             }
             catch (Exception ex)
             {

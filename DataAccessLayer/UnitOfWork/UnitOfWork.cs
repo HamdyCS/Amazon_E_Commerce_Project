@@ -25,9 +25,8 @@ namespace DataAccessLayer.UnitOfWork
         public IUserAdderssRepository userAdderssRepository { get; private set; }
         public IUserRepository userRepository { get; private set; }
 
-       
 
-       
+
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
             ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
@@ -50,57 +49,76 @@ namespace DataAccessLayer.UnitOfWork
             try
             {
                  _transaction = await _context.Database.BeginTransactionAsync();
+                return;
             }
             catch (Exception ex) 
             {
-                _logger.LogError("Cannot begin Transaction ");
+               
+                _logger.LogError("Error while Beginning Transaction, Error : {ErrorMessage}", ex.Message);
+                throw new Exception($"Error while Beginning Transaction, Error : {ex.Message}");
             }
         }
 
         public async Task CommitTransactionAsync()
         {
-            if(_transaction == null)
-            {
-                _logger.LogError("Transaction object is null");
-                return;
-            }
+            if (_transaction == null) throw new NullReferenceException("_transaction object is null");
+           
 
             try
             {
                 await _transaction.CommitAsync();
+                return;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Cannot Commit Transaction ");
+                _logger.LogError("Error while Transitioning, Error : {ErrorMessage}", ex.Message);
+                throw new Exception($"Error while Transitioning, Error : {ex.Message}");
             }
 
         }
        
         public async Task<long> CompleteAsync()
         {
-           return await _context.SaveChangesAsync();
+            try
+            {
+                var result =  await _context.SaveChangesAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while saving changes to database, Error : {ErrorMessage}", ex.Message);
+                throw new Exception($"Error while saving changes to database, Error :  {ex.Message}");
+            }
         }
 
         public async void Dispose()
         {
-           await _context.DisposeAsync();
+            try
+            {
+                await _context.DisposeAsync();
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while Disposeing context object, Error : {ErrorMessage}", ex.Message);
+                throw new Exception($"Error while Disposeing context object, Error :  {ex.Message}");
+
+            }
         }
 
         public async Task RollbackTransactionAsync()
         {
-            if (_transaction == null)
-            {
-                _logger.LogError("Transaction object is null");
-                return;
-            }
+            if (_transaction == null) throw new NullReferenceException("_transaction object is null");
 
             try
             {
                await _transaction.RollbackAsync();
+                return;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Cannot Roll back Transaction ");
+                _logger.LogError("Error while Rolling back Transaction, Error : {Error message}",ex.Message);
+                throw new Exception($"Error while Rolling back Transaction, Error : {ex.Message}");
             }
         }
     }

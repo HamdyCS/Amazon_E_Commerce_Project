@@ -106,7 +106,7 @@ namespace BusinessLayer.Servicese
 
                 if (city == null) return false;
 
-                _unitOfWork.cityRepository.Delete(city);
+                await _unitOfWork.cityRepository.DeleteAsync(Id);
 
                 var IsComoleted = await _completeAsync();
 
@@ -128,7 +128,7 @@ namespace BusinessLayer.Servicese
 
                 if (city == null) return false;
 
-                _unitOfWork.cityRepository.Delete(city);
+                await _unitOfWork.cityRepository.DeleteAsync(city.Id);
 
                 var IsComoleted = await _completeAsync();
 
@@ -150,7 +150,7 @@ namespace BusinessLayer.Servicese
 
                 if (city == null) return false;
 
-                _unitOfWork.cityRepository.Delete(city);
+                await _unitOfWork.cityRepository.DeleteAsync(city.Id);
 
                 var IsComoleted = await _completeAsync();
 
@@ -251,14 +251,14 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<IEnumerable<CityDto>> GetPagedAllAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<CityDto>> GetPagedDataAsync(int pageNumber, int pageSize)
         {
             if (pageNumber < 1) throw new ArgumentException("Must be greater than zero", nameof(pageNumber));
             if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
 
             try
             {
-                var cities = await _unitOfWork.cityRepository.GetAllPagedAsNoTractingAsync(pageNumber, pageSize);
+                var cities = await _unitOfWork.cityRepository.GetPagedDataAsNoTractingAsync(pageNumber, pageSize);
 
                 var citiesDtos = _genericMapper.MapCollection<City,CityDto>(cities);
 
@@ -270,14 +270,14 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateAsync(CityDto dto)
+        public async Task<bool> UpdateByIdAsync(long Id,CityDto dto)
         {
-            if (dto.Id < 1) throw new ArgumentException("Id cannot be smaller than 1");
+            if (Id < 1) throw new ArgumentException("Id cannot be smaller than 1");
             if (dto == null) throw new ArgumentNullException("Cannot be null",nameof(dto));
 
             try
             {
-                var city = await _unitOfWork.cityRepository.GetByIdAsTrackingAsync(dto.Id);
+                var city = await _unitOfWork.cityRepository.GetByIdAsTrackingAsync(Id);
 
                 if(city == null) return false;
 
@@ -293,6 +293,23 @@ namespace BusinessLayer.Servicese
             }
         }
 
+        public async Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids)
+        {
+           if(Ids is null ||!Ids.Any()) throw new ArgumentException("cannot be null or empty",nameof(Ids));
 
+            try
+            {
+               await  _unitOfWork.cityRepository.DeleteRangeAsync(Ids);
+
+                var result = await _completeAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        
     }
 }

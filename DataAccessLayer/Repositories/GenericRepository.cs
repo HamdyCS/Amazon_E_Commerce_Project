@@ -55,13 +55,17 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public void Delete(T entity)
+        public async Task DeleteAsync(long Id)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
 
+            if (Id < 1) throw new ArgumentException("Cannot be smaller than 1", nameof(Id));
             try
             {
-                _context.Set<T>().Attach(entity);
+                var entity = await GetByIdAsTrackingAsync(Id);
+
+                if (entity is null)
+                    throw new KeyNotFoundException("Not found by id");
+
                 _context.Set<T>().Remove(entity);
             }
             catch (Exception ex)
@@ -70,14 +74,20 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public void DeleteRange(IEnumerable<T> entities)
+        public async Task DeleteRangeAsync(IEnumerable<long> Ids)
         {
-            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
+            if (Ids == null || !Ids.Any()) throw new ArgumentException("Cannot be null or empty", nameof(Ids));
 
             try
             {
-                _context.Set<T>().AttachRange(entities);
-                _context.Set<T>().RemoveRange(entities);
+                foreach (long Id in Ids)
+                {
+                    var entity = await GetByIdAsTrackingAsync(Id);
+
+                    if (entity is null) throw new KeyNotFoundException("Not found by Id");
+
+                    _context.Set<T>().Remove(entity);
+                }
             }
             catch (Exception ex)
             {
@@ -97,7 +107,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllPagedAsNoTractingAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<T>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize)
         {
             if (pageNumber < 1) throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
             if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
@@ -112,7 +122,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllPagedAsTractingAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
             if (pageNumber < 1) throw new ArgumentException("Must be greater than zero", nameof(pageNumber));
             if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
@@ -127,7 +137,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllTrackingAsync()
+        public async Task<IEnumerable<T>> GetAllAsTrackingAsync()
         {
             try
             {
@@ -141,10 +151,12 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsTrackingAsync(long id)
         {
+            if (id < 1) throw new ArgumentException("Must be greater than zero", nameof(id));
+
             try
             {
                 var entity = await _context.Set<T>().FindAsync(id);
-                if (entity == null) throw new ArgumentException($"Entity with ID {id} not found");
+                
                 return entity;
             }
             catch (Exception ex)
@@ -155,10 +167,11 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsNoTrackingAsync(long id)
         {
+            if (id < 1) throw new ArgumentException("Must be greater than zero", nameof(id));
+
             try
             {
                 var entity = await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id);
-                if (entity == null) throw new ArgumentException($"Entity with ID {id} not found");
                 return entity;
             }
             catch (Exception ex)
@@ -179,13 +192,17 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public void Update(T entity)
+        public async Task UpdateAsync(long Id, T entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
             try
             {
-                _context.Set<T>().Update(entity);
+                var existingEntity = await GetByIdAsTrackingAsync(Id);
+
+                if (existingEntity == null) throw new KeyNotFoundException("Not found by id");
+
+                _context.Set<T>().Entry(existingEntity).CurrentValues.SetValues(entity);
             }
             catch (Exception ex)
             {
@@ -193,21 +210,8 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public void UpdateRange(IEnumerable<T> entities)
-        {
-            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
 
-            try
-            {
-                _context.Set<T>().UpdateRange(entities);
-            }
-            catch (Exception ex)
-            {
-                throw HandleDatabaseException(ex, nameof(T));
-            }
-        }
 
-       
     }
 
 }
