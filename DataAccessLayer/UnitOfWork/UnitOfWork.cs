@@ -20,7 +20,6 @@ namespace DataAccessLayer.UnitOfWork
 
         public ICityRepository cityRepository { get; private set; }
         public IPersonRepository personRepository { get; private set; }
-        public IPhoneRepository phoneRepository { get; private set; }
         public IRefreshTokenRepository refreshTokenRepository { get; private set; }
         public IRoleManagerRepository roleManagerRepository { get; private set; }
         public IUserAdderssRepository userAdderssRepository { get; private set; }
@@ -30,7 +29,7 @@ namespace DataAccessLayer.UnitOfWork
 
        
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
-            ICityRepository cityRepository,IPersonRepository personRepository,IPhoneRepository phoneRepository,
+            ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
             IUserAdderssRepository userAdderssRepository,IUserRepository userRepository) 
         {
@@ -38,7 +37,6 @@ namespace DataAccessLayer.UnitOfWork
             this._logger = logger;
             this.cityRepository = cityRepository;
             this.personRepository = personRepository;
-            this.phoneRepository = phoneRepository;
             this.refreshTokenRepository = refreshTokenRepository;
             this.roleManagerRepository = roleManagerRepository;
             this.userAdderssRepository = userAdderssRepository;

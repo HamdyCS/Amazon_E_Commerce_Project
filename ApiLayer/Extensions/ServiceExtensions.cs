@@ -35,7 +35,6 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IPersonRepository, PersonRepository>();
 
-            services.AddScoped<IPhoneRepository, PhoneRepository>();
 
             services.AddScoped<IUserRepository, UserRepository>();
 

@@ -47,8 +47,6 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<Person> People { get; set; }
 
-    public virtual DbSet<Phone> Phones { get; set; }
-
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<ProductCategory> ProductCategories { get; set; }
@@ -225,14 +223,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.LastName).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<Phone>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Phones__3214EC076BAE186A");
-
-            entity.Property(e => e.PhoneNumber).HasMaxLength(50);
-
-          
-        });
+       
 
         modelBuilder.Entity<Product>(entity =>
         {
@@ -367,10 +358,8 @@ public class AppDbContext : IdentityDbContext<User>
         modelBuilder.Entity<User>(entity =>
         {
             entity.ToTable("Users");
-            entity.Ignore(p => p.PhoneNumber);
             entity.Ignore(p => p.PhoneNumberConfirmed);
 
-            entity.HasOne(u=>u.phone).WithOne(p=>p.user).HasForeignKey<User>(u=>u.PhoneId).HasConstraintName("Fk_Users_PhoneId");
             entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a=>a.UserId);
 
         });

@@ -11,7 +11,6 @@ namespace DataAccessLayer.UnitOfWork.Contracks
     {
         public ICityRepository cityRepository { get; }
         public IPersonRepository personRepository { get; }
-        public IPhoneRepository phoneRepository { get; }
         public IRefreshTokenRepository refreshTokenRepository { get; }
         public IRoleManagerRepository roleManagerRepository { get; }
         public IUserAdderssRepository userAdderssRepository { get; }
