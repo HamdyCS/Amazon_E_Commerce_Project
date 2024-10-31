@@ -18,13 +18,15 @@ namespace BusinessLayer.Servicese
 {
     public class TokenService : ITokenService
     {
+        private readonly IUserService _userService;
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TokenService> _logger;
         private readonly JwtOptions _jwtOptions;
 
-        public TokenService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<TokenService> logger, JwtOptions jwtOptions)
+        public TokenService(IUserService userService,IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<TokenService> logger, JwtOptions jwtOptions)
         {
+            _userService = userService;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _logger = logger;
@@ -63,6 +65,10 @@ namespace BusinessLayer.Servicese
 
             try
             {
+                var userDto =await  _userService.FindByIdAsync(UserId);
+
+                if (userDto is null) return null;
+
                 var NewRefreshTokenString = _GenerateRefreshToken();
 
                 var refreshToken = new RefreshToken
@@ -104,12 +110,22 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public string GenerateJwtToken(string UserId, string Email)
+        public string GenerateJwtToken(string UserId, string Email,IEnumerable<string> roles)
         {
             if (string.IsNullOrEmpty(UserId)) throw new ArgumentException("Cannot be null", nameof(UserId));
             if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Cannot be null", nameof(Email));
 
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
+
+            var claims = new List<Claim>()
+                        {
+                            new Claim(ClaimTypes.NameIdentifier, UserId),
+                            new Claim(ClaimTypes.Email, Email),
+
+                        };
+
+            foreach (var role in roles) 
+                claims.Add(new Claim(ClaimTypes.Role, role));
 
             SecurityTokenDescriptor securityTokenDescriptor = new()
             {
@@ -133,13 +149,11 @@ namespace BusinessLayer.Servicese
 
                     ),
 
+                
+
                 Subject = new ClaimsIdentity
                     (
-                        new List<Claim>()
-                        {
-                            new Claim(ClaimTypes.NameIdentifier, UserId),
-                            new Claim(ClaimTypes.Email, Email)
-                        }
+                       claims
                     ),
             };
 

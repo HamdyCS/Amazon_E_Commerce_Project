@@ -1,9 +1,11 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
+using DataAccessLayer.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +31,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task AddAsync(T entity)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            ParamaterException.CheckIfObjectIfNotNull(entity, nameof(entity));
 
             try
             {
@@ -43,7 +45,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            if (entities == null || !entities.Any()) throw new ArgumentException("Entities cannot be null or empty", nameof(entities));
+            ParamaterException.CheckIfIEnumerableIsValid(entities, nameof(entities));
+
 
             try
             {
@@ -58,7 +61,8 @@ namespace DataAccessLayer.Repositories
         public async Task DeleteAsync(long Id)
         {
 
-            if (Id < 1) throw new ArgumentException("Cannot be smaller than 1", nameof(Id));
+            ParamaterException.CheckIfLongIsValid(Id, nameof(Id));
+
             try
             {
                 var entity = await GetByIdAsTrackingAsync(Id);
@@ -76,7 +80,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task DeleteRangeAsync(IEnumerable<long> Ids)
         {
-            if (Ids == null || !Ids.Any()) throw new ArgumentException("Cannot be null or empty", nameof(Ids));
+            ParamaterException.CheckIfIEnumerableIsValid(Ids, nameof(Ids));
 
             try
             {
@@ -109,8 +113,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize)
         {
-            if (pageNumber < 1) throw new ArgumentException("Page number must be greater than zero", nameof(pageNumber));
-            if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+            ParamaterException.CheckIfLongIsValid(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsValid(pageSize, nameof(pageSize));
 
             try
             {
@@ -124,8 +128,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
-            if (pageNumber < 1) throw new ArgumentException("Must be greater than zero", nameof(pageNumber));
-            if (pageSize < 1) throw new ArgumentException("Page size must be greater than zero", nameof(pageSize));
+           ParamaterException.CheckIfLongIsValid(pageNumber, nameof(pageNumber));
+           ParamaterException.CheckIfLongIsValid(pageSize, nameof(pageSize));
 
             try
             {
@@ -151,7 +155,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsTrackingAsync(long id)
         {
-            if (id < 1) throw new ArgumentException("Must be greater than zero", nameof(id));
+            ParamaterException.CheckIfLongIsValid(id, nameof(id));
 
             try
             {
@@ -167,7 +171,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsNoTrackingAsync(long id)
         {
-            if (id < 1) throw new ArgumentException("Must be greater than zero", nameof(id));
+            ParamaterException.CheckIfLongIsValid(id, nameof(id));
 
             try
             {
@@ -194,7 +198,9 @@ namespace DataAccessLayer.Repositories
 
         public async Task UpdateAsync(long Id, T entity)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            ParamaterException.CheckIfLongIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfObjectIfNotNull(entity, nameof(entity));
+
 
             try
             {

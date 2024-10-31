@@ -196,8 +196,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<UserDto>> GetPagedDataAsync(int pageNumber, int pageSize)
         {
-            ParamaterException.CheckIfIntValueIsValid(pageNumber, nameof(pageNumber));
-            ParamaterException.CheckIfIntValueIsValid(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfIntIsValid(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsValid(pageSize, nameof(pageSize));
 
             try
             {
@@ -215,16 +215,19 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateEmailAsync(string Id, string Email, string NewEmail)
+        public async Task<bool> UpdateEmailAsync(string Id,  string NewEmail)
         {
             ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(Email, nameof(Email));
             ParamaterException.CheckIfStringIsValid(NewEmail, nameof(NewEmail));
 
 
             try
             {
-                var result = await _unitOfWork.userRepository.UpdateEmailByEmailAsync(Email, NewEmail);
+                var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
+
+                if (user is null) return false;
+
+                var result = await _unitOfWork.userRepository.UpdateEmailByIdAsync(Id, NewEmail);
 
                 return result;
             }
@@ -234,9 +237,25 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public Task<bool> UpdatePasswordAsync(string Id, string password, string NewPassword)
+        public async Task<bool> UpdatePasswordAsync(string Id, string password, string NewPassword)
         {
-            throw new NotImplementedException();
+            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsValid(password, nameof(password));
+            ParamaterException.CheckIfStringIsValid(NewPassword, nameof(NewPassword));
+
+            try
+            {
+                var user = await  _unitOfWork.userRepository.GetByIdAsync(Id);
+
+                if (user is null) return false;
+
+                var result = await _unitOfWork.userRepository.UpdatePasswordByIdAsync(Id, password, NewPassword);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<bool> DeleteRangeByIdAsync(IEnumerable<string> Ids)
@@ -250,6 +269,147 @@ namespace BusinessLayer.Servicese
 
                 }
                 var result = await _CompleteAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<RoleDto>> GetAllUserRolesByIdAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsValid(userId, nameof(userId));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(userId);
+
+                if (user is null) return null;
+
+                var userRoles = await _unitOfWork.userRepository.GetUserRolesByIdAsync(userId);
+
+                var userRolesDtos = new List<RoleDto>();
+
+                foreach (var role in userRoles)
+                    userRolesDtos.Add(new RoleDto { Name = role });
+
+                return userRolesDtos;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> IsUserInRoleByIdAsync(string UserID, RoleDto roleDto)
+        {
+            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(UserID);
+
+                if (user is null) return false;
+
+                var result = await _unitOfWork.userRepository.CheckIfUserInRoleByIdAsync(UserID, roleDto.Name);
+
+                return result;
+
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteUserFromRoleByIdAsync(string UserID, RoleDto roleDto)
+        {
+            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfObjectIfNotNull(roleDto , nameof(roleDto));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(UserID);
+
+                if (user is null) return false;
+
+                var result = await _unitOfWork.userRepository.DeleteUserFromRoleByIdAsync(UserID , roleDto.Name);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteUserFromRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
+        {
+            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfIEnumerableIsValid(rolesDtos, nameof(rolesDtos));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(UserID);
+
+                if (user is null) return false;
+
+                var roles = new List<string>();
+
+                foreach (var roleDto in rolesDtos)
+                    roles.Add(roleDto.Name);
+
+                var result = await _unitOfWork.userRepository.DeleteUserFromRolesByIdAsync(UserID,roles );
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> AddToRoleByIdAsync(string UserID, RoleDto roleDto)
+        {
+            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(UserID);
+
+                if (user is null) return false;
+
+                var result = await _unitOfWork.userRepository.AddUserToRoleByIdAsync(UserID, roleDto.Name);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public  async Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
+        {
+            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfIEnumerableIsValid(rolesDtos, nameof(rolesDtos));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(UserID);
+
+                if (user is null) return false;
+
+                var roles = new List<string>();
+
+                foreach (var roleDto in rolesDtos)
+                    roles.Add(roleDto.Name);
+
+                var result = await _unitOfWork.userRepository.AddUserToRolesByIdAsync(UserID, roles);
+
                 return result;
             }
             catch (Exception ex)

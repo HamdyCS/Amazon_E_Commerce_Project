@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLayer.Exceptions
+namespace DataAccessLayer.Exceptions
 {
     public static class ParamaterException
     {
@@ -18,7 +18,7 @@ namespace BusinessLayer.Exceptions
             if (value<1) { throw new ArgumentException("Cannot be smaller than 1", paramName); }
         }
 
-        public static void CheckIfIntIsValid(int value, string paramName)
+        public static void CheckIfIntsValid(int value, string paramName)
         {
             if (value < 1) { throw new ArgumentException("Cannot be smaller than 1", paramName); }
         }

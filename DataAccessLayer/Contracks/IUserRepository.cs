@@ -11,7 +11,7 @@ namespace DataAccessLayer.Contracks
 {
     public interface IUserRepository
     {
-        public Task AddAsync(User user, string Password);
+        public Task<bool> AddAsync(User user, string Password);
 
         public Task<bool> CheckIfEmailInSystemAsync(string email);
 
@@ -40,17 +40,21 @@ namespace DataAccessLayer.Contracks
         public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);
 
 
-        public Task<bool> UpdateEmailByEmailAsync(string email, string NewEmail);
+        public Task<bool> UpdateEmailByIdAsync(string Id, string NewEmail);
 
 
-        public Task<bool> UpdatePasswordByEmailAsync(User user, string password, string Newpassword);
+        public Task<bool> UpdatePasswordByIdAsync(string Id, string password, string Newpassword);
 
-        public Task<IEnumerable<string>> GetUserRolesByEmailAsync(string Email);
+        public Task<IEnumerable<string>> GetUserRolesByIdAsync(string Id);
 
-        public Task<bool> CheckIfUserInRoleByEmailAsync(string Email,string Role);
+        public Task<bool> CheckIfUserInRoleByIdAsync(string Id, string Role);
 
-        Task<  bool> DeleteUserFromRolesByEmailAsync(IEnumerable<string> roles,string Email);
+        Task<bool> DeleteUserFromRolesByIdAsync(string Id, IEnumerable<string> roles);
 
-        Task<bool> DeleteUserFromRoleByEmailAsync(string Role,string Email);
+        Task<bool> DeleteUserFromRoleByIdAsync(string Id, string Role);
+
+        Task<bool> AddUserToRoleByIdAsync(string Id, string Role);
+
+        public Task<bool> AddUserToRolesByIdAsync(string Id, IEnumerable<string> roles);
     }
 }
