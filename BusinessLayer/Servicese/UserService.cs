@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace BusinessLayer.Servicese
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IPendingUserService _pendingUserService;
         private readonly IPersonService _personService;
         private readonly ILogger<UserService> _logger;
         private readonly IGenericMapper _genericMapper;
@@ -35,90 +37,30 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public UserService(IUnitOfWork unitOfWork, IPersonService personService, ILogger<UserService> logger,
+        public UserService(IUnitOfWork unitOfWork, IPendingUserService pendingUserService, IPersonService personService, ILogger<UserService> logger,
             IGenericMapper genericMapper)
         {
             _unitOfWork = unitOfWork;
+            _pendingUserService = pendingUserService;
             _personService = personService;
             _logger = logger;
             _genericMapper = genericMapper;
         }
 
 
-        public async Task<UserDto> AddAsync(UserDto dto)
-        {
-            ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
-
-            try
-            {
-                var personDto = _genericMapper.MapSingle<UserDto, PersonDto>(dto);
-
-                if (personDto == null) return null;
-
-
-                var NewPersonDtoResult = await _personService.AddAsync(personDto);
-
-                if (NewPersonDtoResult is null || NewPersonDtoResult.Id < 1) return null;
-
-
-                var NewUser = _genericMapper.MapSingle<UserDto, User>(dto);
-
-                if (NewUser is null) return null;
-
-                NewUser.PersonId = NewPersonDtoResult.Id;
-
-
-                await _unitOfWork.userRepository.AddAsync(NewUser, dto.Password);
-
-                var IsCompleted = await _CompleteAsync();
-
-
-                if (IsCompleted)
-                    _genericMapper.MapSingle(NewUser, dto);
-
-
-                return IsCompleted ? dto : null;
-
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public async Task<IEnumerable<UserDto>> AddRangeAsync(IEnumerable<UserDto> dtos)
-        {
-            ParamaterException.CheckIfIEnumerableIsValid(dtos, nameof(dtos));
-            try
-            {
-                List<UserDto> result = new List<UserDto>();
-
-                foreach (var dto in dtos)
-                {
-                    var userDto = await AddAsync(dto);
-
-                    if (userDto == null) continue;
-
-                    result.Add(userDto);
-                }
-
-                return result.Any() ? result : null;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public async Task<bool> CheckEmailAndPasswordAsync(LoginDto loginDto)
+        public async Task<UserDto> GetUserByEmailAndPasswordAsync(LoginDto loginDto)
         {
             ParamaterException.CheckIfObjectIfNotNull(loginDto, nameof(loginDto));
 
             try
             {
-                var result = await _unitOfWork.userRepository.GetUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password);
+                var user = await _unitOfWork.userRepository.GetUserByEmailAndPasswordAsync(loginDto.Email, loginDto.Password);
 
-                return result != null;
+                if (user is null) return null;
+
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+
+                return userDto;
             }
             catch (Exception ex)
             {
@@ -181,7 +123,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<long> GetCountOfAsync()
+        public async Task<long> GetCountOfUsersAsync()
         {
             try
             {
@@ -215,7 +157,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateEmailAsync(string Id,  string NewEmail)
+        public async Task<bool> UpdateEmailAsync(string Id, string NewEmail)
         {
             ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
             ParamaterException.CheckIfStringIsValid(NewEmail, nameof(NewEmail));
@@ -227,7 +169,9 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return false;
 
-                var result = await _unitOfWork.userRepository.UpdateEmailByIdAsync(Id, NewEmail);
+                var NewUserName = new MailAddress(NewEmail).User;
+
+                var result = await _unitOfWork.userRepository.UpdateEmailByIdAsync(Id, NewEmail, NewUserName);
 
                 return result;
             }
@@ -245,7 +189,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var user = await  _unitOfWork.userRepository.GetByIdAsync(Id);
+                var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
 
                 if (user is null) return false;
 
@@ -327,7 +271,7 @@ namespace BusinessLayer.Servicese
         public async Task<bool> DeleteUserFromRoleByIdAsync(string UserID, RoleDto roleDto)
         {
             ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
-            ParamaterException.CheckIfObjectIfNotNull(roleDto , nameof(roleDto));
+            ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
 
             try
             {
@@ -335,7 +279,7 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return false;
 
-                var result = await _unitOfWork.userRepository.DeleteUserFromRoleByIdAsync(UserID , roleDto.Name);
+                var result = await _unitOfWork.userRepository.DeleteUserFromRoleByIdAsync(UserID, roleDto.Name);
 
                 return result;
             }
@@ -361,7 +305,7 @@ namespace BusinessLayer.Servicese
                 foreach (var roleDto in rolesDtos)
                     roles.Add(roleDto.Name);
 
-                var result = await _unitOfWork.userRepository.DeleteUserFromRolesByIdAsync(UserID,roles );
+                var result = await _unitOfWork.userRepository.DeleteUserFromRolesByIdAsync(UserID, roles);
 
                 return result;
             }
@@ -392,7 +336,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public  async Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
+        public async Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
         {
             ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
             ParamaterException.CheckIfIEnumerableIsValid(rolesDtos, nameof(rolesDtos));
@@ -413,6 +357,77 @@ namespace BusinessLayer.Servicese
                 return result;
             }
             catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<UserDto> ConfirmEmailByEmailAndCodeAsync(string Email, string code)
+        {
+            ParamaterException.CheckIfStringIsValid(Email, nameof(Email));
+            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+
+            try
+            {
+                var pendingUser = await _pendingUserService.FindByEmailAndCodeAsync(Email, code);
+                if (pendingUser is null) return null;
+
+
+                var userDto = _genericMapper.MapSingle<PendingUser, UserDto>(pendingUser);
+                if (userDto is null) return null;
+
+
+                var personDto = _genericMapper.MapSingle<UserDto, PersonDto>(userDto);
+                if (personDto == null) return null;
+
+
+                await _unitOfWork.BeginTransactionAsync();
+
+
+                var NewPersonDtoResult = await _personService.AddAsync(personDto);
+                if (NewPersonDtoResult is null || NewPersonDtoResult.Id < 1) return null;
+
+
+                var NewUser = _genericMapper.MapSingle<UserDto, User>(userDto);
+                if (NewUser is null) return null;
+
+
+                NewUser.PersonId = NewPersonDtoResult.Id;
+                NewUser.UserName = new MailAddress(NewUser.Email).User;
+
+                
+
+                var IsCompleted = await _unitOfWork.userRepository.AddAsync(NewUser, userDto.Password); ;
+
+
+                if (IsCompleted)
+                {
+                    await _unitOfWork.CommitTransactionAsync();
+                    _genericMapper.MapSingle(NewUser, userDto);
+
+                }
+
+                return IsCompleted ? userDto : null;
+
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+
+        }
+
+        public async Task<bool> IsEmailExistAsync(string Email)
+        {
+            ParamaterException.CheckIfStringIsValid(Email,nameof(Email));
+
+            try
+            {
+                var IsEmailExist = await _unitOfWork.userRepository.CheckIfEmailInSystemAsync(Email);
+                return IsEmailExist;
+            }
+            catch(Exception ex)
             {
                 throw;
             }

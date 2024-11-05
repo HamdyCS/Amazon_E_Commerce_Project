@@ -6,10 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLayer.Dtos
+namespace DataAccessLayer.Entities
 {
-    public class UserDto
+    public class PendingUser
     {
+        [Required]
         public string Id { get; set; }
 
         [Required]
@@ -22,7 +23,7 @@ namespace BusinessLayer.Dtos
         [Required, CustomValidation(typeof(PersonValidtion), "DateOfBirthValidtion")]
         public DateTime DateOfBirth { get; set; }
 
-        [Required,Phone]
+        [Required, Phone]
         public string PhoneNumber { get; set; }
 
         [Required]
@@ -30,5 +31,11 @@ namespace BusinessLayer.Dtos
 
         [Required]
         public string Password { get; set; }
+
+        [Required]
+        public string RoleName { get; set; }
+
+        [Required]
+        public string Code { get; set; }
     }
 }

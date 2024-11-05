@@ -67,6 +67,8 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
 
+    public virtual DbSet<PendingUser> PendingUsers { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
@@ -77,6 +79,11 @@ public class AppDbContext : IdentityDbContext<User>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<PendingUser>(entity => 
+        {
+            entity.HasKey(e => e.Id).HasName("Pk");
+        });
 
         modelBuilder.Entity<Application>(entity =>
         {

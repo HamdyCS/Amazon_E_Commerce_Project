@@ -1,7 +1,7 @@
-﻿using BusinessLayer.Authentication;
-using BusinessLayer.Contracks;
+﻿using BusinessLayer.Contracks;
 using BusinessLayer.Mapper;
 using BusinessLayer.Mapper.Contracks;
+using BusinessLayer.Options;
 using BusinessLayer.Servicese;
 using DataAccessLayer.Contracks;
 using DataAccessLayer.Repositories;
@@ -25,6 +25,17 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ICityService, CityService>();
 
+            services.AddScoped<IRoleManagerRepository, RoleManagerRepository>();
+
+            services.AddScoped<ITokenService, TokenService>();
+
+            services.AddScoped<IMailService, MailService>();
+
+            services.AddScoped<IUserService, UserService>();
+
+
+            services.AddScoped<IPendingUserService, PendingUserService>();
+
             return services;
 
         }
@@ -35,9 +46,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IPersonRepository, PersonRepository>();
 
-
             services.AddScoped<IUserRepository, UserRepository>();
-
 
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
@@ -45,6 +54,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IUserAdderssRepository, UserAddressRepository>();
 
+            services.AddScoped<IPendingUserRepository,PendingUserRepository>();
 
 
 

@@ -40,7 +40,7 @@ namespace DataAccessLayer.Contracks
         public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);
 
 
-        public Task<bool> UpdateEmailByIdAsync(string Id, string NewEmail);
+        public Task<bool> UpdateEmailByIdAsync(string Id, string NewEmail,string NewUserName);
 
 
         public Task<bool> UpdatePasswordByIdAsync(string Id, string password, string Newpassword);

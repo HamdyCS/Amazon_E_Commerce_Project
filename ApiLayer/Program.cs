@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using BusinessLayer.Extensions;
 using BusinessLayer.Mapper;
-using BusinessLayer.Authentication;
+using ApiLayer.Extensions;
+using BusinessLayer.Options;
 
 
 
@@ -18,10 +19,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString")));
-builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAutoMapper(typeof(PersonProfile));
-
 
 
 var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
@@ -35,6 +35,18 @@ else
 {
     Environment.Exit(0);
 }
+
+var mailOptions = builder.Configuration.GetSection("Mail").Get<MailOptions>();
+
+if (mailOptions != null)
+{
+    builder.Services.AddSingleton(mailOptions);
+}
+else
+{ 
+    Environment.Exit(0); 
+}
+
 
 builder.Services.AddCustomJwtBearer(jwtOptions);
 
@@ -50,6 +62,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.AddCustomMiddlewares();
+
 
 app.UseHttpsRedirection();
 

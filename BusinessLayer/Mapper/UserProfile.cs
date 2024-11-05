@@ -20,7 +20,11 @@ namespace BusinessLayer.Mapper
 
             //from userDto to Person
             CreateMap<UserDto, PersonDto>().ForMember(personDto => personDto.Id, opt => opt.Ignore());
-            CreateMap<PersonDto, UserDto>().ForMember(UD => UD.ID, opt => opt.Ignore());
+            CreateMap<PersonDto, UserDto>().ForMember(UD => UD.Id, opt => opt.Ignore());
+
+            //from userDto to pending user
+            CreateMap<UserDto,PendingUser>().ForMember(u=>u.Id, opt => opt.Ignore());
+            CreateMap<PendingUser, UserDto>().ForMember(p=>p.Id, opt => opt.Ignore());
         }
     }
 }

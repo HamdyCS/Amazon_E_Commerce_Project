@@ -1,4 +1,4 @@
-﻿namespace BusinessLayer.Authentication
+﻿namespace BusinessLayer.Options
 {
     public class JwtOptions
     {
@@ -7,7 +7,7 @@
         public byte LifeTimeMin { get; set; }
         public string SigningKey { get; set; }
         public string EncryptionKey { get; set; }
-        
+
 
     }
 

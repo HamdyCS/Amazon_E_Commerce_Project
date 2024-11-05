@@ -11,11 +11,8 @@ namespace BusinessLayer.Contracks
 {
     public interface IUserService 
     {
-        public  Task<UserDto> AddAsync(UserDto dto);
 
-        public Task<IEnumerable<UserDto>> AddRangeAsync(IEnumerable<UserDto> dtos);
-
-        public  Task<bool> CheckEmailAndPasswordAsync(LoginDto loginDto);
+        public  Task<UserDto> GetUserByEmailAndPasswordAsync(LoginDto loginDto);
 
         public Task<bool> DeleteByIdAsync(string Id);
 
@@ -23,7 +20,7 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<UserDto>> GetAllAsync();
 
-        public Task<long> GetCountOfAsync();
+        public Task<long> GetCountOfUsersAsync();
 
         public Task<IEnumerable<UserDto>> GetPagedDataAsync(int pageNumber, int pageSize);
 
@@ -44,5 +41,9 @@ namespace BusinessLayer.Contracks
         public Task<bool> AddToRoleByIdAsync(string UserID, RoleDto roleDto);
 
         public Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos);
+
+        public Task<UserDto> ConfirmEmailByEmailAndCodeAsync(string Email,string code);
+
+        public Task<bool> IsEmailExistAsync(string Email);
     }
 }

@@ -25,12 +25,12 @@ namespace DataAccessLayer.UnitOfWork
         public IUserAdderssRepository userAdderssRepository { get; private set; }
         public IUserRepository userRepository { get; private set; }
 
-
+        public IPendingUserRepository PendingUserRepository { get; private set; }
 
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
             ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
-            IUserAdderssRepository userAdderssRepository,IUserRepository userRepository) 
+            IUserAdderssRepository userAdderssRepository,IUserRepository userRepository,IPendingUserRepository pendingUserRepository) 
         {
             _context = context;
             this._logger = logger;
@@ -40,7 +40,7 @@ namespace DataAccessLayer.UnitOfWork
             this.roleManagerRepository = roleManagerRepository;
             this.userAdderssRepository = userAdderssRepository;
             this.userRepository = userRepository;
-
+            this.PendingUserRepository = pendingUserRepository;
 
         }
 

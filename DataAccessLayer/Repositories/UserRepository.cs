@@ -234,7 +234,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<bool> UpdateEmailByIdAsync(string ID, string NewEmail)
+        public async Task<bool> UpdateEmailByIdAsync(string ID, string NewEmail, string NewUserName)
         {
             ParamaterException.CheckIfStringIsValid(ID, nameof(ID));
             ParamaterException.CheckIfStringIsValid(NewEmail, nameof(NewEmail));
@@ -252,6 +252,7 @@ namespace DataAccessLayer.Repositories
                 }
 
                 user.Email = NewEmail;
+                user.UserName = NewUserName;
 
                 var result = await _userManager.UpdateAsync(user);
 

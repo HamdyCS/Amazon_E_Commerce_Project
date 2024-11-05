@@ -1,5 +1,5 @@
-﻿using BusinessLayer.Authentication;
-using BusinessLayer.Contracks;
+﻿using BusinessLayer.Contracks;
+using BusinessLayer.Options;
 using DataAccessLayer.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
@@ -143,7 +143,7 @@ namespace BusinessLayer.Servicese
 
                 EncryptingCredentials = new EncryptingCredentials
                     (
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SigningKey)),
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0,16))),
                         SecurityAlgorithms.Aes128KW,
                         SecurityAlgorithms.Aes128CbcHmacSha256
 
@@ -154,10 +154,10 @@ namespace BusinessLayer.Servicese
                 Subject = new ClaimsIdentity
                     (
                        claims
-                    ),
+                    )
             };
 
-            var Token = jwtSecurityTokenHandler.CreateJwtSecurityToken(securityTokenDescriptor);
+            var Token = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
 
             var TokenString = jwtSecurityTokenHandler.WriteToken(Token);
 
