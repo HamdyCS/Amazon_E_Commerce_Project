@@ -45,7 +45,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            ParamaterException.CheckIfIEnumerableIsValid(entities, nameof(entities));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(entities, nameof(entities));
 
 
             try
@@ -61,7 +61,7 @@ namespace DataAccessLayer.Repositories
         public async Task DeleteAsync(long Id)
         {
 
-            ParamaterException.CheckIfLongIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
 
             try
             {
@@ -80,7 +80,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task DeleteRangeAsync(IEnumerable<long> Ids)
         {
-            ParamaterException.CheckIfIEnumerableIsValid(Ids, nameof(Ids));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(Ids, nameof(Ids));
 
             try
             {
@@ -113,8 +113,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize)
         {
-            ParamaterException.CheckIfLongIsValid(pageNumber, nameof(pageNumber));
-            ParamaterException.CheckIfLongIsValid(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
 
             try
             {
@@ -128,8 +128,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
-           ParamaterException.CheckIfLongIsValid(pageNumber, nameof(pageNumber));
-           ParamaterException.CheckIfLongIsValid(pageSize, nameof(pageSize));
+           ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+           ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
 
             try
             {
@@ -155,7 +155,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsTrackingAsync(long id)
         {
-            ParamaterException.CheckIfLongIsValid(id, nameof(id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
 
             try
             {
@@ -171,7 +171,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<T> GetByIdAsNoTrackingAsync(long id)
         {
-            ParamaterException.CheckIfLongIsValid(id, nameof(id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
 
             try
             {
@@ -198,7 +198,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task UpdateAsync(long Id, T entity)
         {
-            ParamaterException.CheckIfLongIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfObjectIfNotNull(entity, nameof(entity));
 
 
@@ -206,7 +206,7 @@ namespace DataAccessLayer.Repositories
             {
                 var existingEntity = await GetByIdAsTrackingAsync(Id);
 
-                if (existingEntity == null) throw new KeyNotFoundException("Not found by id");
+                if (existingEntity == null) return;
 
                 _context.Set<T>().Entry(existingEntity).CurrentValues.SetValues(entity);
             }

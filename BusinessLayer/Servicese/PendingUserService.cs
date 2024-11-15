@@ -43,7 +43,7 @@ namespace BusinessLayer.Servicese
         public async Task<bool> AddNewPendingUserAsync(UserDto userDto, string RoleName)
         {
             ParamaterException.CheckIfObjectIfNotNull(userDto, nameof(userDto));
-            ParamaterException.CheckIfStringIsValid(RoleName, nameof(RoleName));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(RoleName, nameof(RoleName));
 
             try
             {
@@ -76,8 +76,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<PendingUser> FindByEmailAndCodeAsync(string email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {
@@ -92,7 +92,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> RemoveByIdAsync(string id)
         {
-            ParamaterException.CheckIfStringIsValid(id, nameof(id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(id, nameof(id));
 
             try
             {
@@ -108,8 +108,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<string> GetPendingUserRoleNameByEmailAndCode(string email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {
@@ -126,8 +126,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<string> GetIdByEmailAndCodeAsync(string email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {

@@ -70,14 +70,12 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> DeleteByIdAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
             try
             {
-                await _unitOfWork.userRepository.DeleteAsync(Id);
+                var IsDeleted = await _unitOfWork.userRepository.DeleteAsync(Id);
 
-                var rssult = await _CompleteAsync();
-
-                return rssult;
+                return IsDeleted;
             }
             catch (Exception ex)
             {
@@ -87,7 +85,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<UserDto> FindByIdAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
 
             try
             {
@@ -138,8 +136,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<UserDto>> GetPagedDataAsync(int pageNumber, int pageSize)
         {
-            ParamaterException.CheckIfIntIsValid(pageNumber, nameof(pageNumber));
-            ParamaterException.CheckIfIntIsValid(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
 
             try
             {
@@ -159,8 +157,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> UpdateEmailAsync(string Id, string NewEmail)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(NewEmail, nameof(NewEmail));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewEmail, nameof(NewEmail));
 
 
             try
@@ -183,9 +181,9 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> UpdatePasswordAsync(string Id, string password, string NewPassword)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(password, nameof(password));
-            ParamaterException.CheckIfStringIsValid(NewPassword, nameof(NewPassword));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(password, nameof(password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewPassword, nameof(NewPassword));
 
             try
             {
@@ -193,27 +191,8 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return false;
 
-                var result = await _unitOfWork.userRepository.UpdatePasswordByIdAsync(Id, password, NewPassword);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public async Task<bool> DeleteRangeByIdAsync(IEnumerable<string> Ids)
-        {
-            ParamaterException.CheckIfIEnumerableIsValid(Ids, nameof(Ids));
-            try
-            {
-                foreach (var id in Ids)
-                {
-                    await _unitOfWork.userRepository.DeleteAsync(id);
-
-                }
-                var result = await _CompleteAsync();
-                return result;
+                var IsUpdated = await _unitOfWork.userRepository.UpdatePasswordByIdAsync(Id, password, NewPassword);
+                return IsUpdated;
             }
             catch (Exception ex)
             {
@@ -223,7 +202,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<RoleDto>> GetAllUserRolesByIdAsync(string userId)
         {
-            ParamaterException.CheckIfStringIsValid(userId, nameof(userId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
 
             try
             {
@@ -248,7 +227,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> IsUserInRoleByIdAsync(string UserID, RoleDto roleDto)
         {
-            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserID, nameof(UserID));
             ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
 
             try
@@ -270,7 +249,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> DeleteUserFromRoleByIdAsync(string UserID, RoleDto roleDto)
         {
-            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserID, nameof(UserID));
             ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
 
             try
@@ -291,8 +270,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> DeleteUserFromRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
         {
-            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
-            ParamaterException.CheckIfIEnumerableIsValid(rolesDtos, nameof(rolesDtos));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserID, nameof(UserID));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(rolesDtos, nameof(rolesDtos));
 
             try
             {
@@ -317,7 +296,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> AddToRoleByIdAsync(string UserID, RoleDto roleDto)
         {
-            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserID, nameof(UserID));
             ParamaterException.CheckIfObjectIfNotNull(roleDto, nameof(roleDto));
 
             try
@@ -338,8 +317,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos)
         {
-            ParamaterException.CheckIfStringIsValid(UserID, nameof(UserID));
-            ParamaterException.CheckIfIEnumerableIsValid(rolesDtos, nameof(rolesDtos));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserID, nameof(UserID));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(rolesDtos, nameof(rolesDtos));
 
             try
             {
@@ -362,10 +341,10 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<UserDto> ConfirmEmailByEmailAndCodeAsync(string Email, string code)
+        public async Task<UserDto> AddNewUserByEmailAndCodeAsync(string Email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(Email, nameof(Email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {
@@ -420,12 +399,34 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> IsEmailExistAsync(string Email)
         {
-            ParamaterException.CheckIfStringIsValid(Email,nameof(Email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email,nameof(Email));
 
             try
             {
                 var IsEmailExist = await _unitOfWork.userRepository.CheckIfEmailInSystemAsync(Email);
                 return IsEmailExist;
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> ResetPasswordByEmailAsync(string Email, string Password)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Password, nameof(Password));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByEmailAsync(Email);
+
+                if(user == null) return false;
+
+                var IsUpdatedPassword = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(Email, Password);
+
+                return IsUpdatedPassword;
+
             }
             catch(Exception ex)
             {

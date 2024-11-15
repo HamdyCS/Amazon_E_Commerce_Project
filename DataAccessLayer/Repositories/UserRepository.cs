@@ -41,14 +41,14 @@ namespace DataAccessLayer.Repositories
         public async Task<bool> AddAsync(User user, string Password)
         {
             ParamaterException.CheckIfObjectIfNotNull(user, nameof(user));
-            ParamaterException.CheckIfStringIsValid(Password, nameof(Password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Password, nameof(Password));
 
             try
             {
 
-                var result = await _userManager.CreateAsync(user, Password);
+                var IsCreated = await _userManager.CreateAsync(user, Password);
 
-                return result.Succeeded;
+                return IsCreated.Succeeded;
             }
             catch (Exception ex)
             {
@@ -59,7 +59,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> CheckIfEmailInSystemAsync(string email)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
 
             try
             {
@@ -77,18 +77,19 @@ namespace DataAccessLayer.Repositories
 
         }
 
-        public async Task DeleteAsync(string Id)
+        public async Task<bool> DeleteAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
 
 
             try
             {
                 var existingEntity = await _userManager.FindByIdAsync(Id);
 
-                if (existingEntity is null) throw new KeyNotFoundException("Not found by id");
+                if (existingEntity is null) return false;
 
-                await _userManager.DeleteAsync(existingEntity);
+                var IsDeleted = await _userManager.DeleteAsync(existingEntity);
+                return IsDeleted.Succeeded;
             }
             catch (Exception ex)
             {
@@ -99,18 +100,18 @@ namespace DataAccessLayer.Repositories
 
         }
 
-        public async Task DeleteUserByEmailAsync(string email)
+        public async Task<bool> DeleteUserByEmailAsync(string email)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
             try
             {
                 var user = await _userManager.FindByEmailAsync(email);
 
-                if (user == null)
-                {
-                    _logger.LogInformation("User is null");
-                    throw new Exception("User is null");
-                }
+                if (user == null) return false;
+
+                var IsDeleted = await _userManager.DeleteAsync(user);
+
+                return IsDeleted.Succeeded;
             }
             catch (Exception ex)
             {
@@ -134,8 +135,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<User>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize)
         {
-            ParamaterException.CheckIfIntsValid(pageNumber, nameof(pageNumber));
-            ParamaterException.CheckIfIntsValid(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
 
 
             try
@@ -151,8 +152,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<User>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
-            ParamaterException.CheckIfIntsValid(pageNumber, nameof(pageNumber));
-            ParamaterException.CheckIfIntsValid(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
             try
             {
                 var users = await _context.Users.AsTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -181,7 +182,7 @@ namespace DataAccessLayer.Repositories
         public async Task<User> GetByIdAsync(string Id)
         {
 
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
             try
             {
                 var user = await _userManager.FindByIdAsync(Id);
@@ -210,8 +211,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<User> GetUserByEmailAndPasswordAsync(string email, string password)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(password, nameof(password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(password, nameof(password));
             try
             {
                 var user = await _userManager.FindByEmailAsync(email);
@@ -236,8 +237,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> UpdateEmailByIdAsync(string ID, string NewEmail, string NewUserName)
         {
-            ParamaterException.CheckIfStringIsValid(ID, nameof(ID));
-            ParamaterException.CheckIfStringIsValid(NewEmail, nameof(NewEmail));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(ID, nameof(ID));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewEmail, nameof(NewEmail));
 
 
             try
@@ -245,27 +246,23 @@ namespace DataAccessLayer.Repositories
                 var user = await _userManager.FindByIdAsync(ID);
 
                 if (user == null)
-                {
-                    var message = $"User not Found";
-                    _logger.LogInformation(message);
-                    throw new Exception(message);
-                }
+                    return false;
 
                 user.Email = NewEmail;
                 user.UserName = NewUserName;
 
-                var result = await _userManager.UpdateAsync(user);
+                var IsUpdated = await _userManager.UpdateAsync(user);
 
 
-                if (!result.Succeeded)
+                if (!IsUpdated.Succeeded)
                 {
-                    var errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMessage = string.Join(" ", IsUpdated.Errors.Select(e => e.Description));
 
                     _logger.LogInformation($"Error: {errorMessage}");
 
 
                 }
-                return result.Succeeded;
+                return IsUpdated.Succeeded;
             }
             catch (Exception ex)
             {
@@ -278,9 +275,9 @@ namespace DataAccessLayer.Repositories
         {
 
 
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(password, nameof(password));
-            ParamaterException.CheckIfStringIsValid(Newpassword, nameof(password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(password, nameof(password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Newpassword, nameof(password));
 
 
             try
@@ -289,18 +286,18 @@ namespace DataAccessLayer.Repositories
 
                 if (user is null) return false;
 
-                var result = await _userManager.ChangePasswordAsync(user, password, Newpassword);
+                var IsUpdated = await _userManager.ChangePasswordAsync(user, password, Newpassword);
 
-                if (!result.Succeeded)
+                if (!IsUpdated.Succeeded)
                 {
-                    var errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMessage = string.Join(" ", IsUpdated.Errors.Select(e => e.Description));
 
                     _logger.LogInformation($"Error: {errorMessage}");
 
 
                 }
 
-                return result.Succeeded;
+                return IsUpdated.Succeeded;
             }
             catch (Exception ex)
             {
@@ -312,7 +309,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<string>> GetUserRolesByIdAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
 
 
             try
@@ -337,8 +334,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> CheckIfUserInRoleByIdAsync(string Id, string Role)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(Role, nameof(Role));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Role, nameof(Role));
 
             try
             {
@@ -350,8 +347,8 @@ namespace DataAccessLayer.Repositories
                     _logger.LogInformation(message);
                     return false;
                 }
-                var result = await _userManager.IsInRoleAsync(user, Role);
-                return result;
+                var IsInRole = await _userManager.IsInRoleAsync(user, Role);
+                return IsInRole;
 
             }
             catch (Exception ex)
@@ -362,8 +359,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> DeleteUserFromRolesByIdAsync(string Id, IEnumerable<string> roles)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfIEnumerableIsValid(roles, nameof(roles));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(roles, nameof(roles));
 
             try
             {
@@ -376,18 +373,18 @@ namespace DataAccessLayer.Repositories
                     return false;
                 }
 
-                var result = await _userManager.RemoveFromRolesAsync(user, roles);
+                var IsRemovedFromRole = await _userManager.RemoveFromRolesAsync(user, roles);
 
-                if (!result.Succeeded)
+                if (!IsRemovedFromRole.Succeeded)
                 {
-                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMesssage = string.Join(" ", IsRemovedFromRole.Errors.Select(e => e.Description));
 
                     _logger.LogInformation("Error" + errorMesssage);
 
 
                 }
 
-                return result.Succeeded;
+                return IsRemovedFromRole.Succeeded;
             }
             catch (Exception ex)
             {
@@ -397,8 +394,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> DeleteUserFromRoleByIdAsync(string Id, string Role)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(Role, nameof(Role));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Role, nameof(Role));
 
             try
             {
@@ -411,17 +408,17 @@ namespace DataAccessLayer.Repositories
                     return false;
                 }
 
-                var result = await _userManager.RemoveFromRoleAsync(user, Role);
+                var IsRemovedFromRole = await _userManager.RemoveFromRoleAsync(user, Role);
 
-                if (!result.Succeeded)
+                if (!IsRemovedFromRole.Succeeded)
                 {
-                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMesssage = string.Join(" ", IsRemovedFromRole.Errors.Select(e => e.Description));
 
                     _logger.LogInformation("Error" + errorMesssage);
 
                 }
 
-                return result.Succeeded;
+                return IsRemovedFromRole.Succeeded;
             }
             catch (Exception ex)
             {
@@ -431,26 +428,26 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> AddUserToRoleByIdAsync(string Id, string Role)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsValid(Role, nameof(Role));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Role, nameof(Role));
 
             try
             {
-                var user = await  _userManager.FindByIdAsync(Id);
+                var user = await _userManager.FindByIdAsync(Id);
 
                 if (user is null) return false;
 
-                var result = await _userManager.AddToRoleAsync(user, Role);
+                var IsAddedToRole = await _userManager.AddToRoleAsync(user, Role);
 
-                if (!result.Succeeded)
+                if (!IsAddedToRole.Succeeded)
                 {
-                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMesssage = string.Join(" ", IsAddedToRole.Errors.Select(e => e.Description));
 
                     _logger.LogInformation("Error" + errorMesssage);
 
                 }
 
-                return result.Succeeded;
+                return IsAddedToRole.Succeeded;
             }
             catch (Exception ex)
             {
@@ -460,8 +457,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> AddUserToRolesByIdAsync(string Id, IEnumerable<string> roles)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
-            ParamaterException.CheckIfIEnumerableIsValid(roles, nameof(roles));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(roles, nameof(roles));
 
             try
             {
@@ -469,17 +466,17 @@ namespace DataAccessLayer.Repositories
 
                 if (user is null) return false;
 
-                var result = await _userManager.AddToRolesAsync(user, roles);
+                var IsAddedToRole = await _userManager.AddToRolesAsync(user, roles);
 
-                if (!result.Succeeded)
+                if (!IsAddedToRole.Succeeded)
                 {
-                    var errorMesssage = string.Join(" ", result.Errors.Select(e => e.Description));
+                    var errorMesssage = string.Join(" ", IsAddedToRole.Errors.Select(e => e.Description));
 
                     _logger.LogInformation("Error" + errorMesssage);
 
                 }
 
-                return result.Succeeded;
+                return IsAddedToRole.Succeeded;
             }
             catch (Exception ex)
             {
@@ -487,5 +484,46 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public async Task<bool> UpdatePasswordByEmailAsync(string Email, string NewPassword)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewPassword, nameof(NewPassword));
+
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(Email);
+
+                if (user is null) return false;
+
+
+                var IsPasswordDeleted = await _userManager.RemovePasswordAsync(user);
+
+                if (!IsPasswordDeleted.Succeeded) return false;
+
+                var IsAddedPassword = await _userManager.AddPasswordAsync(user, NewPassword);
+
+                return IsAddedPassword.Succeeded;
+
+            }
+            catch (Exception ex)
+            {
+                throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public async Task<User> GetByEmailAsync(string Email)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(Email);
+                return user;
+            }
+            catch (Exception ex)
+            {
+
+                throw _HandelDataBaseException(ex);
+            }
+        }
     }
 }

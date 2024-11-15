@@ -23,7 +23,7 @@ namespace BusinessLayer.Servicese
         }
         public async Task<bool> CheckIfRoleInSystemByNameAsync(string roleName)
         {
-           ParamaterException.CheckIfStringIsValid(roleName,nameof(roleName));
+           ParamaterException.CheckIfStringIsNotNullOrEmpty(roleName,nameof(roleName));
 
             try
             {

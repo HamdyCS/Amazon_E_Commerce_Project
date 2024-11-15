@@ -28,9 +28,9 @@ namespace BusinessLayer.Servicese
         }
         public async Task SendEmailAsync(string email, string subject, string body)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(subject, nameof(subject));
-            ParamaterException.CheckIfStringIsValid(body, nameof(body));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(subject, nameof(subject));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(body, nameof(body));
 
             try
             {

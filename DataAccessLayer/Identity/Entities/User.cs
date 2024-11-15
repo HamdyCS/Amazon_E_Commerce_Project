@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -20,5 +21,10 @@ namespace DataAccessLayer.Identity.Entities
         public virtual Person? Person { get; set; }
 
         public virtual IEnumerable<UserAddress> UserAddresses { get; set; } = new List<UserAddress>();
+
+        [DefaultValue(false)]
+        public bool IsDeleted { get; set; }
+
+        public DateTime? DateOfDeleted { get; set; }
     }
 }

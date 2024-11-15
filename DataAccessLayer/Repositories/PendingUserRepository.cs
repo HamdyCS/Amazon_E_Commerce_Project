@@ -32,8 +32,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<PendingUser> GetByEmailAndCodeAsync(string email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {
@@ -48,7 +48,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task DeleteByIdAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
 
             try
             {
@@ -66,7 +66,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<PendingUser> GetByIdAsync(string Id)
         {
-            ParamaterException.CheckIfStringIsValid(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
 
             try
             {
@@ -95,8 +95,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<string> GetPendingUserRoleNameByEmailAndCode(string email, string code)
         {
-            ParamaterException.CheckIfStringIsValid(email, nameof(email));
-            ParamaterException.CheckIfStringIsValid(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(email, nameof(email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
 
             try
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
+using DataAccessLayer.SoftDelete;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,8 @@ public class AppDbContext : IdentityDbContext<User>
         base.OnConfiguring(optionsBuilder);
 
         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
+
+        optionsBuilder.AddInterceptors(new SoftDeleteInterceptor());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

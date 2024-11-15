@@ -32,10 +32,7 @@ namespace DataAccessLayer.Repositories
                 var city = await _context.Cities.FirstOrDefaultAsync(c => c.NameAr == cityNameAr);
 
                 if (city == null)
-                {
-                    _logger.LogInformation("Cannot find city by cityNameAr");
-                    throw new Exception("Cannot find city by cityNameAr");
-                }
+                    return;
 
                 _context.Cities.Remove(city);
             }
@@ -54,10 +51,7 @@ namespace DataAccessLayer.Repositories
                 var city = await _context.Cities.FirstOrDefaultAsync(c => c.NameEn == cityNameEn);
 
                 if (city == null)
-                {
-                    _logger.LogInformation("Cannot find city by cityNameEn");
-                    throw new Exception("Cannot find city by cityNameEn");
-                }
+                    return;
 
                 _context.Cities.Remove(city);
             }

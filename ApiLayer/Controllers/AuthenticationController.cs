@@ -49,12 +49,13 @@ namespace ApiLayer.Controllers
             }
         }
 
+
+
         [HttpPost("Login")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -88,6 +89,8 @@ namespace ApiLayer.Controllers
             }
         }
 
+
+
         [HttpPost("ConfirmEmail")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -100,7 +103,7 @@ namespace ApiLayer.Controllers
 
             try
             {
-                var userDto = await _userService.ConfirmEmailByEmailAndCodeAsync(confirmEmailDto.Email, confirmEmailDto.Code);
+                var userDto = await _userService.AddNewUserByEmailAndCodeAsync(confirmEmailDto.Email, confirmEmailDto.Code);
 
                 if(userDto is null) return BadRequest("Pending user not found");
                 var PendingUserRoleName = await  _pendingUserService.GetPendingUserRoleNameByEmailAndCode(confirmEmailDto.Email, confirmEmailDto.Code);
@@ -133,6 +136,7 @@ namespace ApiLayer.Controllers
                 return StatusCode(500,ex.Message);
             }
         }
+
 
     }
 }
