@@ -16,8 +16,7 @@ namespace DataAccessLayer.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<CityRepository> _logger;
-        private readonly string _TableName = "Cites";
-        public CityRepository(AppDbContext context, ILogger<CityRepository> logger) : base(context, logger)
+        public CityRepository(AppDbContext context, ILogger<CityRepository> logger) : base(context, logger,"Cites")
         {
             _context = context;
             _logger = logger;
@@ -38,7 +37,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -57,7 +56,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -73,7 +72,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -89,7 +88,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
     }

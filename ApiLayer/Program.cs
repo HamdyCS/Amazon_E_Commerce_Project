@@ -3,9 +3,10 @@ using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using BusinessLayer.Extensions;
-using BusinessLayer.Mapper;
 using ApiLayer.Extensions;
 using BusinessLayer.Options;
+using BusinessLayer.Mapper.Profiles;
+using DataAccessLayer.SoftDelete;
 
 
 
@@ -18,7 +19,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString")));
+builder.Services.AddDbContext<AppDbContext>
+    (o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString"))/*.AddInterceptors(new SoftDeleteInterceptor())*/);
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAutoMapper(typeof(PersonProfile));

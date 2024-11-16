@@ -24,23 +24,37 @@ namespace ApiLayer.MiddleWares
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
-                    var _userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-
-                    var userId = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                    if (userId == null)
+                    try
                     {
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        context.Response.WriteAsync("Token is not vaild");
+                        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+
+                        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                        if (userId == null)
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.Response.WriteAsync("Token is not vaild");
+                        }
+
+                        var user = await userService.FindByIdAsync(userId);
+
+                        if (user is null)
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        }
+
+                        var IsUserDeleted = await userService.IsUserDeletedByIdAsync(userId);
+
+                        if (IsUserDeleted)
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+                        await _next(context);
                     }
-
-                    var user = await _userService.FindByIdAsync(userId);
-
-                    if (user is null)
+                    catch (Exception ex)
                     {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     }
-                    await _next(context);
+                   
                 }
 
                 

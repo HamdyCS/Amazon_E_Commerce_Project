@@ -33,8 +33,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IUserService, UserService>();
 
+            services.AddScoped<IOtpService,OtpService>();
 
-            services.AddScoped<IPendingUserService, PendingUserService>();
 
             return services;
 
@@ -54,8 +54,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IUserAdderssRepository, UserAddressRepository>();
 
-            services.AddScoped<IPendingUserRepository,PendingUserRepository>();
-
+            services.AddScoped<IOtpRepository, OtpRepository>();
 
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -53,5 +53,7 @@ namespace DataAccessLayer.Contracks
         public Task<bool> AddUserToRolesByIdAsync(string Id, IEnumerable<string> roles);
 
         public Task<bool> UpdatePasswordByEmailAsync(string Email, string Password);
+
+        Task<bool> IsUserDeletedByIdAsync(string Id);
     }
 }

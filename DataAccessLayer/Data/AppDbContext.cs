@@ -68,7 +68,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
 
-    public virtual DbSet<PendingUser> PendingUsers { get; set; }
+    public virtual DbSet<Otp> Otps { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -76,16 +76,22 @@ public class AppDbContext : IdentityDbContext<User>
 
         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
 
-        optionsBuilder.AddInterceptors(new SoftDeleteInterceptor());
+        //optionsBuilder.AddInterceptors(new SoftDeleteInterceptor());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<PendingUser>(entity => 
+        modelBuilder.Entity<Otp>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("Pk");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
+
+            entity.Property(e=>e.IsUsed).HasDefaultValue(false);
+
+            entity.Property(e => e.Code);
         });
 
         modelBuilder.Entity<Application>(entity =>
@@ -371,7 +377,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Ignore(p => p.PhoneNumberConfirmed);
 
             entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a=>a.UserId);
-
+            entity.HasQueryFilter(e=>!e.IsDeleted);
         });
 
         modelBuilder.Ignore<IdentityUserClaim<string>>();

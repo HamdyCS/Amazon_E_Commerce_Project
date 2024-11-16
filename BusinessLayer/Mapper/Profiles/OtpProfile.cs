@@ -7,15 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLayer.Mapper
+namespace BusinessLayer.Mapper.Profiles
 {
-    public class PersonProfile : Profile
+    public class OtpProfile : Profile
     {
-        public PersonProfile() 
+        public OtpProfile()
         {
-            CreateMap<Person, PersonDto>().ReverseMap();
-
-           
+            CreateMap<OtpDto, Otp>().ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<Otp, OtpDto>();
         }
     }
 }

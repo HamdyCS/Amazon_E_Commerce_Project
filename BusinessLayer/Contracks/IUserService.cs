@@ -24,9 +24,9 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<UserDto>> GetPagedDataAsync(int pageNumber, int pageSize);
 
-        public  Task<bool> UpdateEmailAsync(string Id,  string NewEmail);
+        public  Task<bool> UpdateEmailAsync(string Id,  string NewEmail, string Code);
 
-        public  Task<bool> UpdatePasswordAsync(string Id,string password, string NewPassword);
+        public  Task<bool> UpdatePasswordAsync(string Id,string NewPassword);
 
         public Task<IEnumerable< RoleDto>> GetAllUserRolesByIdAsync(string userId);
 
@@ -40,10 +40,14 @@ namespace BusinessLayer.Contracks
 
         public Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos);
 
-        public Task<UserDto> AddNewUserByEmailAndCodeAsync(string Email,string code);
+        public Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto,string Email,string code);
 
         public Task<bool> IsEmailExistAsync(string Email);
 
-        public Task<bool> ResetPasswordByEmailAsync(string Email,string Password);
+        public Task<bool> ResetPasswordByEmailAsync(string Email,string Password, string Code);
+
+        Task<bool> IsUserDeletedByIdAsync(string Id);
+
+        Task<bool> UpdateUserByIdAsync(string Id,UserDto userDto);
     }
 }

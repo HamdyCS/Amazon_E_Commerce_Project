@@ -16,7 +16,7 @@ namespace DataAccessLayer.Repositories
         private readonly AppDbContext _context;
         private readonly ILogger<UserAddressRepository> _logger;
         private string _TableName = "UsersAddresses";
-        public UserAddressRepository(AppDbContext context, ILogger<UserAddressRepository> logger) : base(context, logger)
+        public UserAddressRepository(AppDbContext context, ILogger<UserAddressRepository> logger) : base(context, logger, "UsersAddresses")
         {
             _context = context;
             _logger = logger;
@@ -33,7 +33,7 @@ namespace DataAccessLayer.Repositories
             }
             catch(Exception ex) 
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -48,7 +48,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -63,7 +63,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -78,7 +78,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, _TableName);
+                throw HandleDatabaseException(ex);
             }
         }
     }

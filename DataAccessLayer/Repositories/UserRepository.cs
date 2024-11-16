@@ -84,12 +84,18 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var existingEntity = await _userManager.FindByIdAsync(Id);
+                var user = await _userManager.FindByIdAsync(Id);
 
-                if (existingEntity is null) return false;
+                if (user is null) return false;
 
-                var IsDeleted = await _userManager.DeleteAsync(existingEntity);
-                return IsDeleted.Succeeded;
+                user.IsDeleted = true;
+                user.DateOfDeleted = DateTime.UtcNow;
+
+                 _context.Users.Update(user);
+               
+                var RowsAffeted = await _context.SaveChangesAsync();
+
+                return RowsAffeted>0 ;
             }
             catch (Exception ex)
             {
@@ -523,6 +529,22 @@ namespace DataAccessLayer.Repositories
             {
 
                 throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public async Task<bool> IsUserDeletedByIdAsync(string Id)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            try
+            {
+                var user = await _userManager.FindByIdAsync(Id);
+                if(user is null) return true;
+
+                return user.IsDeleted;
+            }
+            catch(Exception ex)
+            {
+                throw;
             }
         }
     }

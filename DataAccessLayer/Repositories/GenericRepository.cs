@@ -16,17 +16,19 @@ namespace DataAccessLayer.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<GenericRepository<T>> _logger;
+        private readonly string _tableName;
 
-        public GenericRepository(AppDbContext context, ILogger<GenericRepository<T>> logger)
+        public GenericRepository(AppDbContext context, ILogger<GenericRepository<T>> logger,string TableName)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _tableName = TableName;
         }
 
-        protected Exception HandleDatabaseException(Exception ex, string tableName)
+        protected Exception HandleDatabaseException(Exception ex)
         {
-            _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}", tableName, ex.Message);
-            return new Exception($"Database error occurred while accessing {tableName}. Error: {ex.Message}");
+            _logger.LogError(ex, "Database error occurred while accessing {TableName}. Error: {ErrorMessage}", _tableName, ex.Message);
+            return new Exception($"Database error occurred while accessing {_tableName}. Error: {ex.Message}");
         }
 
         public async Task AddAsync(T entity)
@@ -39,7 +41,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -54,7 +56,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -68,13 +70,13 @@ namespace DataAccessLayer.Repositories
                 var entity = await GetByIdAsTrackingAsync(Id);
 
                 if (entity is null)
-                    throw new KeyNotFoundException("Not found by id");
+                    return;
 
                 _context.Set<T>().Remove(entity);
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -88,14 +90,14 @@ namespace DataAccessLayer.Repositories
                 {
                     var entity = await GetByIdAsTrackingAsync(Id);
 
-                    if (entity is null) throw new KeyNotFoundException("Not found by Id");
+                    if (entity is null) return;
 
                     _context.Set<T>().Remove(entity);
                 }
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -107,7 +109,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -122,7 +124,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -137,7 +139,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -149,7 +151,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -165,7 +167,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -180,7 +182,7 @@ namespace DataAccessLayer.Repositories
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -188,11 +190,11 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                return await _context.Set<T>().LongCountAsync();
+                return await _context.Set<T>().CountAsync();
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 
@@ -208,11 +210,11 @@ namespace DataAccessLayer.Repositories
 
                 if (existingEntity == null) return;
 
-                _context.Set<T>().Entry(existingEntity).CurrentValues.SetValues(entity);
+                _context.Set<T>().Entry(existingEntity).CurrentValues.SetValues(entity);// بيعمل مقارنة وبيعدل المختلف
             }
             catch (Exception ex)
             {
-                throw HandleDatabaseException(ex, nameof(T));
+                throw HandleDatabaseException(ex);
             }
         }
 

@@ -22,7 +22,6 @@ namespace DataAccessLayer.Identity.Entities
 
         public virtual IEnumerable<UserAddress> UserAddresses { get; set; } = new List<UserAddress>();
 
-        [DefaultValue(false)]
         public bool IsDeleted { get; set; }
 
         public DateTime? DateOfDeleted { get; set; }

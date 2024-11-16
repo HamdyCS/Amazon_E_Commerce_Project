@@ -15,7 +15,7 @@ namespace DataAccessLayer.Repositories
         private readonly AppDbContext _context;
         private readonly ILogger<PersonRepository> _logger;
 
-        public PersonRepository(AppDbContext context, ILogger<PersonRepository> logger) : base(context, logger)
+        public PersonRepository(AppDbContext context, ILogger<PersonRepository> logger) : base(context, logger,"People")
         {
             _context = context;
             _logger = logger;

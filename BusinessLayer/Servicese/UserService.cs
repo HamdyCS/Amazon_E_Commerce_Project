@@ -4,6 +4,7 @@ using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
+using DataAccessLayer.UnitOfWork;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Logging;
 using System;
@@ -19,32 +20,20 @@ namespace BusinessLayer.Servicese
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IPendingUserService _pendingUserService;
         private readonly IPersonService _personService;
         private readonly ILogger<UserService> _logger;
         private readonly IGenericMapper _genericMapper;
+        private readonly IOtpService _otpService;
 
-        private async Task<bool> _CompleteAsync()
-        {
-            try
-            {
-                var result = await _unitOfWork.CompleteAsync();
-                return result > 0;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
-        public UserService(IUnitOfWork unitOfWork, IPendingUserService pendingUserService, IPersonService personService, ILogger<UserService> logger,
-            IGenericMapper genericMapper)
+      
+        public UserService(IUnitOfWork unitOfWork, IPersonService personService, ILogger<UserService> logger,
+            IGenericMapper genericMapper, IOtpService otpService)
         {
             _unitOfWork = unitOfWork;
-            _pendingUserService = pendingUserService;
             _personService = personService;
             _logger = logger;
             _genericMapper = genericMapper;
+            _otpService = otpService;
         }
 
 
@@ -73,6 +62,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
             try
             {
+                
                 var IsDeleted = await _unitOfWork.userRepository.DeleteAsync(Id);
 
                 return IsDeleted;
@@ -155,7 +145,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateEmailAsync(string Id, string NewEmail)
+        public async Task<bool> UpdateEmailAsync(string Id, string NewEmail, string Code)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(NewEmail, nameof(NewEmail));
@@ -163,6 +153,11 @@ namespace BusinessLayer.Servicese
 
             try
             {
+                var otpDto = new OtpDto { Code = Code ,Email = NewEmail};
+
+                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                if(!IsOtpValid) return false;
+
                 var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
 
                 if (user is null) return false;
@@ -179,20 +174,19 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdatePasswordAsync(string Id, string password, string NewPassword)
+        public async Task<bool> UpdatePasswordAsync(string Id, string NewPassword)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(password, nameof(password));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(NewPassword, nameof(NewPassword));
 
             try
             {
                 var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
-
                 if (user is null) return false;
 
-                var IsUpdated = await _unitOfWork.userRepository.UpdatePasswordByIdAsync(Id, password, NewPassword);
-                return IsUpdated;
+
+                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(user.Email, NewPassword);
+                return IsPasswordUpdate;
             }
             catch (Exception ex)
             {
@@ -341,52 +335,49 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<UserDto> AddNewUserByEmailAndCodeAsync(string Email, string code)
+        public async Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto, string Email, string code)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
+            ParamaterException.CheckIfObjectIfNotNull(userDto, nameof(userDto));
 
             try
             {
-                var pendingUser = await _pendingUserService.FindByEmailAndCodeAsync(Email, code);
-                if (pendingUser is null) return null;
+                await _unitOfWork.BeginTransactionAsync();
 
+                var otpDto = new OtpDto { Email = Email, Code = code };
 
-                var userDto = _genericMapper.MapSingle<PendingUser, UserDto>(pendingUser);
-                if (userDto is null) return null;
+                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                if (!IsOtpValid) return null;
+
+                var CheckIsEmailInSystem = await IsEmailExistAsync(Email);
+                if (CheckIsEmailInSystem) return null;
 
 
                 var personDto = _genericMapper.MapSingle<UserDto, PersonDto>(userDto);
-                if (personDto == null) return null;
+                if (personDto is null) return null;
+
+                personDto = await _personService.AddAsync(personDto);
+                if (personDto.Id < 1) return null;
+
+                var user = _genericMapper.MapSingle<UserDto, User>(userDto);
+                if (user is null) return null;
+
+                user.CreatedAt = DateTime.UtcNow;
+                user.PersonId = personDto.Id;
+                user.UserName = new MailAddress(userDto.Email).User;
+
+                var IsUserAdded = await _unitOfWork.userRepository.AddAsync(user, userDto.Password);
+                if (!IsUserAdded) return null;
 
 
-                await _unitOfWork.BeginTransactionAsync();
+                userDto = _genericMapper.MapSingle<User, UserDto>(user);
 
+                var IsOtpUpdated = await _otpService.MakeOtpUsedAsync(otpDto);
+                if (!IsOtpUpdated) return null;
 
-                var NewPersonDtoResult = await _personService.AddAsync(personDto);
-                if (NewPersonDtoResult is null || NewPersonDtoResult.Id < 1) return null;
-
-
-                var NewUser = _genericMapper.MapSingle<UserDto, User>(userDto);
-                if (NewUser is null) return null;
-
-
-                NewUser.PersonId = NewPersonDtoResult.Id;
-                NewUser.UserName = new MailAddress(NewUser.Email).User;
-
-                
-
-                var IsCompleted = await _unitOfWork.userRepository.AddAsync(NewUser, userDto.Password); ;
-
-
-                if (IsCompleted)
-                {
-                    await _unitOfWork.CommitTransactionAsync();
-                    _genericMapper.MapSingle(NewUser, userDto);
-
-                }
-
-                return IsCompleted ? userDto : null;
+                await _unitOfWork.CommitTransactionAsync();
+                return userDto;
 
             }
             catch (Exception ex)
@@ -399,36 +390,88 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> IsEmailExistAsync(string Email)
         {
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email,nameof(Email));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
 
             try
             {
                 var IsEmailExist = await _unitOfWork.userRepository.CheckIfEmailInSystemAsync(Email);
                 return IsEmailExist;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw;
             }
         }
 
-        public async Task<bool> ResetPasswordByEmailAsync(string Email, string Password)
+        public async Task<bool> ResetPasswordByEmailAsync(string Email, string Password, string Code)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Password, nameof(Password));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Code, nameof(Code));
 
             try
             {
+                await _unitOfWork.BeginTransactionAsync();
+
+                var otpDto = new OtpDto { Email = Email, Code = Code };
+
                 var user = await _unitOfWork.userRepository.GetByEmailAsync(Email);
+                if (user is null) return false;
 
-                if(user == null) return false;
+                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                if (!IsOtpValid) return false;
 
-                var IsUpdatedPassword = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(Email, Password);
 
-                return IsUpdatedPassword;
+                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(Email, Password);
+                if (!IsPasswordUpdate) return false;
 
+                var IsotpUpdated = await _otpService.MakeOtpUsedAsync(otpDto);
+                if (!IsotpUpdated) return false;
+
+                await _unitOfWork.CommitTransactionAsync();
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> IsUserDeletedByIdAsync(string Id)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+
+            try
+            {
+                var IsUserDeleted = await _unitOfWork.userRepository.IsUserDeletedByIdAsync(Id);
+                return IsUserDeleted;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateUserByIdAsync(string Id, UserDto userDto)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
+            ParamaterException.CheckIfObjectIfNotNull(userDto, nameof(userDto));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
+                if (user is null) return false;
+
+                var personDto = _genericMapper.MapSingle<UserDto, PersonDto>(userDto);
+                if (personDto is null) return false;
+
+                var IsPersonUpdated = await _personService.UpdateByIdAsync(user.PersonId, personDto);
+
+                
+                return IsPersonUpdated;
+            }
+            catch (Exception ex)
             {
                 throw;
             }

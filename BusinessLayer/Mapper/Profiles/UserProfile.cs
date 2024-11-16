@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BusinessLayer.Mapper
+namespace BusinessLayer.Mapper.Profiles
 {
     public class UserProfile : Profile
     {
@@ -22,9 +22,7 @@ namespace BusinessLayer.Mapper
             CreateMap<UserDto, PersonDto>().ForMember(personDto => personDto.Id, opt => opt.Ignore());
             CreateMap<PersonDto, UserDto>().ForMember(UD => UD.Id, opt => opt.Ignore());
 
-            //from userDto to pending user
-            CreateMap<UserDto,PendingUser>().ForMember(u=>u.Id, opt => opt.Ignore());
-            CreateMap<PendingUser, UserDto>().ForMember(p=>p.Id, opt => opt.Ignore());
+
         }
     }
 }
