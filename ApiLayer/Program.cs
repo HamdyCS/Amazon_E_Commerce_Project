@@ -1,4 +1,4 @@
-using DataAccessLayer.Data;
+﻿using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>
@@ -45,16 +46,16 @@ if (mailOptions != null)
     builder.Services.AddSingleton(mailOptions);
 }
 else
-{ 
-    Environment.Exit(0); 
+{
+    Environment.Exit(0);
 }
 
 
-builder.Services.AddCustomJwtBearer(jwtOptions);
 
 builder.UseSerilog();
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
+builder.Services.AddCustomJwtBearer(jwtOptions);
 
 var app = builder.Build();
 
@@ -65,13 +66,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.AddCustomMiddlewares();
+//app.AddCustomMiddlewares();
 
 
 app.UseHttpsRedirection();
+
 
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+
+
+

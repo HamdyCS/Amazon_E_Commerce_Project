@@ -12,6 +12,7 @@ namespace ApiLayer.Controllers
 {
     [Route("api/Authentication")]
     [ApiController]
+    [Authorize]
     public class AuthenticationController : ControllerBase
     {
         private readonly IOtpService _otpService;
@@ -28,7 +29,7 @@ namespace ApiLayer.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpGet("IsEmailExist", Name = "IsEmailExist")]
+        [HttpGet("is-email-exist", Name = "IsEmailExist")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -50,12 +51,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("SendOtp", Name = "SendOtpToEmail")]
+        [HttpPost("send-otp", Name = "SendOtpToEmail")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> SendOtpToEmail(string Email)
+        public async Task<ActionResult> SendOtpToEmail([FromBody]string Email)
         {
             if (string.IsNullOrEmpty(Email)) return BadRequest("Email cannot be null or empty");
 
@@ -79,13 +80,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("RegisterAdminUser", Name = "RegisterAdminUser")]
-        //[Authorize(Roles = Role.Admin)]
-        [AllowAnonymous]
+        [HttpPost("register-admin", Name = "RegisterAdminUser")]
+        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] UserDto userDto, string Code)
+        public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] UserDto userDto,[FromQuery] string Code)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -113,12 +113,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("RegisterCustomerUser", Name = "RegisterCustomerUser")]
+        [HttpPost("register-customer", Name = "RegisterCustomerUser")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterCustomerUser([FromBody] UserDto userDto, string Code)
+        public async Task<ActionResult<TokenDto>> RegisterCustomerUser([FromBody] UserDto userDto, [FromQuery] string Code)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -147,12 +147,12 @@ namespace ApiLayer.Controllers
 
 
 
-        [HttpPost("RegisterSellerUser", Name = "RegisterSellerUser")]
+        [HttpPost("register-seller", Name = "RegisterSellerUser")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterSellerUser([FromBody] UserDto userDto, string Code)
+        public async Task<ActionResult<TokenDto>> RegisterSellerUser([FromBody] UserDto userDto, [FromQuery] string Code)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -180,12 +180,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("RegisterDeliveryAgentUser", Name = "RegisterDeliveryAgentUser")]
+        [HttpPost("register-deliveryagent", Name = "RegisterDeliveryAgentUser")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterDeliveryAgentUser([FromBody] UserDto userDto, string Code)
+        public async Task<ActionResult<TokenDto>> RegisterDeliveryAgentUser([FromBody] UserDto userDto, [FromQuery] string Code)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -213,7 +213,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("Login", Name = "Login")]
+        [HttpPost("login", Name = "Login")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -253,18 +253,21 @@ namespace ApiLayer.Controllers
 
 
 
-        [HttpPost("ResetPassword", Name = "ResetPassword")]
-        [AllowAnonymous]
+        [HttpPut("reset-password", Name = "ResetPassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> ResetPassword([FromBody] string NewPassword, string Email, string Code)
+        public async Task<ActionResult<TokenDto>> ResetPassword([FromBody] string NewPassword, [FromQuery] string Code)
         {
             if (string.IsNullOrEmpty(NewPassword) || string.IsNullOrEmpty(Code))
                 return BadRequest("code or Newpassword cannot be null or empty");
 
             try
             {
+                
+                var Email = User.FindFirst(ClaimTypes.Email).Value;
+                if(Email is null) return Unauthorized("Email not found");
+
                 var IsResetedPassword = await _userService.ResetPasswordByEmailAsync(Email, NewPassword, Code);
                 if (!IsResetedPassword) return BadRequest("Cannot reseted password");
 
@@ -279,7 +282,7 @@ namespace ApiLayer.Controllers
 
 
 
-        [HttpPost("UpdatePassword", Name = "UpdatePassword")]
+        [HttpPut("update-password", Name = "UpdatePassword")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -308,12 +311,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("All", Name = "GetPagedData")]
+        [HttpGet("all", Name = "GetUsersPaged")]
+        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetPagedData([FromQuery] int pageNumber, [FromQuery] int pageSize)
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersPaged([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0");
 
@@ -329,7 +333,8 @@ namespace ApiLayer.Controllers
 
         }
 
-        [HttpGet("Count", Name = "GetCountOfUsers")]
+        [HttpGet("count", Name = "GetCountOfUsers")]
+        //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -379,11 +384,12 @@ namespace ApiLayer.Controllers
 
 
         [HttpDelete("{Id}", Name = "DeleteAccountById")]
+        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
-        public async Task<ActionResult> DeleteAccountById(string Id)
+        public async Task<ActionResult> DeleteAccountById([FromRoute]string Id)
         {
             if (string.IsNullOrEmpty(Id)) return BadRequest("Id cannot be null");
             try
@@ -403,7 +409,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPut("Email", Name = "UpdateEmail")]
+        [HttpPut("update-email", Name = "UpdateEmail")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -441,7 +447,7 @@ namespace ApiLayer.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId is null) return Unauthorized();
+                if (userId is null) return Unauthorized("UserId not found");
 
                 bool IsUserUpdated = await _userService.UpdateUserByIdAsync(userId, userDto);
 
@@ -457,16 +463,19 @@ namespace ApiLayer.Controllers
 
         }
 
-        [HttpGet("IsOtpValid",Name = "CheckIfOtpValid")]
+
+        [HttpGet("is-otp-valid",Name = "CheckIfOtpValid")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<bool>> CheckIfOtpValid(string Email,string Code)
+        public async Task<ActionResult<bool>> CheckIfOtpValid([FromQuery]string Code, [FromQuery] string Email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
                
+                if (Email is null) return Unauthorized("Email not found");
 
                 bool IsOtpActiveAndNotUsed = await _otpService.CheckIfOtpActiveAndNotUsedAsync(new OtpDto { Email = Email,Code = Code});
 
@@ -482,7 +491,36 @@ namespace ApiLayer.Controllers
 
         }
 
+        [HttpPost("refresh-token", Name = "RefreshToken")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<string>> RefreshToken([FromBody] string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken)) return BadRequest("Refresh token cannot be null or empty");
+
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var Email = User.FindFirst(ClaimTypes.Email).Value;
+                if (userId is null || Email is null) return Unauthorized("Email or userId cannot be null");
+
+                var IsRefreshTokenActive = await _tokenService.CheckIfRefreshTokenIsActiveByUserIdAsync(userId, refreshToken);
+                if (!IsRefreshTokenActive) return Unauthorized("Refresh token is not active");
+
+                var userRolesDto = await _userService.GetAllUserRolesByIdAsync(userId);
+                if (userRolesDto is null) return Unauthorized("User didnot has any role");
+
+                var userRoles = userRolesDto.Select(r => r.Name).ToArray();
+                var token = _tokenService.GenerateJwtToken(userId, Email, userRoles);
+
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
     }
-
-
 }

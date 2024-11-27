@@ -54,6 +54,23 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Otps",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsUsed = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Otps", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentsTypes",
                 columns: table => new
                 {
@@ -79,20 +96,6 @@ namespace DataAccessLayer.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK__People__3214EC0750368F63", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Phones",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    userId = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK__Phones__3214EC076BAE186A", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -137,7 +140,8 @@ namespace DataAccessLayer.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PersonId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PhoneId = table.Column<long>(type: "bigint", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    DateOfDeleted = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -146,6 +150,7 @@ namespace DataAccessLayer.Migrations
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
@@ -158,12 +163,6 @@ namespace DataAccessLayer.Migrations
                         name: "FK_Users_People_PersonId",
                         column: x => x.PersonId,
                         principalTable: "People",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "Fk_Users_PhoneId",
-                        column: x => x.PhoneId,
-                        principalTable: "Phones",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -791,12 +790,6 @@ namespace DataAccessLayer.Migrations
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_PhoneId",
-                table: "Users",
-                column: "PhoneId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "Users",
                 column: "NormalizedUserName",
@@ -822,6 +815,9 @@ namespace DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "CitiesWhereDeliveiesWorks");
+
+            migrationBuilder.DropTable(
+                name: "Otps");
 
             migrationBuilder.DropTable(
                 name: "ProductCategoryImages");
@@ -891,9 +887,6 @@ namespace DataAccessLayer.Migrations
 
             migrationBuilder.DropTable(
                 name: "People");
-
-            migrationBuilder.DropTable(
-                name: "Phones");
         }
     }
 }

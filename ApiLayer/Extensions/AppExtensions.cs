@@ -6,7 +6,7 @@ namespace ApiLayer.Extensions
     {
         public static WebApplication AddCustomMiddlewares(this WebApplication app)
         {
-            app.UseMiddleware<CheckIfTokenIsValidMiddleWare>();
+            app.UseMiddleware<CheckIfUserIsNotDeletedMiddleWare>();
             return app;
         }
     }

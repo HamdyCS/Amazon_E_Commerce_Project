@@ -82,7 +82,7 @@ namespace BusinessLayer.Extensions
 
                         ClockSkew = TimeSpan.Zero,
 
-                        TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey)),
+                        //TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey)),
                     };
 
 
