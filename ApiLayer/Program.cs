@@ -3,10 +3,9 @@ using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using BusinessLayer.Extensions;
-using ApiLayer.Extensions;
 using BusinessLayer.Options;
 using BusinessLayer.Mapper.Profiles;
-using DataAccessLayer.SoftDelete;
+using ApiLayer.Extensions;
 
 
 
@@ -19,6 +18,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen();
+//builder.Services.AddOpenApi();
+
 
 builder.Services.AddDbContext<AppDbContext>
     (o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString"))/*.AddInterceptors(new SoftDeleteInterceptor())*/);
@@ -59,24 +60,26 @@ builder.Services.AddCustomJwtBearer(jwtOptions);
 
 var app = builder.Build();
 
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+   // app.MapOpenApi();
+
 }
 
-//app.AddCustomMiddlewares();
 
 
 app.UseHttpsRedirection();
-
-
-app.UseAuthorization();
-
+app.UseAuthentication(); // إضافة المصادقة أولاً
+app.UseAuthorization();  // ثم التفويض
 app.MapControllers();
+app.AddCustomMiddlewares();
 
 app.Run();
+
 
 
 

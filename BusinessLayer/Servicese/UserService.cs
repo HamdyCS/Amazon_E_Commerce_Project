@@ -85,6 +85,12 @@ namespace BusinessLayer.Servicese
 
                 var userDto = _genericMapper.MapSingle<User, UserDto>(user);
 
+                var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(user.PersonId);
+
+                if (user is null) return null;
+
+                _genericMapper.MapSingle(person,userDto);
+
                 return userDto;
             }
             catch (Exception ex)
@@ -101,8 +107,19 @@ namespace BusinessLayer.Servicese
 
                 if (users is null) return null;
 
-                var usersDtos = _genericMapper.MapCollection<User, UserDto>(users);
+                List<UserDto> usersDtos = new();
+                foreach (var user in users)
+                {
+                    var userDto = _genericMapper.MapSingle<User,UserDto>(user);
+                    if (userDto is null) return null;
+                    
+                    var person = await _personService.FindByIdAsync(user.PersonId);
+                    if (person is null) return null;
 
+                    _genericMapper.MapSingle(person, userDto);
+
+                    usersDtos.Add(userDto);
+                }
                 return usersDtos;
             }
             catch (Exception ex)
@@ -135,8 +152,19 @@ namespace BusinessLayer.Servicese
 
                 if (users is null) return null;
 
-                var usersDtos = _genericMapper.MapCollection<User, UserDto>(users);
+                List<UserDto> usersDtos = new();
+                foreach (var user in users)
+                {
+                    var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+                    if (userDto is null) return null;
 
+                    var person = await _personService.FindByIdAsync(user.PersonId);
+                    if (person is null) return null;
+
+                    _genericMapper.MapSingle(person, userDto);
+
+                    usersDtos.Add(userDto);
+                }
                 return usersDtos;
             }
             catch (Exception ex)

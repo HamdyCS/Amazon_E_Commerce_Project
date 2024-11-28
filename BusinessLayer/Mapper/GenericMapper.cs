@@ -28,7 +28,7 @@ namespace BusinessLayer.Mapper
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
+                _logger.LogError(ex, "Cannot map from {sourse} to {TDestination}", typeof(TSourse).Name, typeof(TDestination).Name);
                 return null;
             }
             
@@ -42,9 +42,9 @@ namespace BusinessLayer.Mapper
             }
             catch (Exception ex)
             {
-                
-                _logger.LogError(ex, $"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
-                throw new Exception($"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
+
+                _logger.LogError(ex, "Cannot map from {sourse} to {TDestination}", typeof(TSourse).Name, typeof(TDestination).Name); 
+                throw new Exception($"Cannot map from {typeof(TSourse).Name} to {typeof(TDestination).Name}");
             }
 
         }
@@ -56,7 +56,7 @@ namespace BusinessLayer.Mapper
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Cannot map from {nameof(TSourse)} to {nameof(TDestination)} ");
+                _logger.LogError(ex, "Cannot map from {sourse} to {TDestination}", typeof(TSourse).Name, typeof(TDestination).Name);
                 return null;
             }
         }

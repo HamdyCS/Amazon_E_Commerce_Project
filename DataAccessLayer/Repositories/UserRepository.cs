@@ -2,7 +2,7 @@
 using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
@@ -15,6 +15,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using DataAccessLayer.Exceptions;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNetCore.Identity;
 
 namespace DataAccessLayer.Repositories
 {

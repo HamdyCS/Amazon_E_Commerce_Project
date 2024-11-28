@@ -22,7 +22,11 @@ namespace ApiLayer.MiddleWares
         
         public async Task Invoke(HttpContext context)
         {
-
+            if(context.GetEndpoint().Metadata.OfType<AllowAnonymousAttribute>().Any())
+            {
+                await _next(context);
+                return;
+            }
                       
             if(context.GetEndpoint().Metadata.OfType<AuthorizeAttribute>().Any())
             {

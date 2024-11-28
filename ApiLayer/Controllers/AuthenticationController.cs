@@ -29,6 +29,31 @@ namespace ApiLayer.Controllers
             _tokenService = tokenService;
         }
 
+
+        [HttpGet("", Name = "GetUserInfo")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<bool>> GetUserInfo()
+        {
+           
+
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (userId is null)
+                    return Unauthorized();
+
+              var userDto =await _userService.FindByIdAsync(userId); 
+                return Ok(userDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("is-email-exist", Name = "IsEmailExist")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -334,7 +359,7 @@ namespace ApiLayer.Controllers
         }
 
         [HttpGet("count", Name = "GetCountOfUsers")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -521,6 +546,8 @@ namespace ApiLayer.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
 
     }
 }

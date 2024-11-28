@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Test")]
     [ApiController]
     [Authorize]
     public class TestController : ControllerBase

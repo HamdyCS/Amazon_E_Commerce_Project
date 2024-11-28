@@ -33,7 +33,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IUserService, UserService>();
 
-            services.AddScoped<IOtpService,OtpService>();
+            services.AddScoped<IOtpService, OtpService>();
 
 
             return services;
@@ -64,7 +64,11 @@ namespace BusinessLayer.Extensions
 
         public static IServiceCollection AddCustomJwtBearer(this IServiceCollection services, JwtOptions jwtOptions)
         {
-            services.AddAuthentication().AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,opt =>
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;// وهو المخطط المستخدم للتحقق من المستخدم.
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;//وهو المخطط المستخدم لتحدي المستخدم عند عدم المصادقة
+            }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
                 {
                     opt.SaveToken = true;
                     opt.TokenValidationParameters = new()
@@ -76,7 +80,7 @@ namespace BusinessLayer.Extensions
                         ValidAudience = jwtOptions.Audience,
 
                         ValidateLifetime = true,
-                        
+
 
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
 
@@ -88,6 +92,7 @@ namespace BusinessLayer.Extensions
 
                 });
 
+           
             return services;
         }
 

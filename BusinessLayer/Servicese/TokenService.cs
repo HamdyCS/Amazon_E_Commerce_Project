@@ -143,13 +143,13 @@ namespace BusinessLayer.Servicese
 
                 //EncryptingCredentials = new EncryptingCredentials
                 //    (
-                //        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0,16))),
+                //        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0, 16))),
                 //        SecurityAlgorithms.Aes128KW,
                 //        SecurityAlgorithms.Aes128CbcHmacSha256
 
                 //    ),
 
-                
+
 
                 Subject = new ClaimsIdentity
                     (
