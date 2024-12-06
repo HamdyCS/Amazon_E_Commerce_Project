@@ -22,6 +22,11 @@ namespace ApiLayer.MiddleWares
         
         public async Task Invoke(HttpContext context)
         {
+            if(context is null || context.GetEndpoint() is null)
+            {
+                context.Response.StatusCode = 404;
+                return;
+            }
             if(context.GetEndpoint().Metadata.OfType<AllowAnonymousAttribute>().Any())
             {
                 await _next(context);

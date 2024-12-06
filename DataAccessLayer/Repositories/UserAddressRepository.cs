@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,7 +16,7 @@ namespace DataAccessLayer.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UserAddressRepository> _logger;
-        private string _TableName = "UsersAddresses";
+        private readonly string _TableName = "UsersAddresses";
         public UserAddressRepository(AppDbContext context, ILogger<UserAddressRepository> logger) : base(context, logger, "UsersAddresses")
         {
             _context = context;
@@ -24,8 +25,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<UserAddress>> GetAllUserAddressesAsNoTrackinByUserEmailAsync(string Email)
         {
-            if (string.IsNullOrWhiteSpace(Email)) throw new ArgumentException("Email cannot be null or empty");
-
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
             try
             {
                 var result = await _context.UsersAddresses.AsNoTracking().Where(u => u.user.Email == Email).ToListAsync();
@@ -39,7 +39,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<UserAddress>> GetAllUserAddressesAsNoTrackinByUserIdAsync(string UserId)
         {
-            if (string.IsNullOrWhiteSpace(UserId)) throw new ArgumentException("UserId cannot be null or empty");
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
 
             try
             {
@@ -54,7 +55,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<UserAddress>> GetAllUserAddressesAsTrackinByUserEmailAsync(string Email)
         {
-            if (string.IsNullOrWhiteSpace(Email)) throw new ArgumentException("Email cannot be null or empty");
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+
 
             try
             {
@@ -69,7 +71,7 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<UserAddress>> GetAllUserAddressesAsTrackinByUserIdAsync(string UserId)
         {
-            if (string.IsNullOrWhiteSpace(UserId)) throw new ArgumentException("UserId cannot be null or empty");
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
             try
             {
@@ -77,6 +79,73 @@ namespace DataAccessLayer.Repositories
                 return result;
             }
             catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task DeleteAsync(long id)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
+
+            try
+            {
+                var userAddress = await _context.UsersAddresses.FirstOrDefaultAsync(p=>p.Id == id);
+                if (userAddress is null) return;
+
+                userAddress.IsDeleted = true;
+                userAddress.DateOfDeleted = DateTime.UtcNow;
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task DeleteRangeAsync(IEnumerable<long> Ids)
+        {
+            try
+            {
+                foreach(var id  in Ids)
+                {
+                    await DeleteAsync(id);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<int> GetCountOfUserAddressesByUserIdAsync(string userId)
+        {
+           ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            try
+            {
+                var count = await _context.UsersAddresses.Where(e=>e.UserId == userId).CountAsync();
+                return count;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<UserAddress> GetByIdAndUserIdAsync(long Id, string userId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            try
+            {
+                var userAddress = await  _context.UsersAddresses.FirstOrDefaultAsync(e=>e.Id == Id
+                    && e.UserId == userId);
+
+                return userAddress;
+            }
+            catch(Exception ex)
             {
                 throw HandleDatabaseException(ex);
             }

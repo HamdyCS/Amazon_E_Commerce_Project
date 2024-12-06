@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Contracks;
+using BusinessLayer.Dtos;
 using BusinessLayer.Options;
 using DataAccessLayer.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
@@ -24,7 +25,7 @@ namespace BusinessLayer.Servicese
         private readonly ILogger<TokenService> _logger;
         private readonly JwtOptions _jwtOptions;
 
-        public TokenService(IUserService userService,IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<TokenService> logger, JwtOptions jwtOptions)
+        public TokenService(IUserService userService, IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<TokenService> logger, JwtOptions jwtOptions)
         {
             _userService = userService;
             _configuration = configuration;
@@ -65,7 +66,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var userDto =await  _userService.FindByIdAsync(UserId);
+                var userDto = await _userService.FindByIdAsync(UserId);
 
                 if (userDto is null) return null;
 
@@ -110,7 +111,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public string GenerateJwtToken(string UserId, string Email,IEnumerable<string> roles)
+        public string GenerateJwtToken(string UserId, string Email, IEnumerable<string> roles)
         {
             if (string.IsNullOrEmpty(UserId)) throw new ArgumentException("Cannot be null", nameof(UserId));
             if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Cannot be null", nameof(Email));
@@ -124,7 +125,7 @@ namespace BusinessLayer.Servicese
 
                         };
 
-            foreach (var role in roles) 
+            foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
             SecurityTokenDescriptor securityTokenDescriptor = new()
@@ -141,13 +142,13 @@ namespace BusinessLayer.Servicese
 
                     ),
 
-                //EncryptingCredentials = new EncryptingCredentials
-                //    (
-                //        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0, 16))),
-                //        SecurityAlgorithms.Aes128KW,
-                //        SecurityAlgorithms.Aes128CbcHmacSha256
+                EncryptingCredentials = new EncryptingCredentials
+                    (
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0, 16))),
+                        SecurityAlgorithms.Aes128KW,
+                        SecurityAlgorithms.Aes128CbcHmacSha256
 
-                //    ),
+                    ),
 
 
 

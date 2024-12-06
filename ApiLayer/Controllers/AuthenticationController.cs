@@ -34,6 +34,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult<bool>> GetUserInfo()
         {
            
@@ -110,6 +112,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] UserDto userDto,[FromQuery] string Code)
         {
             if (!ModelState.IsValid)
@@ -282,6 +286,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult<TokenDto>> ResetPassword([FromBody] string NewPassword, [FromQuery] string Code)
         {
             if (string.IsNullOrEmpty(NewPassword) || string.IsNullOrEmpty(Code))
@@ -311,6 +317,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult<TokenDto>> UpdatePassword([FromBody] string NewPassword)
         {
             if (string.IsNullOrEmpty(NewPassword))
@@ -341,7 +349,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersPaged([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0");
@@ -358,11 +366,13 @@ namespace ApiLayer.Controllers
 
         }
 
+
         [HttpGet("count", Name = "GetCountOfUsers")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
         public async Task<ActionResult<long>> GetCountOfUsers()
         {
@@ -384,7 +394,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> DeleteAccount()
         {
 
@@ -407,12 +417,12 @@ namespace ApiLayer.Controllers
         }
 
 
-
         [HttpDelete("{Id}", Name = "DeleteAccountById")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
         public async Task<ActionResult> DeleteAccountById([FromRoute]string Id)
         {
@@ -438,6 +448,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult> UpdateEmail([FromBody] string NewEmail, [FromQuery] string Code)
         {
             if (string.IsNullOrEmpty(NewEmail)) return BadRequest("New Email Cannot be null or empty");
@@ -466,6 +478,8 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult> UpdateUserInfo([FromBody] UserDto userDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -516,10 +530,13 @@ namespace ApiLayer.Controllers
 
         }
 
+
         [HttpPost("refresh-token", Name = "RefreshToken")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+
         public async Task<ActionResult<string>> RefreshToken([FromBody] string refreshToken)
         {
             if (string.IsNullOrEmpty(refreshToken)) return BadRequest("Refresh token cannot be null or empty");

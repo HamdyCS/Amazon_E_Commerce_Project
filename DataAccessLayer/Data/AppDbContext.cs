@@ -228,7 +228,8 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_UsersAddresses_CityId");
 
-            
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<Person>(entity =>
@@ -378,6 +379,8 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a=>a.UserId);
             entity.HasQueryFilter(e=>!e.IsDeleted);
+
+            entity.Property(p=>p.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Ignore<IdentityUserClaim<string>>();

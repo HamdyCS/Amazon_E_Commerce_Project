@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,8 @@ namespace DataAccessLayer.Contracks
         Task<IEnumerable<UserAddress>> GetAllUserAddressesAsNoTrackinByUserEmailAsync(string Email);
         Task<IEnumerable<UserAddress>> GetAllUserAddressesAsTrackinByUserIdAsync(string UserId);
         Task<IEnumerable<UserAddress>> GetAllUserAddressesAsNoTrackinByUserIdAsync(string UserId);
+        Task<int> GetCountOfUserAddressesByUserIdAsync(string  userId);  
+
+        Task<UserAddress> GetByIdAndUserIdAsync(long Id,string userId);
     }
 }

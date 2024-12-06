@@ -19,5 +19,8 @@ public partial class UserAddress
 
     public virtual City? City { get; set; }
 
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDeleted { get; set; }
   
 }

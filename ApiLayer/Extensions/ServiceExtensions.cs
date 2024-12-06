@@ -35,6 +35,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IOtpService, OtpService>();
 
+            services.AddScoped<IUserAddressService, UserAddressService>();
 
             return services;
 
@@ -86,7 +87,7 @@ namespace BusinessLayer.Extensions
 
                         ClockSkew = TimeSpan.Zero,
 
-                        //TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey)),
+                        TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey.Substring(0, 16))),
                     };
 
 
