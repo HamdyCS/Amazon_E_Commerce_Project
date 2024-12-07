@@ -16,12 +16,14 @@ namespace BusinessLayer.Servicese
 {
     public class UserAddressService : IUserAddressService
     {
+        private readonly ICityService _cityService;
         private readonly ILogger<UserAddressDto> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericMapper _genericMapper;
 
-        public UserAddressService(ILogger<UserAddressDto> logger, IUnitOfWork unitOfWork, IGenericMapper genericMapper)
+        public UserAddressService(ICityService cityService,ILogger<UserAddressDto> logger, IUnitOfWork unitOfWork, IGenericMapper genericMapper)
         {
+            this._cityService = cityService;
             this._logger = logger;
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;
@@ -49,6 +51,9 @@ namespace BusinessLayer.Servicese
             {
                 var userDto = await _unitOfWork.userRepository.GetByIdAsync(UserId);
                 if (userDto == null) return null;
+
+                var cityDto = await _cityService.FindByIdAsync(UserAddressdto.CityId);
+                if (cityDto is null) return null;
 
                 var userAddress = _genericMapper.MapSingle<UserAddressDto, UserAddress>(UserAddressdto);
                 if (userAddress is null) return null;
@@ -148,6 +153,9 @@ namespace BusinessLayer.Servicese
             {
                 var userAddress = await _unitOfWork.userAdderssRepository.GetByIdAndUserIdAsync(Id, userId);
                 if (userAddress is null) return false;
+
+                var cityDto = await _cityService.FindByIdAsync(UserAddressdto.CityId);
+                if (cityDto is null) return false;
 
                 _genericMapper.MapSingle(UserAddressdto, userAddress);
 

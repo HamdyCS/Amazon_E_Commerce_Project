@@ -190,6 +190,12 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.NameEn)
                 .HasMaxLength(255)
                 .HasColumnName("Name_En");
+
+            entity.HasOne(p => p.user).WithMany().HasForeignKey(c=>c.CreatedBy);
+
+            entity.Property(p => p.IsDeleted).HasDefaultValue(false);
+
+            entity.HasQueryFilter(c => !c.IsDeleted);
         });
 
         modelBuilder.Entity<Delivery>(entity =>
@@ -239,9 +245,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.FirstName).HasMaxLength(255);
             entity.Property(e => e.LastName).HasMaxLength(255);
         });
-
        
-
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Products__3214EC07813EF3B4");

@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241207090247_Add IsDeletd and DateOfDeletion to Cities table")]
+    partial class AddIsDeletdandDateOfDeletiontoCitiestable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,7 +239,8 @@ namespace DataAccessLayer.Migrations
                     b.HasKey("Id")
                         .HasName("PK__Cities__3214EC07A2F63C83");
 
-                    b.HasIndex("CreatedBy");
+                    b.HasIndex("CreatedBy")
+                        .IsUnique();
 
                     b.ToTable("Cities");
                 });
@@ -958,8 +962,8 @@ namespace DataAccessLayer.Migrations
             modelBuilder.Entity("DataAccessLayer.Entities.City", b =>
                 {
                     b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
+                        .WithOne()
+                        .HasForeignKey("DataAccessLayer.Entities.City", "CreatedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

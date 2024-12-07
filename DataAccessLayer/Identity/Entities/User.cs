@@ -24,6 +24,6 @@ namespace DataAccessLayer.Identity.Entities
 
         public bool IsDeleted { get; set; }
 
-        public DateTime? DateOfDeleted { get; set; }
+        public DateTime? DateOfDeletion { get; set; }
     }
 }

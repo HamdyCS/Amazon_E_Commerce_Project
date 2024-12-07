@@ -91,7 +91,7 @@ namespace DataAccessLayer.Repositories
                 if (user is null) return false;
 
                 user.IsDeleted = true;
-                user.DateOfDeleted = DateTime.UtcNow;
+                user.DateOfDeletion = DateTime.UtcNow;
 
                  _context.Users.Update(user);
                

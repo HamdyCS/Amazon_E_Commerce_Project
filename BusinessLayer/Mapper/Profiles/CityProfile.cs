@@ -15,7 +15,9 @@ namespace BusinessLayer.Mapper.Profiles
         public CityProfile()
         {
             CreateMap<CityDto, City>().ForMember(C => C.NameEn, opt => opt.MapFrom(CD => CD.NameEn)).
-                ForMember(C => C.NameAr, opt => opt.MapFrom(CD => CD.NameAr)).ForMember(c => c.Id, opt => opt.Ignore());
+                ForMember(C => C.NameAr, opt => opt.MapFrom(CD => CD.NameAr))
+                .ForMember(c => c.Id, opt => opt.Ignore())
+                .ForMember(c => c.CreatedBy, opt => opt.Ignore());
 
             CreateMap<City, CityDto>();
         }

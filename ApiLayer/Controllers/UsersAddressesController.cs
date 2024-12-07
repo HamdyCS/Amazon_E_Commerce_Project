@@ -124,6 +124,7 @@ namespace ApiLayer.Controllers
         public async Task<IActionResult> UpdateUserAAddress([FromRoute] long Id,[FromBody] UserAddressDto NewUserAddressDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+            if(Id<1) return BadRequest("Id must be bigger than 1");
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;

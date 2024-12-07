@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccessLayer.Identity.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace DataAccessLayer.Entities;
@@ -10,6 +11,14 @@ public partial class City
     public string NameEn { get; set; }
 
     public string NameAr { get; set; }
+
+    public string CreatedBy { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDelete { get; set; }
+
+    public virtual User? user { get; set; }
 
     public virtual ICollection<CitiesWhereDeliveiesWork> CitiesWhereDeliveiesWorks { get; set; } = new List<CitiesWhereDeliveiesWork>();
 

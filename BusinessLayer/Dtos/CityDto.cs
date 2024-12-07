@@ -9,13 +9,15 @@ namespace BusinessLayer.Dtos
 {
     public class CityDto
     {
-        [Required]
+        
         public int Id { get; set; }
         [Required]
         public string NameEn { get; set; }
 
         [Required]
         public string NameAr { get; set; }
+
+        public string CreatedBy { get; set; }
 
     }
 }

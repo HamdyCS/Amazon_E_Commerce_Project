@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241206193433_Add createdBy in Cities table")]
+    partial class AddcreatedByinCitiestable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,15 +214,7 @@ namespace DataAccessLayer.Migrations
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("DateOfDelete")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
@@ -235,8 +230,6 @@ namespace DataAccessLayer.Migrations
 
                     b.HasKey("Id")
                         .HasName("PK__Cities__3214EC07A2F63C83");
-
-                    b.HasIndex("CreatedBy");
 
                     b.ToTable("Cities");
                 });
@@ -742,7 +735,7 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DateOfDeletion")
+                    b.Property<DateTime?>("DateOfDeleted")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -953,17 +946,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("City");
 
                     b.Navigation("Delivery");
-                });
-
-            modelBuilder.Entity("DataAccessLayer.Entities.City", b =>
-                {
-                    b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
-                        .WithMany()
-                        .HasForeignKey("CreatedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Delivery", b =>
