@@ -15,8 +15,10 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public IRoleManagerRepository roleManagerRepository { get; }
         public IUserAdderssRepository userAdderssRepository { get; }
         public IUserRepository userRepository { get; }
-
         public IOtpRepository otpRepository { get; }
+
+        public IProductCategoryImageRepository productCategoryImageRepository { get; }
+
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();

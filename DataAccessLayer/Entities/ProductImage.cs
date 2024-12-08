@@ -7,9 +7,14 @@ public partial class ProductImage
 {
     public long Id { get; set; }
 
-    public string Image { get; set; }
+    public byte[] Image { get; set; }
 
     public long ProductId { get; set; }
 
     public virtual Product? Product { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDeletion { get; set; }
+
 }

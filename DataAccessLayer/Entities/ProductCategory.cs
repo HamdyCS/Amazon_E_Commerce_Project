@@ -12,13 +12,17 @@ public partial class ProductCategory
 
     public string NameAr { get; set; }
 
-    public string DescriptionEn { get; set; }
+    public string? DescriptionEn { get; set; }
 
-    public string DescriptionAr { get; set; }
+    public string? DescriptionAr { get; set; }
 
-    public string UserId { get; set; }
+    public string CreatedBy { get; set; }
+
+    public bool IsDeleted {  get; set; }
+
+    public DateTime? DateOfDeletion { get; set; }
+
     public virtual User? user { get; set; }
-
 
     public virtual ICollection<ProductCategoryImage> ProductCategoryImages { get; set; } = new List<ProductCategoryImage>();
 

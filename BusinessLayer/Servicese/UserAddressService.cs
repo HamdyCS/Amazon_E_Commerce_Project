@@ -79,6 +79,7 @@ namespace BusinessLayer.Servicese
         public async Task<bool> DeleteByIdAndUserIdAsync(long Id, string userId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
             try
             {
                 var userAddress = await _unitOfWork.userAdderssRepository.GetByIdAndUserIdAsync(Id,userId);
@@ -98,6 +99,8 @@ namespace BusinessLayer.Servicese
         public async Task<UserAddressDto> FindByIdAndUserIdAsync(long id, string userid)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userid, nameof(userid));
+
             try
             {
                 var userAddress = await _unitOfWork.userAdderssRepository.GetByIdAndUserIdAsync(id,userid);
@@ -147,7 +150,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> UpdateByIdAndUserIdAsync(long Id,string userId, UserAddressDto UserAddressdto)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id)); 
             ParamaterException.CheckIfObjectIfNotNull(UserAddressdto, nameof(UserAddressdto));
             try
             {

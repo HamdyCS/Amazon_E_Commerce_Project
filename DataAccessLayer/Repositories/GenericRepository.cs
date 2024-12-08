@@ -18,7 +18,7 @@ namespace DataAccessLayer.Repositories
         private readonly ILogger<GenericRepository<T>> _logger;
         private readonly string _tableName;
 
-        public GenericRepository(AppDbContext context, ILogger<GenericRepository<T>> logger,string TableName)
+        public GenericRepository(AppDbContext context, ILogger<GenericRepository<T>> logger, string TableName)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -72,7 +72,16 @@ namespace DataAccessLayer.Repositories
                 if (entity is null)
                     return;
 
-                _context.Set<T>().Remove(entity);
+                var IsDeletedProperty = _context.Set<T>().Entry(entity).Property("IsDeleted");
+
+                if (IsDeletedProperty is null)
+                {
+                    _context.Set<T>().Remove(entity);
+                }
+                else
+                {
+                    IsDeletedProperty.CurrentValue = true;
+                }
             }
             catch (Exception ex)
             {
@@ -88,11 +97,7 @@ namespace DataAccessLayer.Repositories
             {
                 foreach (long Id in Ids)
                 {
-                    var entity = await GetByIdAsTrackingAsync(Id);
-
-                    if (entity is null) return;
-
-                    _context.Set<T>().Remove(entity);
+                   await DeleteAsync(Id);
                 }
             }
             catch (Exception ex)
@@ -130,8 +135,8 @@ namespace DataAccessLayer.Repositories
 
         public async Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize)
         {
-           ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
-           ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
 
             try
             {
@@ -162,7 +167,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var entity = await _context.Set<T>().FindAsync(id);
-                
+
                 return entity;
             }
             catch (Exception ex)

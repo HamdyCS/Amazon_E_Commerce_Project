@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
-using DataAccessLayer.SoftDelete;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +75,6 @@ public class AppDbContext : IdentityDbContext<User>
 
         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
 
-        //optionsBuilder.AddInterceptors(new SoftDeleteInterceptor());
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -290,6 +288,9 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.NameEn)
                 .HasMaxLength(255)
                 .HasColumnName("Name_En");
+
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductCategoryImage>(entity =>
@@ -299,6 +300,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.ProductCategory).WithMany(p => p.ProductCategoryImages)
                 .HasForeignKey(d => d.ProductCategoryId)
                 .HasConstraintName("FK_ProductCategoryImages_ProductCategoryId");
+
+            entity.Property(e=>e.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductImage>(entity =>
@@ -308,6 +311,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_ProductImages_ProductId");
+
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductReview>(entity =>

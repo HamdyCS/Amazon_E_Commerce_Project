@@ -15,7 +15,6 @@ namespace DataAccessLayer.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<RefreshTokenRepository> _logger;
-        private readonly string TableName = "RefreshTokens";
 
         public RefreshTokenRepository(AppDbContext context, ILogger<RefreshTokenRepository> logger) : base(context, logger, "RefreshTokens")
         {
