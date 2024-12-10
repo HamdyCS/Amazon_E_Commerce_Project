@@ -12,5 +12,8 @@ namespace DataAccessLayer.Contracks
 
         public Task<IEnumerable<ProductCategoryImage>> GetAllProductCategoryImagesByProductCategoryIdAsync(long  productCategoryId);
 
+        public Task DeleteAllProductCategoryImagesByProductCategoryIdAsync(long productCategoryId);
+
+
     }
 }

@@ -41,5 +41,24 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
         }
+
+        public async Task DeleteAllProductCategoryImagesByProductCategoryIdAsync(long productCategoryId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productCategoryId, nameof(productCategoryId));
+
+            try
+            {
+                var productCategoryImages = await _context.ProductCategoryImages.Where
+                    (e=>e.ProductCategoryId == productCategoryId).ToListAsync();
+
+                if (productCategoryImages is null || !productCategoryImages.Any()) return;
+
+                _context.ProductCategoryImages.RemoveRange(productCategoryImages);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
     }
 }

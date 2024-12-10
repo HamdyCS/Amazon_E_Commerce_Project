@@ -12,6 +12,7 @@ using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Crypto;
 namespace BusinessLayer.Servicese
 {
     public class ProductCategoryImageService : IProductCategoryImageService
@@ -59,6 +60,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<ProductCategoryImageDto>> AddRangeAsync(IEnumerable<ProductCategoryImageDto> dtos)
         {
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
+
             List<ProductCategoryImageDto> newProductCategoryImageDtos = new();
             foreach (var dto in dtos)
             {
@@ -66,6 +69,8 @@ namespace BusinessLayer.Servicese
                 if (newProductCategoryImageDto != null)
                     newProductCategoryImageDtos.Add(newProductCategoryImageDto);
             }
+
+            if(!newProductCategoryImageDtos.Any()) return null;
             return newProductCategoryImageDtos;
         }
 
@@ -85,6 +90,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids)
         {
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(Ids, nameof(Ids));
+
             foreach (var Id in Ids)
             {
                 var productCategoryImage = await _unitOfWork.productCategoryImageRepository.GetByIdAsTrackingAsync(Id);
@@ -145,6 +152,9 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<ProductCategoryImageDto>> GetPagedDataAsync(int pageNumber, int pageSize)
         {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
             var productCategoryImages = await _unitOfWork.
                 productCategoryImageRepository.GetPagedDataAsNoTractingAsync(pageNumber, pageSize);
 
@@ -172,6 +182,17 @@ namespace BusinessLayer.Servicese
             var IsUpdated = await _IsCompletedAsync();
             return IsUpdated;
 
+        }
+
+        public async Task<bool> DeleteAllProductCategoryImagesByProductCategoryIdAsync(long productCategoryId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productCategoryId, nameof(productCategoryId));
+
+            await _unitOfWork.productCategoryImageRepository.DeleteAllProductCategoryImagesByProductCategoryIdAsync(productCategoryId);
+
+            var IsDeleted = await _IsCompletedAsync();
+
+            return IsDeleted;
         }
     }
 }

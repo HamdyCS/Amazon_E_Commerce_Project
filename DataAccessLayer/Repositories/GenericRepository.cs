@@ -223,7 +223,14 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public async Task<bool> IsExistAsync(long Id)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id,nameof(Id));
 
+            var existingEntity = await _context.Set<T>().FindAsync(Id);
+
+            return existingEntity is not null;
+        }
 
     }
 

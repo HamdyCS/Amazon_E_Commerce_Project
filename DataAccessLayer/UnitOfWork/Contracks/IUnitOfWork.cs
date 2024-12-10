@@ -16,8 +16,9 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public IUserAdderssRepository userAdderssRepository { get; }
         public IUserRepository userRepository { get; }
         public IOtpRepository otpRepository { get; }
-
         public IProductCategoryImageRepository productCategoryImageRepository { get; }
+
+        public IProductCategoryRepository productCategoryRepository { get; }
 
         public Task<long> CompleteAsync();
 

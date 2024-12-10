@@ -17,9 +17,7 @@ namespace BusinessLayer.Extensions
     {
         public static IServiceCollection AddCustomServiceseFromBusinessLayer(this IServiceCollection services)
         {
-
             services.AddScoped<IGenericMapper, GenericMapper>();
-
 
             services.AddScoped<IPersonService, PersonService>();
 
@@ -59,6 +57,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IOtpRepository, OtpRepository>();
 
             services.AddScoped<IProductCategoryImageRepository, ProductCategoryImageRepository>();
+
+            services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
