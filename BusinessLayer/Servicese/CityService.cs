@@ -45,6 +45,7 @@ namespace BusinessLayer.Servicese
         public async Task<CityDto> AddAsync(CityDto cityDto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(cityDto, nameof(cityDto));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
             try
             {
                 var city = _genericMapper.MapSingle<CityDto, City>(cityDto);

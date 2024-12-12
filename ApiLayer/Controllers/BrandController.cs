@@ -9,32 +9,32 @@ using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/product-categories")]
+    [Route("api/brands")]
     [ApiController]
     [Authorize(Roles = Role.Admin)]
-    public class ProductCategoriesController : ControllerBase
+    public class BrandsController : ControllerBase
     {
-        private readonly IProductCategoryService _productCategoryService;
+        private readonly IBrandService _BrandService;
 
-        public ProductCategoriesController(IProductCategoryService productCategoryService)
+        public BrandsController(IBrandService IBrandService)
         {
-            this._productCategoryService = productCategoryService;
+            this._BrandService = IBrandService;
         }
 
-        [HttpGet("{Id}", Name = "GetById")]
+        [HttpGet("{Id}", Name = "GetBrandById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ProductCategoryDto>> GetById(long Id)
+        public async Task<ActionResult<ProductCategoryDto>> GetBrandById(long Id)
         {
             if (Id < 0) return BadRequest("Id must be bigger than zero");
 
             try
             {
-                var productCategoryDto = await _productCategoryService.FindByIdAsync(Id);
+                var productCategoryDto = await _BrandService.FindByIdAsync(Id);
 
-                if (productCategoryDto == null) return NotFound($"Not found product category. Id = {Id}");
+                if (productCategoryDto == null) return NotFound($"Not found brand. Id = {Id}");
 
                 return Ok(productCategoryDto);
             }
@@ -45,20 +45,20 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("name-ar/{NameAr}", Name = "GetByNameAr")]
+        [HttpGet("name-ar/{NameAr}", Name = "GetBrandByNameAr")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ProductCategoryDto>> GetByNameAr(string NameAr)
+        public async Task<ActionResult<ProductCategoryDto>> GetBrandByNameAr(string NameAr)
         {
             if (string.IsNullOrEmpty(NameAr)) return BadRequest("NameAr is null or empty");
 
             try
             {
-                var productCategoryDto = await _productCategoryService.FindByNameArAsync(NameAr);
+                var productCategoryDto = await _BrandService.FindByNameArAsync(NameAr);
 
-                if (productCategoryDto == null) return NotFound($"Not found product category. NameAR = {NameAr}");
+                if (productCategoryDto == null) return NotFound($"Not found brand. NameAR = {NameAr}");
 
                 return Ok(productCategoryDto);
             }
@@ -69,20 +69,20 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("name-en/{NameEn}", Name = "GetByNameEn")]
+        [HttpGet("name-en/{NameEn}", Name = "GetBrandByNameEn")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ProductCategoryDto>> GetByNameEn(string NameEn)
+        public async Task<ActionResult<ProductCategoryDto>> GetBrandByNameEn(string NameEn)
         {
             if (string.IsNullOrEmpty(NameEn)) return BadRequest("NameEn is null or empty");
 
             try
             {
-                var productCategoryDto = await _productCategoryService.FindByNameEnAsync(NameEn);
+                var productCategoryDto = await _BrandService.FindByNameEnAsync(NameEn);
 
-                if (productCategoryDto == null) return NotFound($"Not found product category. NameEn = {NameEn}");
+                if (productCategoryDto == null) return NotFound($"Not found brand. NameEn = {NameEn}");
 
                 return Ok(productCategoryDto);
             }
@@ -93,22 +93,22 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("all", Name = "GetAllProductCategories")]
+        [HttpGet("all", Name = "GetAllBrands")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ProductCategoryDto>> GetAllProductCategories()
+        public async Task<ActionResult<ProductCategoryDto>> GetAllBrands()
         {
 
             try
             {
-                var productCategoriesDtosList = await _productCategoryService.GetAllAsync();
+                var brandsDtos = await _BrandService.GetAllAsync();
 
-                if (productCategoriesDtosList == null || !productCategoriesDtosList.Any())
-                    return NotFound($"Didnot find any product category");
+                if (brandsDtos == null || !brandsDtos.Any())
+                    return NotFound($"Didnot find any brnad");
 
-                return Ok(productCategoriesDtosList);
+                return Ok(brandsDtos);
             }
             catch (Exception ex)
             {
@@ -117,14 +117,14 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("count", Name = "GetCount")]
+        [HttpGet("count", Name = "GetCountOfBrands")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<int>> GetCount()
+        public async Task<ActionResult<int>> GetCountOfBrands()
         {
             try
             {
-                var count = await _productCategoryService.GetCountAsync();
+                var count = await _BrandService.GetCountAsync();
                 return Ok(count);
             }
             catch (Exception ex)
@@ -134,23 +134,23 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("all-paged", Name = "GetPaged")]
+        [HttpGet("all-paged", Name = "GetPagedOfBrands")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize)
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetPagedOfBrands([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0");
 
             try
             {
-                var productCategoriesDtosList = await _productCategoryService.GetPagedDataAsync(pageNumber, pageSize);
+                var brandsDtos = await _BrandService.GetPagedDataAsync(pageNumber, pageSize);
 
-                if (productCategoriesDtosList == null || !productCategoriesDtosList.Any())
-                    return NotFound($"Didnot find any product categor");
+                if (brandsDtos == null || !brandsDtos.Any())
+                    return NotFound($"Didnot find any brand");
 
-                return Ok(productCategoriesDtosList);
+                return Ok(brandsDtos);
             }
             catch (Exception ex)
             {
@@ -160,13 +160,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("", Name = "AddProductCategory")]
+        [HttpPost("", Name = "Addbrand")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(201)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<ProductCategoryDto>> AddProductCategory(ProductCategoryDto productCategoryDto)
+        public async Task<ActionResult<ProductCategoryDto>> Addbrand(BrandDto brandDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -175,11 +175,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductCategoryDto = await  _productCategoryService.AddAsync(productCategoryDto,UserId);
+                var NewBrandDto = await _BrandService.AddAsync(brandDto, UserId);
 
-                if(NewproductCategoryDto == null) return BadRequest("Cannot add new product Category");
+                if (NewBrandDto == null) return BadRequest("Cannot add new brand");
 
-                return CreatedAtRoute("GetById", new { Id = NewproductCategoryDto.Id }, NewproductCategoryDto);
+                return CreatedAtRoute("GetBrandById", new { Id = NewBrandDto.Id }, NewBrandDto);
             }
             catch (Exception ex)
             {
@@ -188,13 +188,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("range", Name = "AddRangeOfProductCategories")]
+        [HttpPost("range", Name = "AddRangeOfBrands")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<string>> AddRangeOfProductCategories(IEnumerable< ProductCategoryDto> productCategoriesDtos)
+        public async Task<ActionResult<string>> AddRangeOfBrands(IEnumerable<BrandDto> brnadsDtos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -203,9 +203,9 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductCategoriesDtosList = await _productCategoryService.AddRangeAsync(productCategoriesDtos, UserId);
+                var NewBrandsDtos = await _BrandService.AddRangeAsync(brnadsDtos, UserId);
 
-                if (NewproductCategoriesDtosList == null || !NewproductCategoriesDtosList.Any()) return BadRequest("Cannot add new product Categories");
+                if (NewBrandsDtos == null || !NewBrandsDtos.Any()) return BadRequest("Cannot add new brands");
 
                 return Ok("Added new product Categories successfully");
             }
@@ -216,24 +216,24 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPut("{Id}", Name = "UpdateProductCategoryById")]
+        [HttpPut("{Id}", Name = "UpdateBrandById")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateProductCategoryById([FromRoute]long Id, [FromBody] ProductCategoryDto productCategoryDto)
+        public async Task<ActionResult<string>> UpdateBrandById([FromRoute] long Id, [FromBody] BrandDto brandDto)
         {
             if (Id < 0) return BadRequest("Id must be bigger than zero");
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-               
-                var IsProductCategoryUpdated = await _productCategoryService.UpdateByIdAsync(Id,productCategoryDto);
 
-                if (!IsProductCategoryUpdated) return BadRequest("Cannot Update product Category");
+                var IsBrandUpdated = await _BrandService.UpdateByIdAsync(Id, brandDto);
 
-                return Ok("Updated product Categories successfully");
+                if (!IsBrandUpdated) return BadRequest("Cannot Update brand");
+
+                return Ok("Updated brand successfully");
             }
             catch (Exception ex)
             {
@@ -242,22 +242,22 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpDelete("{Id}", Name = "DeleteProductCategoryById")]
+        [HttpDelete("{Id}", Name = "DeleteBrandById")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> DeleteProductCategoryById([FromRoute] long Id)
+        public async Task<ActionResult<string>> DeleteBrandById([FromRoute] long Id)
         {
             if (Id < 0) return BadRequest("Id must be bigger than zero");
 
             try
             {
-                var IsDeleted = await _productCategoryService.DeleteByIdAsync(Id);
+                var IsDeleted = await _BrandService.DeleteByIdAsync(Id);
 
-                if (!IsDeleted) return BadRequest("Cannot Delete product Category");
+                if (!IsDeleted) return BadRequest("Cannot Delete brand");
 
-                return Ok("Deleted product Categories successfully");
+                return Ok("Deleted brand successfully");
             }
             catch (Exception ex)
             {

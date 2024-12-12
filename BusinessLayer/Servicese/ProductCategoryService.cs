@@ -207,6 +207,7 @@ namespace BusinessLayer.Servicese
             var productCategories = await _unitOfWork.
                productCategoryRepository.GetAllNoTrackingAsync();
 
+
             var productCategoriesDtos = _genericMapper.
                 MapCollection<ProductCategory, ProductCategoryDto>(productCategories);
 
@@ -228,7 +229,7 @@ namespace BusinessLayer.Servicese
             return productCategoriesDtos;
         }
 
-        public async Task<long> GetCountOfAsync()
+        public async Task<long> GetCountAsync()
         {
             var count = await _unitOfWork.productCategoryRepository.GetCountAsync();
             return count;

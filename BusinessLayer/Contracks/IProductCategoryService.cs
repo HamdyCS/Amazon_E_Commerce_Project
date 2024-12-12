@@ -17,7 +17,7 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<ProductCategoryDto>> GetAllAsync();
 
-        public Task<long> GetCountOfAsync();
+        public Task<long> GetCountAsync();
 
         public Task<ProductCategoryDto> AddAsync(ProductCategoryDto dto,string UserId);
 

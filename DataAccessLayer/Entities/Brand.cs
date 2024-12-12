@@ -12,9 +12,15 @@ public partial class Brand
 
     public string NameAr { get; set; }
 
-    public string UserId { get; set; }
+    public string CreatedBy { get; set; }
+
+    public byte[] Image { get; set; }
 
     public virtual User? user { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDeletion { get; set; }
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

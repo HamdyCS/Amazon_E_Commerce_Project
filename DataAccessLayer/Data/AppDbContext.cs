@@ -163,6 +163,10 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.NameEn)
                 .HasMaxLength(255)
                 .HasColumnName("Name_En");
+
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<CitiesWhereDeliveiesWork>(entity =>

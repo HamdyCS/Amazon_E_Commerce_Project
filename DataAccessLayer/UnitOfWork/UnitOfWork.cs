@@ -16,7 +16,6 @@ namespace DataAccessLayer.UnitOfWork
         private readonly AppDbContext _context;
         private readonly ILogger<UnitOfWork> _logger;
 
-       // private IDbContextTransaction _transaction;
 
         public ICityRepository cityRepository { get; private set; }
         public IPersonRepository personRepository { get; private set; }
@@ -30,13 +29,16 @@ namespace DataAccessLayer.UnitOfWork
 
         public IProductCategoryRepository productCategoryRepository {  get; private set; }
 
-        
+        public IBrandRepository brandRepository { get; private set; }
+
+      
 
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
             ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
             IUserAdderssRepository userAdderssRepository,IUserRepository userRepository, IOtpRepository otpRepository,
-            IProductCategoryImageRepository productCategoryImageRepository, IProductCategoryRepository productCategoryRepository
+            IProductCategoryImageRepository productCategoryImageRepository, 
+            IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository
             ) 
         {
             this._context = context;
@@ -50,13 +52,14 @@ namespace DataAccessLayer.UnitOfWork
             this.otpRepository = otpRepository;
             this.productCategoryImageRepository = productCategoryImageRepository;
             this.productCategoryRepository = productCategoryRepository;
+            this.brandRepository = brandRepository;
+
         }
 
         public async Task BeginTransactionAsync()
         {
             try
             {
-                 //_transaction = await _context.Database.BeginTransactionAsync();
                  await _context.Database.BeginTransactionAsync();
                 return;
             }
@@ -70,12 +73,9 @@ namespace DataAccessLayer.UnitOfWork
 
         public async Task CommitTransactionAsync()
         {
-            //if (_transaction == null) throw new NullReferenceException("_transaction object is null");
            
-
             try
             {
-                //await _transaction.CommitAsync();
                 await _context.Database.CommitTransactionAsync();
                 return;
             }
@@ -118,11 +118,8 @@ namespace DataAccessLayer.UnitOfWork
 
         public async Task RollbackTransactionAsync()
         {
-            //if (_transaction == null) throw new NullReferenceException("_transaction object is null");
-
             try
             {
-               //await _transaction.RollbackAsync();
                await _context.Database.RollbackTransactionAsync();
                 return;
             }
