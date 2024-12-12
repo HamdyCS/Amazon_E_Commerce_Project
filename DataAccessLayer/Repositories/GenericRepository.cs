@@ -81,6 +81,12 @@ namespace DataAccessLayer.Repositories
                 else
                 {
                     IsDeletedProperty.CurrentValue = true;
+
+                    var DateOfDeletionProperty = _context.Set<T>().Entry(entity).Property("DateOfDeletion");
+
+                    if(DateOfDeletionProperty is not null)
+                        DateOfDeletionProperty.CurrentValue = DateTime.UtcNow;
+
                 }
             }
             catch (Exception ex)

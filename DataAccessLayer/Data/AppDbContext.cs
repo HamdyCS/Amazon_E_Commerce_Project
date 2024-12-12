@@ -73,7 +73,7 @@ public class AppDbContext : IdentityDbContext<User>
     {
         base.OnConfiguring(optionsBuilder);
 
-        optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
+         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
 
     }
 
@@ -291,6 +291,7 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<ProductCategoryImage>(entity =>
@@ -301,7 +302,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ProductCategoryId)
                 .HasConstraintName("FK_ProductCategoryImages_ProductCategoryId");
 
-            entity.Property(e=>e.IsDeleted).HasDefaultValue(false);
+           
         });
 
         modelBuilder.Entity<ProductImage>(entity =>

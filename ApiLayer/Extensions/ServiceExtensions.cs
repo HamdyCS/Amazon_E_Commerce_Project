@@ -36,6 +36,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IUserAddressService, UserAddressService>();
 
             services.AddScoped<IProductCategoryImageService, ProductCategoryImageService>();
+
+            services.AddScoped<IProductCategoryService, ProductCategoryService>();
             return services;
 
         }

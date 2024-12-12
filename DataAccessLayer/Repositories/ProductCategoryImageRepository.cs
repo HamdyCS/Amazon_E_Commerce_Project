@@ -5,10 +5,11 @@ using DataAccessLayer.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace DataAccessLayer.Repositories
 {
@@ -29,9 +30,14 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var productCategoryImages = await _context.ProductCategories.AsNoTracking()
+                var CanConnect = await _context.Database.CanConnectAsync();
+                var count = await _context.Users.CountAsync();
+
+                ProductCategory? productCategoryImages = await _context.ProductCategories.AsNoTracking()
                     .Include(e => e.ProductCategoryImages)
                     .FirstOrDefaultAsync(e => e.Id == productCategoryId);
+
+                if (productCategoryImages is null) return null;
 
                 return productCategoryImages.ProductCategoryImages;
 

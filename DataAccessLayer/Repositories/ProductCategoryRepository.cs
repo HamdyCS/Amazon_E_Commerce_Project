@@ -5,10 +5,10 @@ using DataAccessLayer.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace DataAccessLayer.Repositories
 {
@@ -30,7 +30,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var productCategory =  await _context.ProductCategories.
-                    FirstOrDefaultAsync(e=>e.NameEn==NameAr);
+                    FirstOrDefaultAsync(e=>e.NameAr==NameAr);
                 return productCategory;
             }
             catch (Exception ex)
