@@ -28,7 +28,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(500)]
         public async Task<ActionResult<ProductCategoryDto>> GetById(long Id)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than zero");
+            if (Id < 1) return BadRequest("Id must be bigger than zero");
 
             try
             {
@@ -139,7 +139,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize)
+        public async Task<ActionResult<IEnumerable<ProductCategoryDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0");
 
@@ -223,7 +223,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> UpdateProductCategoryById([FromRoute]long Id, [FromBody] ProductCategoryDto productCategoryDto)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than zero");
+            if (Id < 1) return BadRequest("Id must be bigger than zero");
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
             try
@@ -249,7 +249,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> DeleteProductCategoryById([FromRoute] long Id)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than zero");
+            if (Id < 1) return BadRequest("Id must be bigger than zero");
 
             try
             {

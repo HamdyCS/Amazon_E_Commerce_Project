@@ -152,7 +152,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DeleteUserAddress([FromRoute] long Id)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (Id<1) return BadRequest("Id must be bigger than Zero");
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;

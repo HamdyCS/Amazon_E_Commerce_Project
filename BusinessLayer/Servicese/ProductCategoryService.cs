@@ -20,14 +20,17 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericMapper _genericMapper;
         private readonly IProductCategoryImageService _productCategoryImageService;
+        private readonly IUserService _userService;
 
         public ProductCategoryService(ILogger<ProductCategoryService> logger, IUnitOfWork unitOfWork,
-            IGenericMapper genericMapper, IProductCategoryImageService productCategoryImageService)
+            IGenericMapper genericMapper, IProductCategoryImageService productCategoryImageService,
+            IUserService userService)
         {
             this._logger = logger;
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;
             this._productCategoryImageService = productCategoryImageService;
+            this._userService = userService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -40,16 +43,17 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
-
-            var productCategory = _genericMapper.MapSingle<ProductCategoryDto, ProductCategory>(dto);
-            if (productCategory is null) return null;
-
-            
-
-            productCategory.CreatedBy = UserId;
-
+       
             try
             {
+                var userDto = await _userService.FindByIdAsync(UserId);
+                if (userDto == null) return null;
+
+                var productCategory = _genericMapper.MapSingle<ProductCategoryDto, ProductCategory>(dto);
+                if (productCategory is null) return null;
+
+                productCategory.CreatedBy = UserId;
+
 
                 await _unitOfWork.BeginTransactionAsync();
 
@@ -103,15 +107,15 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            var NewProductCategoryDtoList = new List<ProductCategoryDto>();
+            var NewProductCategoriesDtosList = new List<ProductCategoryDto>();
             foreach (var d in dtos)
             {
                 var NewProductCategoryDto = await AddAsync(d, UserId);
-                if (NewProductCategoryDto != null) NewProductCategoryDtoList.Add(NewProductCategoryDto);
+                if (NewProductCategoryDto != null) NewProductCategoriesDtosList.Add(NewProductCategoryDto);
             }
 
-            if (!NewProductCategoryDtoList.Any()) return null;
-            return NewProductCategoryDtoList;
+            if (!NewProductCategoriesDtosList.Any()) return null;
+            return NewProductCategoriesDtosList;
         }
 
         public async Task<bool> DeleteByIdAsync(long Id)

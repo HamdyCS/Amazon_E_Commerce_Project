@@ -19,12 +19,15 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericMapper _genericMapper;
         private readonly ILogger<CityService> _logger;
+        private readonly IUserService _userService;
 
-        public CityService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, ILogger<CityService> logger)
+        public CityService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, ILogger<CityService> logger,
+            IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _genericMapper = genericMapper;
             _logger = logger;
+            this._userService = userService;
         }
 
         private async Task<bool> _completeAsync()
@@ -48,6 +51,9 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
             try
             {
+                var userDto = await _userService.FindByIdAsync(UserId);
+                if (userDto == null) return null;
+
                 var city = _genericMapper.MapSingle<CityDto, City>(cityDto);
 
                 if (city == null) return null;

@@ -67,6 +67,8 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ShoppingCart> ShoppingCarts { get; set; }
 
+    public virtual DbSet<ProductSubCategory> ProductSubCategories { get; set; }
+
     public virtual DbSet<Otp> Otps { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -267,9 +269,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.BrandId)
                 .HasConstraintName("FK_Products_BrandId");
 
-            entity.HasOne(d => d.ProductCategory).WithMany(p => p.Products)
-                .HasForeignKey(d => d.ProductCategoryId)
-                .HasConstraintName("FK_Products_ProductCategoryId");
+           
         });
 
         modelBuilder.Entity<ProductCategory>(entity =>
@@ -395,6 +395,21 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasQueryFilter(e=>!e.IsDeleted);
 
             entity.Property(p=>p.IsDeleted).HasDefaultValue(false);
+        });
+
+        modelBuilder.Entity<ProductSubCategory>(entity =>
+        {
+            entity.ToTable("ProductSubCategories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
+
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
+
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+
+            entity.HasOne(e=>e.productCategory).WithMany(e=>e.ProductSubCategories)
+            .HasForeignKey(e=>e.ProductCategoryId);
         });
 
         modelBuilder.Ignore<IdentityUserClaim<string>>();

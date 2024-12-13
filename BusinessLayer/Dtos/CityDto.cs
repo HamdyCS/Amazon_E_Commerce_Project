@@ -17,7 +17,7 @@ namespace BusinessLayer.Dtos
         [Required]
         public string NameAr { get; set; }
 
-        public string CreatedBy { get; set; }
+       
 
     }
 }

@@ -28,7 +28,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(500)]
         public async Task<ActionResult<ProductCategoryDto>> GetBrandById(long Id)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than zero");
+            if (Id < 1) return BadRequest("Id must be bigger than zero");
 
             try
             {
@@ -223,7 +223,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> UpdateBrandById([FromRoute] long Id, [FromBody] BrandDto brandDto)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than zero");
+            if (Id < 1) return BadRequest("Id must be bigger than zero");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try

@@ -14,10 +14,8 @@ namespace BusinessLayer.Mapper.Profiles
         public ProductCategoryProfile()
         {
             CreateMap<ProductCategoryDto, ProductCategory>().ForMember(e => e.Id,
-                otp => otp.Ignore()).
-                ForMember(e => e.CreatedBy,
-                otp => otp.Ignore())
-                ;
+                otp => otp.Ignore());
+               
 
             CreateMap<ProductCategory, ProductCategoryDto>();
         }

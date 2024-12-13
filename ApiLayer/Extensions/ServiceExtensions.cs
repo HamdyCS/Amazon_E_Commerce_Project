@@ -41,6 +41,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IBrandService,BrandService>();
 
+            services.AddScoped<IProductSubCategoryService, ProductSubCategoryService>();
+
             return services;
 
         }
@@ -66,6 +68,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
 
             services.AddScoped<IBrandRepository, BrandRepository>();
+
+            services.AddScoped<IProductSubCategoryRepository, ProductSubCategoryRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

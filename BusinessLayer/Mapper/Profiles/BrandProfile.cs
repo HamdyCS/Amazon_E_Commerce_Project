@@ -13,8 +13,8 @@ namespace BusinessLayer.Mapper.Profiles
     {
         public BrandProfile()
         {
-            CreateMap<BrandDto, Brand>().ForMember(e => e.Id, otp => otp.Ignore())
-                .ForMember(e => e.CreatedBy, otp => otp.Ignore());
+            CreateMap<BrandDto, Brand>().ForMember(e => e.Id, otp => otp.Ignore());
+                
 
             CreateMap<Brand, BrandDto>();
 

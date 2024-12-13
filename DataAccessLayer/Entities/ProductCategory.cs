@@ -26,5 +26,5 @@ public partial class ProductCategory
 
     public virtual ICollection<ProductCategoryImage> ProductCategoryImages { get; set; } = new List<ProductCategoryImage>();
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual ICollection<ProductSubCategory> ProductSubCategories { get; set; } = new List<ProductSubCategory>();
 }

@@ -71,7 +71,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(500)]
         public async Task<ActionResult<CityDto>> GetInfoById([FromRoute]long Id)
         {
-            if (Id < 0) return BadRequest("Id must be bigger than 0");
+            if (Id < 1) return BadRequest("Id must be bigger than 0");
             try
             {
                 var cityDto = await _cityService.FindByIdAsync(Id);

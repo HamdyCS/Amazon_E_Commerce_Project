@@ -20,18 +20,25 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<BrandService> _logger;
         private readonly IGenericMapper _genericMapper;
+        private readonly IUserService _userService;
 
-        public BrandService(IUnitOfWork unitOfWork, ILogger<BrandService> logger, IGenericMapper genericMapper)
+        public BrandService(IUnitOfWork unitOfWork, ILogger<BrandService> logger, IGenericMapper genericMapper,
+            IUserService userService)
         {
             this._unitOfWork = unitOfWork;
             this._logger = logger;
             this._genericMapper = genericMapper;
+            this._userService = userService;
         }
 
         public async Task<BrandDto> AddAsync(BrandDto dto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
+            var userDto = await _userService.FindByIdAsync(UserId);
+            if (userDto == null) return null;
+
 
             var NewBrand = _genericMapper.MapSingle<BrandDto, Brand>(dto);
 
@@ -53,6 +60,9 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
+            var userDto = await _userService.FindByIdAsync(UserId);
+            if (userDto == null) return null;
 
             var NewBrandsDtoList = new List<BrandDto>();
             foreach (var d in dtos)
