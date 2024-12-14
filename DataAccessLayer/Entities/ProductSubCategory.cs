@@ -21,6 +21,8 @@ namespace DataAccessLayer.Entities
 
         public byte[] Image { get; set; }
 
+        public long ProductCategoryId { get; set; }
+
         public string CreatedBy { get; set; }
 
         public bool IsDeleted { get; set; }
@@ -29,8 +31,8 @@ namespace DataAccessLayer.Entities
 
         public virtual User? user { get; set; }
 
-        public long ProductCategoryId { get; set; }
-
         public virtual ProductCategory productCategory { get; set; }
+
+        public virtual List<Product> Products { get; set; }  = new ();
     }
 }

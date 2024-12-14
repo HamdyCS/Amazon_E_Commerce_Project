@@ -33,6 +33,8 @@ namespace DataAccessLayer.UnitOfWork
 
         public IProductSubCategoryRepository productSubCategoryRepository { get; private set; }
 
+        public IProductImageRepository productImageRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
             ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
@@ -40,7 +42,8 @@ namespace DataAccessLayer.UnitOfWork
             IOtpRepository otpRepository,
             IProductCategoryImageRepository productCategoryImageRepository, 
             IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository,
-            IProductSubCategoryRepository productSubCategoryRepository) 
+            IProductSubCategoryRepository productSubCategoryRepository,IProductImageRepository productImageRepository
+            ) 
         {
             this._context = context;
             this._logger = logger;
@@ -55,6 +58,7 @@ namespace DataAccessLayer.UnitOfWork
             this.productCategoryRepository = productCategoryRepository;
             this.brandRepository = brandRepository;
             this.productSubCategoryRepository = productSubCategoryRepository;
+            this.productImageRepository = productImageRepository;
         }
 
         public async Task BeginTransactionAsync()

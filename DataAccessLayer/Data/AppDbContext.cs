@@ -269,7 +269,13 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.BrandId)
                 .HasConstraintName("FK_Products_BrandId");
 
-           
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+
+            entity.HasOne(e => e.ProductSubCategory).WithMany(e => e.Products).HasForeignKey(
+                e => e.ProductSubCategoryId);
+
         });
 
         modelBuilder.Entity<ProductCategory>(entity =>
@@ -317,7 +323,6 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_ProductImages_ProductId");
 
-            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductReview>(entity =>

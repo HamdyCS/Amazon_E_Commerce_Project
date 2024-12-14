@@ -30,8 +30,6 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var CanConnect = await _context.Database.CanConnectAsync();
-                var count = await _context.Users.CountAsync();
 
                 ProductCategory? productCategoryImages = await _context.ProductCategories.AsNoTracking()
                     .Include(e => e.ProductCategoryImages)

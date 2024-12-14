@@ -114,7 +114,7 @@ namespace BusinessLayer.Servicese
 
             foreach (var id in Ids)
             {
-                var IsExist = await _unitOfWork.productSubCategoryRepository.IsExistAsync(id);
+                var IsExist = await _unitOfWork.productSubCategoryRepository.IsExistByIdAsync(id);
 
                 if (!IsExist) return false;
             }

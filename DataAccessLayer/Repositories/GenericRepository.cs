@@ -229,7 +229,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<bool> IsExistAsync(long Id)
+        public async Task<bool> IsExistByIdAsync(long Id)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id,nameof(Id));
 

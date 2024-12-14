@@ -12,6 +12,10 @@ public partial class Product
 
     public string NameAr { get; set; }
 
+    public string? DescriptionEn { get; set; }
+
+    public string? DescriptionAr { get; set; }
+
     public string Size { get; set; }
 
     public string Color { get; set; }
@@ -20,17 +24,21 @@ public partial class Product
 
     public decimal Length { get; set; }
 
-    public string UserId { get; set; }
+    public long ProductSubCategoryId { get; set; }
 
-    public virtual User user { get; set; }
-
-    public long ProductCategoryId { get; set; }
+    public virtual ProductSubCategory? ProductSubCategory { get; set; }
 
     public long BrandId { get; set; }
 
     public virtual Brand? Brand { get; set; }
 
-    public virtual ProductCategory? ProductCategory { get; set; }
+    public string CreatedBy { get; set; }
+
+    public virtual User user { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDeletion { get; set; }
 
     public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
 

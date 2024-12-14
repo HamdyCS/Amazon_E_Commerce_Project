@@ -17,14 +17,12 @@ namespace BusinessLayer.Servicese
 {
     public class ProductCategoryImageService : IProductCategoryImageService
     {
-        private readonly ICityService _cityService;
         private readonly ILogger<UserAddressDto> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericMapper _genericMapper;
 
-        public ProductCategoryImageService(ICityService cityService, ILogger<UserAddressDto> logger, IUnitOfWork unitOfWork, IGenericMapper genericMapper)
+        public ProductCategoryImageService(ILogger<UserAddressDto> logger, IUnitOfWork unitOfWork, IGenericMapper genericMapper)
         {
-            this._cityService = cityService;
             this._logger = logger;
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;

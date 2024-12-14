@@ -12,9 +12,5 @@ public partial class ProductImage
     public long ProductId { get; set; }
 
     public virtual Product? Product { get; set; }
-
-    public bool IsDeleted { get; set; }
-
-    public DateTime? DateOfDeletion { get; set; }
-
+    
 }
