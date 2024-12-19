@@ -54,9 +54,14 @@ namespace BusinessLayer.Servicese
 
                 productCategory.CreatedBy = UserId;
 
+                if (string.IsNullOrEmpty(dto.DescriptionEn))
+                    productCategory.DescriptionEn = null;
+
+
+                if (string.IsNullOrEmpty(dto.DescriptionAr))
+                    productCategory.DescriptionAr = null;
 
                 await _unitOfWork.BeginTransactionAsync();
-
                 await _unitOfWork.productCategoryRepository.AddAsync(productCategory);
 
                 var IsProductCategoryAdded = await _CompleteAsync();
@@ -68,12 +73,7 @@ namespace BusinessLayer.Servicese
 
                 _genericMapper.MapSingle(productCategory, dto);
 
-                if (string.IsNullOrEmpty(dto.DescriptionEn))
-                    productCategory.DescriptionEn = null;
-
-
-                if (string.IsNullOrEmpty(dto.DescriptionAr))
-                    productCategory.DescriptionAr = null;
+               
 
                 if (dto.Images is null || !dto.Images.Any()) return dto;
 
@@ -323,7 +323,9 @@ namespace BusinessLayer.Servicese
                     NewProductCategoryImageList.Add(NewProductCategoryImageDto);
                 }
 
-                await _productCategoryImageService.AddRangeAsync(NewProductCategoryImageList);
+               var productCategoryImagesDtosList = await _productCategoryImageService.AddRangeAsync(NewProductCategoryImageList);
+
+                if (productCategoryImagesDtosList is null) return false;
 
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
