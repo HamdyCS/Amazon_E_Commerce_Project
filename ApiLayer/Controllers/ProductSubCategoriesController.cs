@@ -120,7 +120,7 @@ namespace ApiLayer.Controllers
         [HttpGet("count", Name = "GetCountOfProductSubCategories")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<int>> GetCountOfProductSubCategories()
+        public async Task<ActionResult<long>> GetCountOfProductSubCategories()
         {
             try
             {

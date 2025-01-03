@@ -43,6 +43,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfObjectIfNotNull(productDto, nameof(productDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
+            
             try
             {
                 var userDto = await _userService.FindByIdAsync(UserId);
@@ -126,7 +127,7 @@ namespace BusinessLayer.Servicese
             var IsProductExist = await _unitOfWork.productRepository.IsExistByIdAsync(Id);
             if (!IsProductExist) return false;
 
-            await _unitOfWork.productCategoryRepository.DeleteAsync(Id);
+            await _unitOfWork.productRepository.DeleteAsync(Id);
 
             var IsDeleted = await _CompleteAsync();
 
