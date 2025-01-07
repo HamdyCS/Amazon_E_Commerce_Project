@@ -12,7 +12,7 @@ namespace DataAccessLayer.Contracks
 
         public Task<T> GetByIdAsNoTrackingAsync(long id);
 
-        public Task<IEnumerable<T>> GetAllNoTrackingAsync();
+        public Task<IEnumerable<T>> GetAllAsNoTrackingAsync();
 
         public Task<IEnumerable<T>> GetAllAsTrackingAsync();
 

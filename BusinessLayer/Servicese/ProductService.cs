@@ -215,7 +215,7 @@ namespace BusinessLayer.Servicese
         public async Task<IEnumerable<ProductDto>> GetAllAsync()
         {
             var products = await _unitOfWork.
-               productRepository.GetAllNoTrackingAsync();
+               productRepository.GetAllAsNoTrackingAsync();
 
 
             var productsDtosList = _genericMapper.

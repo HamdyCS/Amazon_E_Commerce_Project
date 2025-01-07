@@ -55,7 +55,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ProductImage> ProductImages { get; set; }
 
-    public virtual DbSet<ProductReview> ProductReviews { get; set; }
+    public virtual DbSet<SellerProductReview> ProductReviews { get; set; }
 
     public virtual DbSet<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; }
 
@@ -325,14 +325,14 @@ public class AppDbContext : IdentityDbContext<User>
 
         });
 
-        modelBuilder.Entity<ProductReview>(entity =>
+        modelBuilder.Entity<SellerProductReview>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ProductR__3214EC07ADEC10FB");
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Message).HasMaxLength(1000);
 
-            entity.HasOne(d => d.SellerProduct).WithMany(p => p.ProductReviews)
+            entity.HasOne(d => d.SellerProduct).WithMany(p => p.SellerProductReviews)
                 .HasForeignKey(d => d.SellerProductId)
                 .HasConstraintName("FK_ProductReviews_SellerProductId");
 
@@ -366,6 +366,8 @@ public class AppDbContext : IdentityDbContext<User>
 
         modelBuilder.Entity<SellerProduct>(entity =>
         {
+            entity.ToTable("SellerProducts");
+
             entity.HasKey(e => e.Id).HasName("PK__SellerPr__3214EC07E45442F5");
 
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
@@ -373,6 +375,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.Product).WithMany(p => p.SellerProducts)
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_SellerProducts_ProductId");
+
+            entity.HasOne(e => e.Seller).WithMany().HasForeignKey(e => e.SellerId);
         });
 
         modelBuilder.Entity<ShippingCost>(entity =>

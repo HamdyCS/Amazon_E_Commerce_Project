@@ -15,9 +15,9 @@ namespace BusinessLayer.Help
             return _random.Next(100000, 1000000);// الادني مشمول والاقصي غير مشمول
         }
 
-        public static string? GetDescription(string? Description)
+        public static string? ReturnNullIfEmpty(string? word)
         {
-            return string.IsNullOrEmpty(Description) ? null : Description;
+            return string.IsNullOrEmpty(word) ? null : word;
         }
     }
 }

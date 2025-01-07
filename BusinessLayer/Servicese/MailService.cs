@@ -20,6 +20,7 @@ namespace BusinessLayer.Servicese
     {
         private readonly MailOptions _mailOptions;
         private readonly ILogger<MailService> _logger;
+ 
 
         public MailService(MailOptions mailOptions,ILogger<MailService> logger)
         {

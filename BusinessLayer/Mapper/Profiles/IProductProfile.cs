@@ -18,9 +18,9 @@ namespace BusinessLayer.Mapper.Profiles
                 opt => opt.Ignore()).
                 ForMember(e => e.DescriptionEn,
                 opt => opt.MapFrom(e =>
-                Helper.GetDescription(e.DescriptionEn)))
+                Helper.ReturnNullIfEmpty(e.DescriptionEn)))
                 .ForMember(e=>e.DescriptionAr,opt=>
-                opt.MapFrom(e=>Helper.GetDescription(e.DescriptionAr)));
+                opt.MapFrom(e=>Helper.ReturnNullIfEmpty(e.DescriptionAr)));
                
 
             CreateMap<Product, ProductDto>();

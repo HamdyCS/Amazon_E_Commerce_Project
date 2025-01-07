@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DataAccessLayer.Entities;
 
-public partial class ProductReview
+public partial class SellerProductReview
 {
     public long Id { get; set; }
 

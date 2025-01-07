@@ -134,7 +134,7 @@ namespace BusinessLayer.Servicese
         public async Task<IEnumerable<ProductCategoryImageDto>> GetAllAsync()
         {
             var productCategoryImages = await _unitOfWork.
-                productCategoryImageRepository.GetAllNoTrackingAsync();
+                productCategoryImageRepository.GetAllAsNoTrackingAsync();
 
             var productCategoryImagesDtos = _genericMapper.
                 MapCollection<ProductCategoryImage, ProductCategoryImageDto>(productCategoryImages);

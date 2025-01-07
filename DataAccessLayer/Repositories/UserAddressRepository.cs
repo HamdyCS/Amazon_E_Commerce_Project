@@ -16,7 +16,6 @@ namespace DataAccessLayer.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UserAddressRepository> _logger;
-        private readonly string _TableName = "UsersAddresses";
         public UserAddressRepository(AppDbContext context, ILogger<UserAddressRepository> logger) : base(context, logger, "UsersAddresses")
         {
             _context = context;

@@ -112,7 +112,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<T>> GetAllNoTrackingAsync()
+        public async Task<IEnumerable<T>> GetAllAsNoTrackingAsync()
         {
             try
             {

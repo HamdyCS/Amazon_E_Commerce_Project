@@ -1,5 +1,7 @@
-﻿using System;
+﻿using DataAccessLayer.Identity.Entities;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace DataAccessLayer.Entities;
 
@@ -7,7 +9,7 @@ public partial class SellerProduct
 {
     public long Id { get; set; }
 
-    public long SellerId { get; set; }
+    public required string SellerId { get; set; }
 
     public decimal Price { get; set; }
 
@@ -15,9 +17,16 @@ public partial class SellerProduct
 
     public long ProductId { get; set; }
 
+    [DefaultValue(false)]
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DateOfDeletion { get; set; }
+
     public virtual Product? Product { get; set; }
 
-    public virtual ICollection<ProductReview> ProductReviews { get; set; } = new List<ProductReview>();
+    public virtual User? Seller {  get; set; }
+
+    public virtual ICollection<SellerProductReview> SellerProductReviews { get; set; } = new List<SellerProductReview>();
 
     public virtual ICollection<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductsInShoppingCart>();
 }

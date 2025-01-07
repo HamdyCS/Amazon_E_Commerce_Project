@@ -129,7 +129,7 @@ namespace BusinessLayer.Servicese
         public async Task<IEnumerable<BrandDto>> GetAllAsync()
         {
             var brands = await _unitOfWork.
-              brandRepository.GetAllNoTrackingAsync();
+              brandRepository.GetAllAsNoTrackingAsync();
 
             var brandsDtos = _genericMapper.
                 MapCollection<Brand, BrandDto>(brands);

@@ -120,7 +120,7 @@ namespace BusinessLayer.Servicese
             try
             {
 
-                var People = await _unitOfWork.personRepository.GetAllNoTrackingAsync();
+                var People = await _unitOfWork.personRepository.GetAllAsNoTrackingAsync();
 
                 if (People == null)
                     return null;

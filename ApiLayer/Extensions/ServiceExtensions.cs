@@ -27,7 +27,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ITokenService, TokenService>();
 
-            services.AddScoped<IMailService, MailService>();
+            services.AddTransient<IMailService, MailService>();// لتجنب تعقيدات التزامن
 
             services.AddScoped<IUserService, UserService>();
 
@@ -46,6 +46,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IProductImageService, ProductImageService>();
 
             services.AddScoped<IProductService, ProductService>();
+
+            services.AddScoped<ISellerProductService,SellerProductService>();
 
             return services;
 
@@ -78,6 +80,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IProductImageRepository, ProductImageRepository>();
 
             services.AddScoped<IProductRepository, ProductRepository>();
+
+            services.AddScoped<ISellerProductRepository, SellerProductRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

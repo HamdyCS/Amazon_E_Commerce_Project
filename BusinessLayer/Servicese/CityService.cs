@@ -208,7 +208,7 @@ namespace BusinessLayer.Servicese
         {
             try
             {
-                var cites = await _unitOfWork.cityRepository.GetAllNoTrackingAsync();
+                var cites = await _unitOfWork.cityRepository.GetAllAsNoTrackingAsync();
 
                 var citiesDtos = _genericMapper.MapCollection<City, CityDto>(cites);
 

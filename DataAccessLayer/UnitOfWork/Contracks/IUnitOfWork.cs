@@ -27,6 +27,8 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public IProductImageRepository productImageRepository { get; }
 
         public IProductRepository productRepository { get; }
+
+        public ISellerProductRepository sellerProductRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();
