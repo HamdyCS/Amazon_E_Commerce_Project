@@ -225,7 +225,7 @@ namespace ApiLayer.Controllers
 
                 if (!IsSellerProductDeleted) return BadRequest("Cannot Delete seller product.");
 
-                return Ok("Deleted product successfully.");
+                return Ok("Deleted seller product successfully.");
             }
             catch (Exception ex)
             {
@@ -252,7 +252,7 @@ namespace ApiLayer.Controllers
 
                 if (!IsSellerProductDeleted) return BadRequest("Cannot Delete seller product.");
 
-                return Ok("Deleted product successfully.");
+                return Ok("Deleted seller product successfully.");
             }
             catch (Exception ex)
             {

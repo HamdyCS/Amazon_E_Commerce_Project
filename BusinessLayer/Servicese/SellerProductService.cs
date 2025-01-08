@@ -55,6 +55,7 @@ namespace BusinessLayer.Servicese
             await _unitOfWork.sellerProductRepository.AddAsync(sellerProduct);
 
             var IsSellerProductAdded = await _completeAsync();
+            if (!IsSellerProductAdded) return null;
 
             _genericMapper.MapSingle(sellerProduct, sellerProductDto);
 
@@ -87,6 +88,7 @@ namespace BusinessLayer.Servicese
                     await _unitOfWork.sellerProductRepository.AddAsync(sellerProduct);
 
                     var IsSellerProductAdded = await _completeAsync();
+                    if (!IsSellerProductAdded) throw new Exception("seller product cannot be added");
 
                     _genericMapper.MapSingle(sellerProduct, sellerProductDto);
 

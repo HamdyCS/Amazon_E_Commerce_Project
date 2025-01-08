@@ -4,6 +4,7 @@ using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Options;
 using BusinessLayer.Servicese;
 using DataAccessLayer.Contracks;
+using DataAccessLayer.Entities;
 using DataAccessLayer.Repositories;
 using DataAccessLayer.UnitOfWork;
 using DataAccessLayer.UnitOfWork.Contracks;
@@ -49,6 +50,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ISellerProductService,SellerProductService>();
 
+            services.AddScoped<ISellerProductReviewService,SellerProductReviewService>();
+
             return services;
 
         }
@@ -82,6 +85,9 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IProductRepository, ProductRepository>();
 
             services.AddScoped<ISellerProductRepository, SellerProductRepository>();
+
+            services.AddScoped<ISellerProductReviewRepository, SellerProductReviewRepository>();
+
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

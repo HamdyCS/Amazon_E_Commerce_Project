@@ -39,6 +39,8 @@ namespace DataAccessLayer.UnitOfWork
 
         public ISellerProductRepository sellerProductRepository { get; private set; }
 
+        public ISellerProductReviewRepository sellerProductReviewRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
             ICityRepository cityRepository,IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
@@ -47,7 +49,8 @@ namespace DataAccessLayer.UnitOfWork
             IProductCategoryImageRepository productCategoryImageRepository, 
             IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository,
             IProductSubCategoryRepository productSubCategoryRepository,IProductImageRepository productImageRepository
-            ,IProductRepository productRepository,ISellerProductRepository sellerProductRepository) 
+            ,IProductRepository productRepository,ISellerProductRepository sellerProductRepository,
+            ISellerProductReviewRepository sellerProductReviewRepository) 
         {
             this._context = context;
             this._logger = logger;
@@ -65,6 +68,8 @@ namespace DataAccessLayer.UnitOfWork
             this.productImageRepository = productImageRepository;
             this.productRepository = productRepository;
             this.sellerProductRepository = sellerProductRepository;
+            this.sellerProductReviewRepository = sellerProductReviewRepository;
+
 
         }
 

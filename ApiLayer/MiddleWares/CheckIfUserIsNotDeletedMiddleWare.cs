@@ -96,7 +96,7 @@ namespace ApiLayer.MiddleWares
             }
             else
             {
-                await _next.Invoke(context);
+                await _next(context);
             }
 
            

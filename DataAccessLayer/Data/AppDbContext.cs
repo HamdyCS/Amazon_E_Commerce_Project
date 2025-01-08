@@ -55,7 +55,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ProductImage> ProductImages { get; set; }
 
-    public virtual DbSet<SellerProductReview> ProductReviews { get; set; }
+    public virtual DbSet<SellerProductReview> SellerProductReviews { get; set; }
 
     public virtual DbSet<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; }
 
@@ -336,9 +336,9 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.SellerProductId)
                 .HasConstraintName("FK_ProductReviews_SellerProductId");
 
-            
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
-           
+
         });
 
         modelBuilder.Entity<ProductsInShoppingCart>(entity =>
@@ -377,6 +377,8 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasConstraintName("FK_SellerProducts_ProductId");
 
             entity.HasOne(e => e.Seller).WithMany().HasForeignKey(e => e.SellerId);
+
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<ShippingCost>(entity =>
