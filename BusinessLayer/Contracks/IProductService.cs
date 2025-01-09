@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Dtos;
+using DataAccessLayer.Entities;
 
 namespace BusinessLayer.Contracks
 {
@@ -24,5 +25,9 @@ namespace BusinessLayer.Contracks
         public Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids);
 
         public Task<IEnumerable<ProductDto>> GetPagedDataAsync(int pageNumber, int pageSize);
+
+        Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string NameEn, int pageSize);
+
+        Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize);
     }
 }

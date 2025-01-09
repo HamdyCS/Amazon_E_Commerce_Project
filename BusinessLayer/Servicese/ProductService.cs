@@ -340,5 +340,41 @@ namespace BusinessLayer.Servicese
             }
 
         }
+
+        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string NameEn, int pageSize)
+        {
+            var productsList = await 
+                _unitOfWork.productRepository.SearchByNameEnAsync(NameEn, pageSize);
+
+            var productSearchResultsDtosList = productsList.Select(e =>
+            {
+                return new ProductSearchResultDto
+                {
+                    Id = e.Id,
+                    Name = e.NameEn
+                };
+            });
+
+            return productSearchResultsDtosList;
+
+
+        }
+
+        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize)
+        {
+            var productsList = await
+                _unitOfWork.productRepository.SearchByNameArAsync(NameAr, pageSize);
+
+            var productSearchResultsDtosList = productsList.Select(e =>
+            {
+                return new ProductSearchResultDto
+                {
+                    Id = e.Id,
+                    Name = e.NameAr
+                };
+            });
+
+            return productSearchResultsDtosList;
+        }
     }
 }

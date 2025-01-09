@@ -27,7 +27,7 @@ namespace DataAccessLayer.UnitOfWork
         public IOtpRepository otpRepository { get; private set; }
         public IProductCategoryImageRepository productCategoryImageRepository { get; private set; }
 
-        public IProductCategoryRepository productCategoryRepository {  get; private set; }
+        public IProductCategoryRepository productCategoryRepository { get; private set; }
 
         public IBrandRepository brandRepository { get; private set; }
 
@@ -41,16 +41,18 @@ namespace DataAccessLayer.UnitOfWork
 
         public ISellerProductReviewRepository sellerProductReviewRepository { get; private set; }
 
-        public UnitOfWork(AppDbContext context,ILogger<UnitOfWork> logger,
-            ICityRepository cityRepository,IPersonRepository personRepository,
-            IRefreshTokenRepository refreshTokenRepository,IRoleManagerRepository roleManagerRepository,
-            IUserAdderssRepository userAdderssRepository,IUserRepository userRepository, 
+        public ICityWhereDeliveyWorkRepository CitiyWhereDeliveyWorkRepository { get; private set; }
+
+        public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger,
+            ICityRepository cityRepository, IPersonRepository personRepository,
+            IRefreshTokenRepository refreshTokenRepository, IRoleManagerRepository roleManagerRepository,
+            IUserAdderssRepository userAdderssRepository, IUserRepository userRepository,
             IOtpRepository otpRepository,
-            IProductCategoryImageRepository productCategoryImageRepository, 
+            IProductCategoryImageRepository productCategoryImageRepository,
             IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository,
-            IProductSubCategoryRepository productSubCategoryRepository,IProductImageRepository productImageRepository
-            ,IProductRepository productRepository,ISellerProductRepository sellerProductRepository,
-            ISellerProductReviewRepository sellerProductReviewRepository) 
+            IProductSubCategoryRepository productSubCategoryRepository, IProductImageRepository productImageRepository
+            , IProductRepository productRepository, ISellerProductRepository sellerProductRepository,
+            ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository)
         {
             this._context = context;
             this._logger = logger;
@@ -69,6 +71,7 @@ namespace DataAccessLayer.UnitOfWork
             this.productRepository = productRepository;
             this.sellerProductRepository = sellerProductRepository;
             this.sellerProductReviewRepository = sellerProductReviewRepository;
+            this.CitiyWhereDeliveyWorkRepository = citiyWhereDeliveyWorkRepository;
 
 
         }
@@ -77,12 +80,12 @@ namespace DataAccessLayer.UnitOfWork
         {
             try
             {
-                 await _context.Database.BeginTransactionAsync();
+                await _context.Database.BeginTransactionAsync();
                 return;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-               
+
                 _logger.LogError("Error while Beginning Transaction, Error : {ErrorMessage}", ex.Message);
                 throw new Exception($"Error while Beginning Transaction, Error : {ex.Message}");
             }
@@ -90,7 +93,7 @@ namespace DataAccessLayer.UnitOfWork
 
         public async Task CommitTransactionAsync()
         {
-           
+
             try
             {
                 await _context.Database.CommitTransactionAsync();
@@ -103,12 +106,12 @@ namespace DataAccessLayer.UnitOfWork
             }
 
         }
-       
+
         public async Task<long> CompleteAsync()
         {
             try
             {
-                var result =  await _context.SaveChangesAsync();
+                var result = await _context.SaveChangesAsync();
                 return result;
             }
             catch (Exception ex)
@@ -137,12 +140,12 @@ namespace DataAccessLayer.UnitOfWork
         {
             try
             {
-               await _context.Database.RollbackTransactionAsync();
+                await _context.Database.RollbackTransactionAsync();
                 return;
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error while Rolling back Transaction, Error : {Error message}",ex.Message);
+                _logger.LogError("Error while Rolling back Transaction, Error : {Error message}", ex.Message);
                 throw new Exception($"Error while Rolling back Transaction, Error : {ex.Message}");
             }
         }

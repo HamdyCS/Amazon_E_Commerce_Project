@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccessLayer.Identity.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -21,13 +22,13 @@ public partial class ApplicationOrder
     public virtual UserAddress? UserAddress { get; set; }
     public long PaymentId { get; set; }
 
-    public long DeliveryId { get; set; }
+    public string DeliveryId { get; set; }
+
+    public virtual User? User { get; set; }
 
     public virtual Application? Application { get; set; }
 
     public virtual ApplicationOrdersType? ApplicationOrderType { get; set; }
-
-    public virtual Delivery? Delivery { get; set; }
 
     public virtual Payment? Payment { get; set; }
 

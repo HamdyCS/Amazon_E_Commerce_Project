@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250108161027_Create index in Products table")]
+    partial class CreateindexinProductstable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,9 +67,8 @@ namespace DataAccessLayer.Migrations
                     b.Property<long>("ApplicationOrderTypeId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("DeliveryId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("DeliveryId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("PaymentId")
                         .HasColumnType("bigint");
@@ -190,6 +192,30 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("Brands");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Entities.CitiesWhereDeliveiesWork", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DeliveryId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id")
+                        .HasName("PK__CitiesWh__3214EC0714D1D3E2");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("DeliveryId");
+
+                    b.ToTable("CitiesWhereDeliveiesWorks");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Entities.City", b =>
                 {
                     b.Property<long>("Id")
@@ -230,7 +256,7 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("Cities");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Entities.CityWhereDeliveryWork", b =>
+            modelBuilder.Entity("DataAccessLayer.Entities.Delivery", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -238,21 +264,16 @@ namespace DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("CityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("DeliveryId")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id")
-                        .HasName("PK__CitiesWh__3214EC0714D1D3E2");
+                        .HasName("PK__Deliveri__3214EC07322C23DA");
 
-                    b.HasIndex("CityId");
+                    b.HasIndex("UserId");
 
-                    b.HasIndex("DeliveryId");
-
-                    b.ToTable("CitiesWhereDeliveiesWorks");
+                    b.ToTable("Deliveries");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Otp", b =>
@@ -970,11 +991,12 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_ApplicationOrders_ApplicationOrderTypeId");
 
-                    b.HasOne("DataAccessLayer.Identity.Entities.User", "User")
-                        .WithMany()
+                    b.HasOne("DataAccessLayer.Entities.Delivery", "Delivery")
+                        .WithMany("ApplicationOrders")
                         .HasForeignKey("DeliveryId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_ApplicationOrders_DeliveryId");
 
                     b.HasOne("DataAccessLayer.Entities.Payment", "Payment")
                         .WithMany("ApplicationOrders")
@@ -1000,11 +1022,11 @@ namespace DataAccessLayer.Migrations
 
                     b.Navigation("ApplicationOrderType");
 
+                    b.Navigation("Delivery");
+
                     b.Navigation("Payment");
 
                     b.Navigation("ShoppingCart");
-
-                    b.Navigation("User");
 
                     b.Navigation("UserAddress");
                 });
@@ -1020,6 +1042,27 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("user");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Entities.CitiesWhereDeliveiesWork", b =>
+                {
+                    b.HasOne("DataAccessLayer.Entities.City", "City")
+                        .WithMany("CitiesWhereDeliveiesWorks")
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CitiesWhereDeliveiesWorks_CityId");
+
+                    b.HasOne("DataAccessLayer.Entities.Delivery", "Delivery")
+                        .WithMany("CitiesWhereDeliveiesWorks")
+                        .HasForeignKey("DeliveryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_CitiesWhereDeliveiesWorks_DeliveryId");
+
+                    b.Navigation("City");
+
+                    b.Navigation("Delivery");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Entities.City", b =>
                 {
                     b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
@@ -1031,22 +1074,13 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("user");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Entities.CityWhereDeliveryWork", b =>
+            modelBuilder.Entity("DataAccessLayer.Entities.Delivery", b =>
                 {
-                    b.HasOne("DataAccessLayer.Entities.City", "City")
-                        .WithMany("CitiesWhereDeliveiesWorks")
-                        .HasForeignKey("CityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_CitiesWhereDeliveiesWorks_CityId");
-
                     b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
                         .WithMany()
-                        .HasForeignKey("DeliveryId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("City");
 
                     b.Navigation("user");
                 });
@@ -1321,6 +1355,13 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("ShippingCosts");
 
                     b.Navigation("UsersAddresses");
+                });
+
+            modelBuilder.Entity("DataAccessLayer.Entities.Delivery", b =>
+                {
+                    b.Navigation("ApplicationOrders");
+
+                    b.Navigation("CitiesWhereDeliveiesWorks");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Entities.Payment", b =>

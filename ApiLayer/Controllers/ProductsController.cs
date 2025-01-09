@@ -265,6 +265,48 @@ namespace ApiLayer.Controllers
             }
         }
 
+
+        [HttpGet("search/{name}",Name = "SearchByName")]
+        [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<ProductSearchResultDto>>> SearchByName(string name, [FromQuery] int pageSize)
+        {
+            if (pageSize < 1) return BadRequest("pageSize must be bigger than 0");
+
+            if (string.IsNullOrEmpty(name)) return Ok();
+
+
+            var lang = Request.Headers["lang"].ToString();
+            if (lang == null) return BadRequest("Cannot find lang var in header");
+
+
+            try
+            {
+                if(lang.ToLower()=="ar")
+                {
+                    var productSearchResultsDtos = await _productService.SearchByNameArAsync(name, pageSize);
+                    return Ok(productSearchResultsDtos);
+                }
+                else if(lang.ToLower()=="en")
+                {
+                    var productSearchResultsDtos = await _productService.SearchByNameEnAsync(name, pageSize);
+                    return Ok(productSearchResultsDtos);
+                }
+                else
+                {
+                    return BadRequest("This language cannot be accepted.");
+                }
+            }
+            
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
     }
 
 }

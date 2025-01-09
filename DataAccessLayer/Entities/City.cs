@@ -20,7 +20,7 @@ public partial class City
 
     public virtual User? user { get; set; }
 
-    public virtual ICollection<CitiesWhereDeliveiesWork> CitiesWhereDeliveiesWorks { get; set; } = new List<CitiesWhereDeliveiesWork>();
+    public virtual ICollection<CityWhereDeliveryWork> CitiesWhereDeliveiesWorks { get; set; } = new List<CityWhereDeliveryWork>();
 
     public virtual ICollection<UserAddress> UsersAddresses { get; set; } = new List<UserAddress>();
 

@@ -33,11 +33,9 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<Brand> Brands { get; set; }
 
-    public virtual DbSet<CitiesWhereDeliveiesWork> CitiesWhereDeliveiesWorks { get; set; }
+    public virtual DbSet<CityWhereDeliveryWork> CitiesWhereDeliveiesWorks { get; set; }
 
     public virtual DbSet<City> Cities { get; set; }
-
-    public virtual DbSet<Delivery> Deliveries { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
 
@@ -124,9 +122,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ApplicationOrderTypeId)
                 .HasConstraintName("FK_ApplicationOrders_ApplicationOrderTypeId");
 
-            entity.HasOne(d => d.Delivery).WithMany(p => p.ApplicationOrders)
-                .HasForeignKey(d => d.DeliveryId)
-                .HasConstraintName("FK_ApplicationOrders_DeliveryId");
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.DeliveryId);
 
             entity.HasOne(d => d.Payment).WithMany(p => p.ApplicationOrders)
                 .HasForeignKey(d => d.PaymentId)
@@ -169,9 +165,11 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.HasQueryFilter(e => !e.IsDeleted);
+
+           
         });
 
-        modelBuilder.Entity<CitiesWhereDeliveiesWork>(entity =>
+        modelBuilder.Entity<CityWhereDeliveryWork>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__CitiesWh__3214EC0714D1D3E2");
 
@@ -179,9 +177,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_CitiesWhereDeliveiesWorks_CityId");
 
-            entity.HasOne(d => d.Delivery).WithMany(p => p.CitiesWhereDeliveiesWorks)
-                .HasForeignKey(d => d.DeliveryId)
-                .HasConstraintName("FK_CitiesWhereDeliveiesWorks_DeliveryId");
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.DeliveryId);
         });
 
         modelBuilder.Entity<City>(entity =>
@@ -200,11 +196,6 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(p => p.IsDeleted).HasDefaultValue(false);
 
             entity.HasQueryFilter(c => !c.IsDeleted);
-        });
-
-        modelBuilder.Entity<Delivery>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Deliveri__3214EC07322C23DA");
         });
 
         modelBuilder.Entity<Payment>(entity =>
@@ -276,6 +267,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(e => e.ProductSubCategory).WithMany(e => e.Products).HasForeignKey(
                 e => e.ProductSubCategoryId);
 
+            entity.HasIndex(e => e.NameEn);
+            entity.HasIndex(e => e.NameAr);
         });
 
         modelBuilder.Entity<ProductCategory>(entity =>

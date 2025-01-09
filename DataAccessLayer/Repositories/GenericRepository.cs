@@ -72,8 +72,17 @@ namespace DataAccessLayer.Repositories
                 if (entity is null)
                     return;
 
-                var IsDeletedProperty = _context.Set<T>().Entry(entity).Property("IsDeleted");
+                var entry = _context.Set<T>().Entry(entity);
+                var isDeletedProperty = entry.Metadata.FindProperty("IsDeleted");
 
+                if(isDeletedProperty is null)
+                {
+                    _context.Set<T>().Remove(entity);
+                    return;
+                }
+
+                var IsDeletedProperty = entry.Property("IsDeleted");
+                
                 if (IsDeletedProperty is null)
                 {
                     _context.Set<T>().Remove(entity);
