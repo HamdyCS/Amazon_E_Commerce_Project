@@ -10,9 +10,11 @@ public partial class ShoppingCart
 
     public string UserId { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+
     public virtual User? user { get; set; }
 
     public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 
-    public virtual ICollection<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductsInShoppingCart>();
+    public virtual ICollection<ProductInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductInShoppingCart>();
 }

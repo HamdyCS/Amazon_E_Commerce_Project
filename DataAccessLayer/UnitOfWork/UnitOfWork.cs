@@ -43,6 +43,10 @@ namespace DataAccessLayer.UnitOfWork
 
         public ICityWhereDeliveyWorkRepository CitiyWhereDeliveyWorkRepository { get; private set; }
 
+        public IShoppingCartRepository shoppingCartRepository { get; private set; }
+
+        public IProductsInShoppingCartRepository productsInShoppingCartRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger,
             ICityRepository cityRepository, IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository, IRoleManagerRepository roleManagerRepository,
@@ -52,7 +56,8 @@ namespace DataAccessLayer.UnitOfWork
             IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository,
             IProductSubCategoryRepository productSubCategoryRepository, IProductImageRepository productImageRepository
             , IProductRepository productRepository, ISellerProductRepository sellerProductRepository,
-            ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository)
+            ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
+            IShoppingCartRepository shoppingCartRepository, IProductsInShoppingCartRepository productsInShoppingCartRepository)
         {
             this._context = context;
             this._logger = logger;
@@ -72,8 +77,9 @@ namespace DataAccessLayer.UnitOfWork
             this.sellerProductRepository = sellerProductRepository;
             this.sellerProductReviewRepository = sellerProductReviewRepository;
             this.CitiyWhereDeliveyWorkRepository = citiyWhereDeliveyWorkRepository;
-
-
+            this.shoppingCartRepository = shoppingCartRepository;
+            this.productsInShoppingCartRepository = productsInShoppingCartRepository;
+            this.productsInShoppingCartRepository = productsInShoppingCartRepository;
         }
 
         public async Task BeginTransactionAsync()

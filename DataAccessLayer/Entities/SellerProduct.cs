@@ -28,5 +28,5 @@ public partial class SellerProduct
 
     public virtual ICollection<SellerProductReview> SellerProductReviews { get; set; } = new List<SellerProductReview>();
 
-    public virtual ICollection<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductsInShoppingCart>();
+    public virtual ICollection<ProductInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductInShoppingCart>();
 }

@@ -10,7 +10,9 @@ public partial class ShippingCost
 
     public decimal Price { get; set; }
 
-    public string UserId { get; set; }
+    public string CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; }
 
     public virtual User? user { get; set; }
 

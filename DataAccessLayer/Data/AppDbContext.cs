@@ -55,7 +55,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<SellerProductReview> SellerProductReviews { get; set; }
 
-    public virtual DbSet<ProductsInShoppingCart> ProductsInShoppingCarts { get; set; }
+    public virtual DbSet<ProductInShoppingCart> ProductsInShoppingCarts { get; set; }
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -122,7 +122,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ApplicationOrderTypeId)
                 .HasConstraintName("FK_ApplicationOrders_ApplicationOrderTypeId");
 
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.DeliveryId);
+            entity.HasOne(e => e.Delivery).WithMany().HasForeignKey(e => e.DeliveryId);
 
             entity.HasOne(d => d.Payment).WithMany(p => p.ApplicationOrders)
                 .HasForeignKey(d => d.PaymentId)
@@ -334,7 +334,7 @@ public class AppDbContext : IdentityDbContext<User>
 
         });
 
-        modelBuilder.Entity<ProductsInShoppingCart>(entity =>
+        modelBuilder.Entity<ProductInShoppingCart>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Products__3214EC0709E6EA67");
 
@@ -383,6 +383,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.City).WithMany(p => p.ShippingCosts)
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_ShippingCosts_CityId");
+
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
         });
 
         modelBuilder.Entity<ShoppingCart>(entity =>

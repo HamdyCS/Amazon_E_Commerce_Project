@@ -54,6 +54,11 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ICityWhereDeliveyWorkService, CityWhereDeliveyWorkService>();
 
+            services.AddScoped<IShoppingCartService, ShoppingCartService>();
+
+            services.AddScoped<IProductInShoppingCartService, ProductInShoppingCartService>();
+            
+
             return services;
 
         }
@@ -91,6 +96,10 @@ namespace BusinessLayer.Extensions
             services.AddScoped<ISellerProductReviewRepository, SellerProductReviewRepository>();
 
             services.AddScoped<ICityWhereDeliveyWorkRepository, CityWhereDeliveyWorkRepository>();
+
+            services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+
+            services.AddScoped<IProductsInShoppingCartRepository, ProductsInShoppingCartRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

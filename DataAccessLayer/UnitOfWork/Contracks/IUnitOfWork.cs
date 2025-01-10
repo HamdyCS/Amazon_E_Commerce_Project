@@ -33,6 +33,10 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public ISellerProductReviewRepository sellerProductReviewRepository { get; }
 
         public ICityWhereDeliveyWorkRepository CitiyWhereDeliveyWorkRepository { get; }
+
+        public IShoppingCartRepository shoppingCartRepository { get; }
+
+        public IProductsInShoppingCartRepository productsInShoppingCartRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();

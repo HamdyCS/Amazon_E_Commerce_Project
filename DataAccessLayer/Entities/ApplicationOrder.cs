@@ -24,7 +24,7 @@ public partial class ApplicationOrder
 
     public string DeliveryId { get; set; }
 
-    public virtual User? User { get; set; }
+    public virtual User? Delivery { get; set; }
 
     public virtual Application? Application { get; set; }
 
