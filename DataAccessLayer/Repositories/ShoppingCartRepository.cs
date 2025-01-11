@@ -29,17 +29,8 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                // ممكن نضيف userId in ApplicationOrdersTable
-                // كدا كدا اليوزر اللي عامل ال application order
-                // هو هو اللي عامل shopping cart
-                //var applicationOrder = await _context.ApplicationOrders.Include(e => e.ShoppingCart).
-                //    FirstOrDefaultAsync(e =>e.ShoppingCart != null && e.ShoppingCart.UserId == userId);
-
-                //if (applicationOrder == null) return null;
-
-                //return applicationOrder.ShoppingCart;
-
-                var ActiveShoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders)
+               
+                var ActiveShoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders).Include(e=>e.ProductsInShoppingCarts)
                     .FirstOrDefaultAsync(e => !e.ApplicationOrders.Any());
 
                 return ActiveShoppingCart;

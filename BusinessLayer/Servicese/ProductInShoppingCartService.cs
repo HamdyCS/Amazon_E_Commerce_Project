@@ -142,7 +142,7 @@ namespace BusinessLayer.Servicese
 
             if (productInShopping is null) return false;
 
-            await _unitOfWork.productsInShoppingCartRepository.DeleteAsync(ShoppingCartId);
+            await _unitOfWork.productsInShoppingCartRepository.DeleteAsync(productInShopingCartId);
 
             var IsProductInShoppingCartDeleted = await _completeAsync();
 
@@ -183,10 +183,10 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<ProductInShoppingCartDto> FindByIdAsync(long productInShoppingCartId)
+        public async Task<ProductInShoppingCartDto> FindByIdAndShoppingCartIdAndUserIdAsync(long productInShoppingCartId, long ShoppingCartId,string UserId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productInShoppingCartId,nameof(productInShoppingCartId));
-            var productInShoppingCart = await _unitOfWork.productsInShoppingCartRepository.GetByIdAsTrackingAsync(productInShoppingCartId);
+            var productInShoppingCart = await _unitOfWork.productsInShoppingCartRepository.GetByIdAndShoppingCartIdAndUserIdAsync(productInShoppingCartId,ShoppingCartId,UserId);
 
             if (productInShoppingCart is null) return null;
 

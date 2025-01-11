@@ -9,13 +9,13 @@ namespace BusinessLayer.Contracks
 {
     public interface IProductInShoppingCartService
     {
-        Task<Dtos.ProductInShoppingCartDto> FindByIdAsync(long productInShoppingCartId);
+        Task<ProductInShoppingCartDto> FindByIdAndShoppingCartIdAndUserIdAsync(long productInShoppingCartId, long ShoppingCartId,string UserId);
 
-        Task<IEnumerable<Dtos.ProductInShoppingCartDto>> GetAllProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId);
+        Task<IEnumerable<ProductInShoppingCartDto>> GetAllProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId);
 
-        Task<Dtos.ProductInShoppingCartDto> AddAsync(ProductInShoppingCartDto productInShoppingCartDto,long ShoppingCartId, string UserId);
+        Task<ProductInShoppingCartDto> AddAsync(ProductInShoppingCartDto productInShoppingCartDto,long ShoppingCartId, string UserId);
 
-        Task<IEnumerable<Dtos.ProductInShoppingCartDto>> AddRangeAsync(IEnumerable<Dtos.ProductInShoppingCartDto> productsInShoppingCartsDtoList, long ShoppingCartId, string UserId);
+        Task<IEnumerable<ProductInShoppingCartDto>> AddRangeAsync(IEnumerable<ProductInShoppingCartDto> productsInShoppingCartsDtoList, long ShoppingCartId, string UserId);
 
         Task<bool> UpdateAsync(long ProductInShoppingCartId, ProductInShoppingCartDto productInShoppingCartDto , long ShoppingCartId, string UserId);
 

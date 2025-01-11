@@ -106,7 +106,7 @@ namespace ApiLayer.Controllers
 
         [HttpGet("total-price", Name = "GetTotalPriceOfShoppingCart")]
         [Authorize(Roles = Role.Customer)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
@@ -151,7 +151,7 @@ namespace ApiLayer.Controllers
 
                 if (shoppingCartDto == null) return BadRequest("Cannot add new shopping cart.");
 
-                return Ok(shoppingCartDto);
+                return CreatedAtRoute("GetShoppingCartById",new { ShoppingCartId = shoppingCartDto.Id },shoppingCartDto);
             }
             catch (Exception ex)
             {

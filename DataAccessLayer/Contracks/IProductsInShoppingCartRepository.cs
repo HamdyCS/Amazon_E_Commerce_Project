@@ -13,7 +13,5 @@ namespace DataAccessLayer.Contracks
 
         Task<ProductInShoppingCart> GetByIdAndShoppingCartIdAndUserIdAsync(long Id,long shoppingCartId, string userId);
 
-  
-
     }
 }
