@@ -37,6 +37,9 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public IShoppingCartRepository shoppingCartRepository { get; }
 
         public IProductsInShoppingCartRepository productsInShoppingCartRepository { get; }
+
+        public IApplicationTypeRepository applicationTypeRepository { get; }
+
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();

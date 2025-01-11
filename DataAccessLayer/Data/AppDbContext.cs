@@ -147,8 +147,10 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC0773737997");
 
-            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
             entity.Property(e => e.Name).HasMaxLength(255);
+
         });
 
         modelBuilder.Entity<Brand>(entity =>

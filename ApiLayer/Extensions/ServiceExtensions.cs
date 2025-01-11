@@ -58,6 +58,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IProductInShoppingCartService, ProductInShoppingCartService>();
             
+            services.AddScoped<IApplicationTypeService, ApplicationTypeService>();
+
 
             return services;
 
@@ -100,6 +102,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 
             services.AddScoped<IProductsInShoppingCartRepository, ProductsInShoppingCartRepository>();
+
+            services.AddScoped<IApplicationTypeRepository, ApplicationTypeRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
