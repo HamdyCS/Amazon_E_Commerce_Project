@@ -111,8 +111,6 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC07270C916F");
 
-            
-            entity.Property(e => e.ShippingCost).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Application).WithMany(p => p.ApplicationOrders)
                 .HasForeignKey(d => d.ApplicationId)
@@ -133,6 +131,8 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasConstraintName("FK_ApplicationOrders_ShoppingCartId");
 
             entity.HasOne(a => a.UserAddress).WithMany().HasForeignKey(a => a.UserAddressId);
+
+            entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
         });
 
         modelBuilder.Entity<ApplicationOrdersType>(entity =>
@@ -210,6 +210,10 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.PaymentType).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.PaymentTypeId)
                 .HasConstraintName("FK_Payments_PaymentTypeId");
+
+            entity.HasOne(e => e.shoppingCart).WithOne(e => e.payment).HasForeignKey<Payment>(e => e.ShoppingCartId);
+
+            entity.HasOne(e=>e.shippingCost).WithMany(e=>e.Payments).HasForeignKey(e=>e.shippingCostId);
         });
 
         modelBuilder.Entity<PaymentsType>(entity =>

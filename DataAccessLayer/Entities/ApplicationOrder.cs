@@ -13,18 +13,21 @@ public partial class ApplicationOrder
 
     public long ApplicationOrderTypeId { get; set; }
 
-    public decimal ShippingCost { get; set; }
-
     public long ShoppingCartId { get; set; }
 
     public long UserAddressId { get; set; }
 
-    public virtual UserAddress? UserAddress { get; set; }
     public long PaymentId { get; set; }
 
     public string DeliveryId { get; set; }
 
+    public string CreatedBy { get; set; }
+
+    public virtual UserAddress? UserAddress { get; set; }
+   
     public virtual User? Delivery { get; set; }
+
+    public virtual User? user { get; set; }
 
     public virtual Application? Application { get; set; }
 

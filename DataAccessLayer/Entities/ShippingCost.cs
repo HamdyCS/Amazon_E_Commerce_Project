@@ -25,4 +25,6 @@ public partial class ShippingCost
     public long CityId { get; set; }
 
     public virtual City? City { get; set; }
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

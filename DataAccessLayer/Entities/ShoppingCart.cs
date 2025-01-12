@@ -13,6 +13,7 @@ public partial class ShoppingCart
     public DateTime CreatedAt { get; set; }
 
     public virtual User? user { get; set; }
+    public virtual Payment? payment { get; set; }
 
     public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 
