@@ -1,5 +1,4 @@
-﻿
-namespace DataAccessLayer.Entities
+﻿namespace DataAccessLayer.Enums
 {
     public enum EnApplicationType
     {

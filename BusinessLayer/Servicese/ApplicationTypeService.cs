@@ -3,6 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.UnitOfWork.Contracks;
 using System;
 using System.Collections.Generic;

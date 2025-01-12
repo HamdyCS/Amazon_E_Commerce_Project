@@ -5,7 +5,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessLayer.Dtos;
-using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 
 namespace BusinessLayer.Contracks
 {

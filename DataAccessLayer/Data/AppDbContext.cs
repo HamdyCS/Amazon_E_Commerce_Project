@@ -387,6 +387,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasConstraintName("FK_ShippingCosts_CityId");
 
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         modelBuilder.Entity<ShoppingCart>(entity =>

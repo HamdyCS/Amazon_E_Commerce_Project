@@ -175,7 +175,7 @@ namespace BusinessLayer.Servicese
 
             var sellerProductsList = await _unitOfWork.sellerProductRepository.GetAllByProductIdOrderByPriceAscAsync(productId);
 
-            if (!sellerProductsList.Any())
+            if (sellerProductsList is null || !sellerProductsList.Any())
                 return null;
 
             var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,
@@ -192,7 +192,7 @@ namespace BusinessLayer.Servicese
 
             var sellerProductsList = await _unitOfWork.sellerProductRepository.GetAllSellerProductsBySellerIdAsync(sellerId);
 
-            if (!sellerProductsList.Any())
+            if (sellerProductsList is null ||!sellerProductsList.Any())
                 return null;
 
             var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,
@@ -203,14 +203,17 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<SellerProductDto>> GetPagedByProductIdAsync(int pageNumber, int pageSize, long productId)
         {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
+
             var productDto = await _productService.FindByIdAsync(productId);
             if (productDto == null) return null;
 
             var sellerProductsList = await _unitOfWork.sellerProductRepository.
                 GetPagedDataAsNoTrackingByProductIdAsync(pageNumber,pageSize,productId);
 
-            if (!sellerProductsList.Any())
+            if (sellerProductsList == null|| !sellerProductsList.Any())
                 return null;
 
             var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,

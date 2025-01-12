@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

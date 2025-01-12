@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
