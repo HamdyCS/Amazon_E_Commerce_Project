@@ -2,21 +2,16 @@
 using BusinessLayer.Dtos;
 using BusinessLayer.Help;
 using DataAccessLayer.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Mapper.Profiles
 {
-    public class ApplicationTypeProfile : Profile
+    public class PaymentTypeProfile : Profile
     {
-        public ApplicationTypeProfile() 
+        public PaymentTypeProfile()
         {
-            CreateMap<ApplicationTypeDto, ApplicationType>().ForMember(x => x.Id,
+            CreateMap<PaymentTypeDto, PaymentsType>().ForMember(x => x.Id,
                 opt => opt.Ignore()).
-                ForMember(e=>e.Name,opt=>
+                ForMember(e => e.Name, opt =>
                 opt.Ignore()).
                 ForMember(e => e.DescriptionEn, opt =>
                 opt.MapFrom(e => Helper.ReturnNullIfEmpty(e.DescriptionEn))).
@@ -24,7 +19,7 @@ namespace BusinessLayer.Mapper.Profiles
                 opt.MapFrom(e => Helper.ReturnNullIfEmpty(e.DescriptionAr)));
 
 
-            CreateMap<ApplicationType, ApplicationTypeDto>();
+            CreateMap<PaymentsType, PaymentTypeDto>();
         }
     }
 }

@@ -9,7 +9,9 @@ public partial class ApplicationOrdersType
 
     public string Name { get; set; }
 
-    public string Description { get; set; }
+    public string? DescriptionEn { get; set; }
+
+    public string? DescriptionAr { get; set; }
 
     public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 }

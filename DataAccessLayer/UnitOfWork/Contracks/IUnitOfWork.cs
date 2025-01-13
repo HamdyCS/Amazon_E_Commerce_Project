@@ -42,6 +42,8 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 
         public IShippingCostRepository shippingCostRepository { get; }
 
+        public IPaymentTypeRepository paymentTypeRepository { get; }
+
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();

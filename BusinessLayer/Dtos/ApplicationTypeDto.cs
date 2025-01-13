@@ -11,7 +11,6 @@ namespace BusinessLayer.Dtos
     {
         public long Id { get; set; }
 
-        [Required(ErrorMessage = "Name cannot be empty")]
         public string Name { get; set; }
 
         public string? DescriptionEn { get; set; }

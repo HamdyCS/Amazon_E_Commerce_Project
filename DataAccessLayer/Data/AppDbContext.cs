@@ -139,7 +139,8 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC0724535CF2");
 
-            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
@@ -220,6 +221,8 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id).HasName("PK__Payments__3214EC073B7ADCD8");
 
+            entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
