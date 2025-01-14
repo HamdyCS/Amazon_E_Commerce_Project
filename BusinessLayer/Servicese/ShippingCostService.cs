@@ -113,7 +113,7 @@ namespace BusinessLayer.Servicese
             return IsShippingCostDeleted;
         }
 
-        public async Task<ShippingCostDto> FindByCityId(long CityId)
+        public async Task<ShippingCostDto> FindByCityIdAsync(long CityId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(CityId, nameof(CityId));
 

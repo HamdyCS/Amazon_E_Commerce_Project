@@ -21,7 +21,7 @@ namespace ApiLayer.Controllers
         }
 
         [HttpGet("{ApplicationTypeId}", Name = "GetApplicationTypesById")]
-        [Authorize(Roles = Role.Admin)]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -47,7 +47,7 @@ namespace ApiLayer.Controllers
 
 
         [HttpGet("all", Name = "GetAllApplicationTypes")]
-        [Authorize(Roles = Role.Admin)]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

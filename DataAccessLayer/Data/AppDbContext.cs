@@ -130,7 +130,6 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ShoppingCartId)
                 .HasConstraintName("FK_ApplicationOrders_ShoppingCartId");
 
-            entity.HasOne(a => a.UserAddress).WithMany().HasForeignKey(a => a.UserAddressId);
 
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
         });
@@ -215,6 +214,9 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(e => e.shoppingCart).WithOne(e => e.payment).HasForeignKey<Payment>(e => e.ShoppingCartId);
 
             entity.HasOne(e=>e.shippingCost).WithMany(e=>e.Payments).HasForeignKey(e=>e.shippingCostId);
+
+            entity.HasOne(a => a.UserAddress).WithMany(e=>e.Payments).HasForeignKey(a => a.UserAddressId);
+
         });
 
         modelBuilder.Entity<PaymentsType>(entity =>

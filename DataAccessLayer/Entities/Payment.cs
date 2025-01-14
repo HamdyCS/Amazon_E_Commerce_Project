@@ -17,11 +17,15 @@ public partial class Payment
 
     public long shippingCostId {  get; set; }
 
+    public long UserAddressId { get; set; }
+
+    public virtual UserAddress? UserAddress { get; set; }
+
     public virtual ShoppingCart? shoppingCart { get; set; }
 
     public virtual ShippingCost? shippingCost { get; set; }
 
-    public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
+    public virtual IEnumerable<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 
     public virtual PaymentsType? PaymentType { get; set; }
 }

@@ -15,15 +15,11 @@ public partial class ApplicationOrder
 
     public long ShoppingCartId { get; set; }
 
-    public long UserAddressId { get; set; }
-
     public long PaymentId { get; set; }
 
-    public string DeliveryId { get; set; }
+    public string? DeliveryId { get; set; }
 
     public string CreatedBy { get; set; }
-
-    public virtual UserAddress? UserAddress { get; set; }
    
     public virtual User? Delivery { get; set; }
 

@@ -22,5 +22,8 @@ public partial class UserAddress
     public bool IsDeleted { get; set; }
 
     public DateTime? DateOfDeleted { get; set; }
-  
+
+    public virtual IEnumerable<Payment> Payments { get; set; } = new List<Payment>();
+
+
 }

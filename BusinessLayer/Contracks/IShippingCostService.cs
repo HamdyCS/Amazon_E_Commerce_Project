@@ -11,7 +11,7 @@ namespace BusinessLayer.Contracks
     {
         public Task<ShippingCostDto> FindByIdAsync(long shippingCostId);
 
-        public Task<ShippingCostDto> FindByCityId(long CityId);
+        public Task<ShippingCostDto> FindByCityIdAsync(long CityId);
 
         public Task<decimal> GetPriceOfShippingCostByCityId(long CityId);
 
