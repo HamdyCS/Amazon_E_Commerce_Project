@@ -68,6 +68,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationService, ApplicationService>();
 
+            services.AddScoped<IApplicationOrderTypeService, ApplicationOrderTypeService>();
+
             return services;
 
         }
@@ -120,7 +122,11 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationRepository, ApplicationRepository>();
 
+            services.AddScoped<IApplicationOrderTypeRepository, ApplicationOrderTypeRepository>();
+
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 
             return services;
         }

@@ -57,6 +57,8 @@ namespace DataAccessLayer.UnitOfWork
 
         public IApplicationRepository applicationRepository { get; private set; }
 
+        public IApplicationOrderTypeRepository applicationOrderTypeRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger,
             ICityRepository cityRepository, IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository, IRoleManagerRepository roleManagerRepository,
@@ -70,7 +72,7 @@ namespace DataAccessLayer.UnitOfWork
             IShoppingCartRepository shoppingCartRepository, IProductsInShoppingCartRepository productsInShoppingCartRepository,
             IApplicationTypeRepository applicationTypeRepository, IShippingCostRepository shippingCostRepository,
             IPaymentTypeRepository paymentTypeRepository, IPaymentRepository paymentRepository, 
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository)
         {
             this._context = context;
             this._logger = logger;
@@ -98,6 +100,7 @@ namespace DataAccessLayer.UnitOfWork
             this.paymentTypeRepository = paymentTypeRepository;
             this.paymentRepository = paymentRepository;
             this.applicationRepository = applicationRepository;
+            this.applicationOrderTypeRepository = applicationOrderTypeRepository;
         }
 
         public async Task BeginTransactionAsync()

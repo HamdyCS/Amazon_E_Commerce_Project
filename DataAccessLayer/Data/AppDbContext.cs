@@ -27,7 +27,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ApplicationOrder> ApplicationOrders { get; set; }
 
-    public virtual DbSet<ApplicationOrdersType> ApplicationOrdersTypes { get; set; }
+    public virtual DbSet<ApplicationOrderType> ApplicationOrdersTypes { get; set; }
 
     public virtual DbSet<ApplicationType> ApplicationTypes { get; set; }
 
@@ -134,7 +134,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
         });
 
-        modelBuilder.Entity<ApplicationOrdersType>(entity =>
+        modelBuilder.Entity<ApplicationOrderType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC0724535CF2");
 

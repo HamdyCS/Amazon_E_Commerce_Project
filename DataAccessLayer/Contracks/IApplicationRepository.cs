@@ -11,4 +11,6 @@ namespace DataAccessLayer.Contracks
     {
         Task<IEnumerable<Application>> GetAllUserApplicationsByUserIdAsync(string UserId);
     }
+
+    
 }

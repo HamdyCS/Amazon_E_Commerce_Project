@@ -27,7 +27,7 @@ public partial class ApplicationOrder
 
     public virtual Application? Application { get; set; }
 
-    public virtual ApplicationOrdersType? ApplicationOrderType { get; set; }
+    public virtual ApplicationOrderType? ApplicationOrderType { get; set; }
 
     public virtual Payment? Payment { get; set; }
 
