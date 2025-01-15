@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Enums;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccessLayer.Entities;
 
@@ -14,6 +15,7 @@ public partial class PaymentsType
 
     public string? DescriptionAr { get; set; }
 
+    [NotMapped]
     public EnPaymentType enPaymentType => (EnPaymentType)Id;
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

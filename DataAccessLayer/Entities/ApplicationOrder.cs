@@ -1,7 +1,9 @@
-﻿using DataAccessLayer.Identity.Entities;
+﻿using DataAccessLayer.Enums;
+using DataAccessLayer.Identity.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccessLayer.Entities;
 
@@ -20,7 +22,9 @@ public partial class ApplicationOrder
     public string? DeliveryId { get; set; }
 
     public string CreatedBy { get; set; }
-   
+
+    public DateTime CreatedAt { get; set; }
+
     public virtual User? Delivery { get; set; }
 
     public virtual User? user { get; set; }

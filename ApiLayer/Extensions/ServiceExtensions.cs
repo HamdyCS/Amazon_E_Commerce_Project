@@ -70,6 +70,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationOrderTypeService, ApplicationOrderTypeService>();
 
+            services.AddScoped<IApplicationOrderService, ApplicationOrderService>();
+
             return services;
 
         }

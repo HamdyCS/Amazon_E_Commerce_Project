@@ -3,6 +3,7 @@ using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
+using DataAccessLayer.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -24,14 +25,16 @@ namespace DataAccessLayer.Repositories
             this._logger = logger;
         }
 
-        public async Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAsync(long ApplicationId)
+        public async Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAndUserIdAsync(long ApplicationId,string UserId)
         {
            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
+           ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
             try
             {
                 var applicationOrders = await _context.ApplicationOrders.
-                    Where(x=>x.ApplicationId == ApplicationId).OrderByDescending(x=>x.ApplicationOrderTypeId).ToListAsync();
+                    Where(x=>x.ApplicationId == ApplicationId
+                    &&x.CreatedBy==UserId).OrderByDescending(x=>x.ApplicationOrderTypeId).ToListAsync();
 
                 if (applicationOrders is null || !applicationOrders.Any()) return null;
 
@@ -43,6 +46,27 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
 
+        }
+
+        public async Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAsync(long applicationId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(applicationId, nameof(applicationId));
+
+            try
+            {
+                var applicationOrders = await _context.ApplicationOrders.
+                    Where(x => x.ApplicationId == applicationId
+                   ).OrderByDescending(x => x.ApplicationOrderTypeId).ToListAsync();
+
+                if (applicationOrders is null || !applicationOrders.Any()) return null;
+
+                return applicationOrders[0];
+
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
         }
 
         public async Task<IEnumerable<ApplicationOrder>> GetActiveDeliveredApplicationOrdersAsync()
@@ -97,6 +121,26 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public async Task<IEnumerable<ApplicationOrder>> GetAllApplicationOrdersByApplicatonIdAndUserIdAsync(long ApplicationId, string UserId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
+            try
+            {
+                var applicationOrders = await _context.ApplicationOrders.
+                    Where(x => x.ApplicationId == ApplicationId && 
+                    x.CreatedBy==UserId).OrderBy(x => x.ApplicationOrderTypeId).ToListAsync();
+
+                return applicationOrders;
+
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
         public async Task<IEnumerable<ApplicationOrder>> GetAllApplicationOrdersByApplicatonIdAsync(long ApplicationId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
@@ -104,7 +148,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var applicationOrders = await _context.ApplicationOrders.
-                    Where(x => x.ApplicationId == ApplicationId).ToListAsync();
+                    Where(x => x.ApplicationId == ApplicationId).OrderBy(x=>x.ApplicationOrderTypeId).ToListAsync();
      
                 return applicationOrders;
 
