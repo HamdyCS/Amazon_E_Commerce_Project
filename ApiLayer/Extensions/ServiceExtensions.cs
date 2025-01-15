@@ -124,6 +124,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationOrderTypeRepository, ApplicationOrderTypeRepository>();
 
+            services.AddScoped<IApplicationOrderRepository, ApplicationOrderRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
