@@ -74,6 +74,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IPaymentService, PaymentService>();
 
+            services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
+
             return services;
 
         }
@@ -129,6 +131,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IApplicationOrderRepository, ApplicationOrderRepository>();
 
             services.AddScoped<IPaymentRepository,PaymentRepository>();
+
+            services.AddScoped<IDeliveryOrderRepository,DeliveryOrderRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

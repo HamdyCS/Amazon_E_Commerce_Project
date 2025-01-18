@@ -52,6 +52,7 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 
         public IApplicationOrderRepository applicationOrderRepository { get; }
 
+        public IDeliveryOrderRepository deliveryOrderRepository { get; }
         public Task<long> CompleteAsync();
 
         public Task BeginTransactionAsync();
