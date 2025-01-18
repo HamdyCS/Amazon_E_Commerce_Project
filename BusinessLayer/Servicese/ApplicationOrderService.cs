@@ -42,7 +42,7 @@ namespace BusinessLayer.Servicese
             return NumberOfRowsAfected > 0;
         }
 
-        public async Task<ApplicationOrderDto> AddNewDeliveredApplicationOrderAsync(long ApplicationId, string DeliveredId)
+        public async Task<ApplicationOrderDto> AddNewShippedApplicationOrderAsync(long ApplicationId, string DeliveredId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(DeliveredId, nameof(DeliveredId));
@@ -57,7 +57,7 @@ namespace BusinessLayer.Servicese
             if (!IsThisUserDelivered) return null;
 
             var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(ApplicationId);
-            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.Shipped)
+            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.UnderProcessing)
                 return null;
 
             var UserDto = await _userService.FindByIdAsync(activeApplictionOrder.CreatedBy);
@@ -68,6 +68,7 @@ namespace BusinessLayer.Servicese
 
 
             NewApplicationOrder.CreatedAt = DateTime.UtcNow;
+            NewApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Shipped;
             NewApplicationOrder.DeliveryId = DeliveredId;
 
 
@@ -78,14 +79,14 @@ namespace BusinessLayer.Servicese
             if (!IsNewApplicationOrderAdded) return null;
 
 
-            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.", $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.");
+            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplicationOrder.ApplicationId}) is shipping.", $"Your order ({NewApplicationOrder.ApplicationId}) is shipping.");
 
 
             var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(NewApplicationOrder);
             return NewApplicationOrderDto;
         }
 
-        public async Task<ApplicationOrderDto> AddNewShippedApplicationOrderAsync(long ApplicationId)
+        public async Task<ApplicationOrderDto> AddNewDeliveredApplicationOrderAsync(long ApplicationId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
 
@@ -93,7 +94,7 @@ namespace BusinessLayer.Servicese
             if (application == null) return null;
 
             var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(ApplicationId);
-            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.UnderProcessing)
+            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.Shipped)
                 return null;
 
             var UserDto = await _userService.FindByIdAsync(activeApplictionOrder.CreatedBy);
@@ -104,6 +105,7 @@ namespace BusinessLayer.Servicese
 
 
             NewApplicationOrder.CreatedAt = DateTime.UtcNow;
+            NewApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Delivered;
 
 
             await _unitOfWork.applicationOrderRepository.AddAsync(NewApplicationOrder);
@@ -113,7 +115,7 @@ namespace BusinessLayer.Servicese
             if (!IsNewApplicationOrderAdded) return null;
 
 
-            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplicationOrder.ApplicationId}) is shipping.", $"Your order ({NewApplicationOrder.ApplicationId}) is shipping.");
+            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.", $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.");
 
 
             var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(NewApplicationOrder);
@@ -134,12 +136,9 @@ namespace BusinessLayer.Servicese
             var ShoppingCart = await _shoppingCartService.FindByIdAsync(ShoppingCartId);
             if (ShoppingCart is null) return null;
 
-            try
-            {
-                await _unitOfWork.BeginTransactionAsync();
-
+         
                 var NewApplication = await _applicationService.AddNewAsync(UserId, EnApplicationType.Order);
-                if (NewApplication is null) throw new Exception("NewApplication is null");
+                if (NewApplication is null) return null;
 
                 var NewApplicationOrder = new ApplicationOrder()
                 {
@@ -148,26 +147,19 @@ namespace BusinessLayer.Servicese
                     ShoppingCartId = ShoppingCartId,
                     PaymentId = PaymentId,
                     CreatedAt = DateTime.UtcNow,
+                    CreatedBy = UserId
                 };
 
                 await _unitOfWork.applicationOrderRepository.AddAsync(NewApplicationOrder);
 
                 var IsNewApplicationOrderAdded = await _CompleteAsync();
-                if (!IsNewApplicationOrderAdded) throw new Exception("NewApplicationOrder didnot add");
+                if (!IsNewApplicationOrderAdded) return null;
 
-
-                await _unitOfWork.CommitTransactionAsync();
 
                 await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplication.Id}) is under processing", $"Your order ({NewApplication.Id}) is under processing");
 
                 var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder,ApplicationOrderDto>(NewApplicationOrder);
                 return NewApplicationOrderDto;
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                return null;
-            }
         }
 
         public async Task<ApplicationOrderDto> FindActiveApplicationOrderByApplicationIdAndUserIdAsync(long ApplicationId, string userId)

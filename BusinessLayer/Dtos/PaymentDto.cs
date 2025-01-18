@@ -11,8 +11,6 @@ namespace BusinessLayer.Dtos
     {
         public long Id { get; set; }
 
-        public decimal TotalPrice { get; set; }
-
         [Required,Range(1,double.MaxValue,ErrorMessage = "UserAddressId must be bigger than zero")]
         public long UserAddressId { get; set; }
 
@@ -21,4 +19,5 @@ namespace BusinessLayer.Dtos
         public long ShoppingCartId { get; set; }
 
     }
+
 }

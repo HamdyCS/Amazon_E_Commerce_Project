@@ -64,13 +64,15 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IPaymentTypeService, PaymentTypeService>();
 
-            services.AddScoped<IPaymentService, PaymentService>();
-
             services.AddScoped<IApplicationService, ApplicationService>();
 
             services.AddScoped<IApplicationOrderTypeService, ApplicationOrderTypeService>();
 
             services.AddScoped<IApplicationOrderService, ApplicationOrderService>();
+
+            services.AddScoped<IStripeService, StripeService>();
+
+            services.AddScoped<IPaymentService, PaymentService>();
 
             return services;
 
@@ -120,13 +122,13 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IPaymentTypeRepository, PaymentsTypeRepository>();
 
-            services.AddScoped<IPaymentRepository,PaymentRepository>();
-
             services.AddScoped<IApplicationRepository, ApplicationRepository>();
 
             services.AddScoped<IApplicationOrderTypeRepository, ApplicationOrderTypeRepository>();
 
             services.AddScoped<IApplicationOrderRepository, ApplicationOrderRepository>();
+
+            services.AddScoped<IPaymentRepository,PaymentRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

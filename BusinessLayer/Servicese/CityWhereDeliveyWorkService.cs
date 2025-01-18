@@ -5,6 +5,7 @@ using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,15 +20,16 @@ namespace BusinessLayer.Servicese
         private readonly IUserService _userService;
         private readonly ICityService _cityService;
         private readonly IGenericMapper _genericMapper;
-
+        private readonly IPersonService _personService;
 
         public CityWhereDeliveyWorkService(IUnitOfWork unitOfWork, IUserService userService, ICityService cityService,
-            IGenericMapper genericMapper)
+            IGenericMapper genericMapper,IPersonService personService)
         {
             this._unitOfWork = unitOfWork;
             this._userService = userService;
             this._cityService = cityService;
             this._genericMapper = genericMapper;
+            this._personService = personService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -254,6 +256,35 @@ namespace BusinessLayer.Servicese
             _genericMapper.MapSingle(cityDto, cityWhereDeliveryWorkDto);
 
             return cityWhereDeliveryWorkDto;
+        }
+
+        public async Task<IEnumerable<UserDto>> GetAllUserWhoWorkInThisCityByCityIdAsync(long cityId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(cityId, nameof(cityId));
+
+            var cityDto = await _cityService.FindByIdAsync(cityId);
+            if (cityDto == null) return null;
+
+            var usersWhoWorkInThisCityList = await _unitOfWork.CitiyWhereDeliveyWorkRepository.GetAllUserWhoWorkInThisCityByCityIdAsync(cityId);
+
+            if (usersWhoWorkInThisCityList is null || !usersWhoWorkInThisCityList.Any()) return null;
+
+            var usersWhoWorkInThisCityDtosList = new List<UserDto>();
+
+            foreach (var user in usersWhoWorkInThisCityList)
+            {
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+                if (userDto is null) return null;
+
+                var person = await _personService.FindByIdAsync(user.PersonId);
+                if (person is null) return null;
+
+                _genericMapper.MapSingle(person, userDto);
+
+                usersWhoWorkInThisCityDtosList.Add(userDto);
+            }
+
+            return usersWhoWorkInThisCityDtosList;
         }
     }
 

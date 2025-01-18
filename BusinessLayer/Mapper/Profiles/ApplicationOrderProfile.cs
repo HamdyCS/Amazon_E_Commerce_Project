@@ -20,6 +20,7 @@ namespace BusinessLayer.Mapper.Profiles
 
             CreateMap<ApplicationOrder, ApplicationOrder>().ForMember(x=>x.Id,opt=>
             opt.Ignore()).ForMember(x=>x.CreatedAt,opt=>
+            opt.Ignore()).ForMember(x=>x.ApplicationOrderTypeId,opt=>
             opt.Ignore());
         }
     }

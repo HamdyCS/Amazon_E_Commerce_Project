@@ -25,5 +25,7 @@ namespace BusinessLayer.Contracks
 
         public Task<CityWhereDeliveryWorkDto> FindByIdAndDeliveryIdAsync(long Id, string DeliveryId);
         public Task<CityWhereDeliveryWorkDto> FindByIdAsync(long Id);
+
+        public  Task<IEnumerable<UserDto>> GetAllUserWhoWorkInThisCityByCityIdAsync(long cityId);
     }
 }

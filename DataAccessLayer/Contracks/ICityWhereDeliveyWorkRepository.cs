@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Identity.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +17,7 @@ namespace DataAccessLayer.Contracks
         Task<CityWhereDeliveryWork> GetByIdAndDeliveryIdAsync(long Id, string DeliveryId);
 
         Task<bool> IsThisUserWorkInThisCityAsync(long cityId, string DeliveryId);
+
+        Task<IEnumerable<User>> GetAllUserWhoWorkInThisCityByCityIdAsync(long cityId);
     }
 }

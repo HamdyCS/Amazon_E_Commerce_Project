@@ -8,7 +8,7 @@ namespace DataAccessLayer.Enums
 {
     public enum EnPaymentType
     {
-        UponReceipt = 1,// عند الاستلام
+        CashOnDelivery = 1,// عند الاستلام
         PrePaid// مسبق الدفع
     }
 }

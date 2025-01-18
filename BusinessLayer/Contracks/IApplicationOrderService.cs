@@ -18,7 +18,7 @@ namespace BusinessLayer.Contracks
         Task<IEnumerable<ApplicationOrderDto>> GetActiveShippedApplicationOrdersAsync();//admin
         Task<IEnumerable<ApplicationOrderDto>> GetActiveDeliveredApplicationOrdersAsync();//admin
         Task<ApplicationOrderDto> AddNewUnderProcessingApplicationOrderAsync(long ShoppingCartId,long PaymentId, string UserId);//customer
-        Task<ApplicationOrderDto> AddNewShippedApplicationOrderAsync(long ApplicationId);//admin
-        Task<ApplicationOrderDto> AddNewDeliveredApplicationOrderAsync(long ApplicationId,string DeliveredId);//admin
+        Task<ApplicationOrderDto> AddNewDeliveredApplicationOrderAsync(long ApplicationId);//admin
+        Task<ApplicationOrderDto> AddNewShippedApplicationOrderAsync(long ApplicationId,string DeliveredId);//admin
     }
 }

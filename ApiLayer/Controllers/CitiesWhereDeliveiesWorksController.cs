@@ -22,7 +22,8 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("cities/{citiesWhereDeliveryWorkId}", Name = "GetCityWhereDeliveyWorkById")]
+
+        [HttpGet("cities/cities-where-Delivery-workId/{citiesWhereDeliveryWorkId}", Name = "GetCityWhereDeliveyWorkById")]
         [Authorize(Roles = Role.DeliveryAgent)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -48,6 +49,33 @@ namespace ApiLayer.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
+        [HttpGet("cities/{CityId}", Name = "GetUsersWhoWorkInThisCityByCityId")]
+        [Authorize(Roles = Role.Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<CityWhereDeliveryWorkDto>> GetUsersWhoWorkInThisCityByCityId(long CityId)
+        {
+            if (CityId < 1) return BadRequest("CityId must be bigger than zero.");
+
+            try
+            {
+                
+                var userWhoWorkinThisCityDtosList = await _CityWhereDeliveyWorkService.GetAllUserWhoWorkInThisCityByCityIdAsync(CityId);
+
+                if (userWhoWorkinThisCityDtosList == null || !userWhoWorkinThisCityDtosList.Any()) return NotFound($"Not found any user work in this city. Id = {CityId}");
+
+                return Ok(userWhoWorkinThisCityDtosList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
 
 
         [HttpGet("cities/admin/{citiesWhereDeliveryWorkId}", Name = "GetCityWhereDeliveyWorkServiceByIdAdmin")]
@@ -240,37 +268,6 @@ namespace ApiLayer.Controllers
             }
         }
 
-
-
-        //range مش شغال مع
-        // post man
-        // بسبب انه بيستقبل بيانات في 
-        //body
-        // وهي http delete
-        //[HttpDelete("cities/range", Name = "DeleteRangeOfCitiesWhereDeliveryWorkById")]
-        //[Authorize(Roles = Role.DeliveryAgent)]
-        //[ProducesResponseType(200)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //public async Task<ActionResult<string>> DeleteRangeOfCitiesWhereDeliveryWorkById([FromBody] IEnumerable<long> citiesWhereDeliveryWorkIdsList)
-        //{
-        //    if (citiesWhereDeliveryWorkIdsList is null || !citiesWhereDeliveryWorkIdsList.Any()) return BadRequest("citiesWhereDeliveryWorkIdsList cannot be empty");
-
-        //    try
-        //    {
-        //        var UserId = Helper.GetIdFromClaimsPrincipal(User);
-        //        if (UserId == null) return Unauthorized();
-        //        var IsCityWhereDeliveryDeleted = await _CityWhereDeliveyWorkService.DeleteRangeByIdAndDeliveryIdAsync(citiesWhereDeliveryWorkIdsList, UserId);
-
-        //        if (!IsCityWhereDeliveryDeleted) return BadRequest("Cannot Delete cities where delivery work.");
-
-        //        return Ok("Deleted cities where delivery work successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, ex.Message);
-        //    }
-        //}
 
 
 

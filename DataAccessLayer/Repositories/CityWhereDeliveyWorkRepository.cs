@@ -2,6 +2,7 @@
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
+using DataAccessLayer.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -50,6 +51,24 @@ namespace DataAccessLayer.Repositories
                     Where(e => e.DeliveryId == DeliveryId).ToListAsync();
 
                 return citiesWhereDeliveryWorkList;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetAllUserWhoWorkInThisCityByCityIdAsync(long cityId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(cityId, nameof(cityId));
+
+            try
+            {
+                var UsersWhoWorkInThisCityByCityId = await _context.CitiesWhereDeliveiesWorks.Include(x=>x.user)
+                    .Include(x=>x.user.Person)
+                    .Where(x=>x.CityId==cityId).Select(x=>x.user).ToListAsync();
+
+                return UsersWhoWorkInThisCityByCityId;
             }
             catch (Exception ex)
             {

@@ -149,13 +149,14 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ApplicationOrderDto>> AddNewShippingApplicationOrderByApplicationId(long ApplicationId)
+        public async Task<ActionResult<ApplicationOrderDto>> AddNewShippingApplicationOrderByApplicationId(long ApplicationId, [FromBody] string DeliveredId)
         {
             if (ApplicationId < 1) return BadRequest("ApplicationId must be bigger than zero.");
+            if (string.IsNullOrEmpty(DeliveredId)) return BadRequest("DeliveredId cannot be null or empty.");
 
             try
             {
-                var NewApplicationOrderDto = await _applicationOrderService.AddNewShippedApplicationOrderAsync(ApplicationId);
+                var NewApplicationOrderDto = await _applicationOrderService.AddNewShippedApplicationOrderAsync(ApplicationId, DeliveredId);
 
                 if (NewApplicationOrderDto == null) return BadRequest($"Cannot add new shipping application order.");
 
@@ -174,14 +175,13 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ApplicationOrderDto>> AddNewDeliveredApplicationOrderByApplicationId(long ApplicationId, [FromBody] string  DeliveredId)
+        public async Task<ActionResult<ApplicationOrderDto>> AddNewDeliveredApplicationOrderByApplicationId(long ApplicationId)
         {
             if (ApplicationId < 1) return BadRequest("ApplicationId must be bigger than zero.");
-            if (string.IsNullOrEmpty(DeliveredId)) return BadRequest("DeliveredId cannot be null or empty.");
 
             try
             {
-                var NewApplicationOrderDto = await _applicationOrderService.AddNewDeliveredApplicationOrderAsync(ApplicationId,DeliveredId);
+                var NewApplicationOrderDto = await _applicationOrderService.AddNewDeliveredApplicationOrderAsync(ApplicationId);
 
                 if (NewApplicationOrderDto == null) return BadRequest($"Cannot add new delivered application order.");
 

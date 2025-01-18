@@ -74,7 +74,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var ActiveDeliveredApplicationOrdersList = await _context.ApplicationOrders.
-                    Where(x => x.Id == (long)EnApplicationOrderType.Delivered).ToListAsync();
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.Delivered).ToListAsync();
 
                 return ActiveDeliveredApplicationOrdersList;
             }
@@ -89,8 +89,8 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var ActiveShippingApplicationOrdersList = await _context.ApplicationOrders.
-                    Where(x => x.Id == (long)EnApplicationOrderType.Shipped&&!
-                    _context.ApplicationOrders.Any(y=>(y.Id==x.Id&&
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped&&!
+                    _context.ApplicationOrders.Any(y=>(y.ApplicationId==x.ApplicationId&&
                     y.ApplicationOrderTypeId== (long)EnApplicationOrderType.Delivered ))).ToListAsync();
 
                 
@@ -108,8 +108,8 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var ActiveUnderProcessingApplicationOrdersList = await _context.ApplicationOrders.
-                    Where(x => x.Id == (long)EnApplicationOrderType.UnderProcessing && !
-                    _context.ApplicationOrders.Any(y => (y.Id == x.Id &&
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.UnderProcessing && !
+                    _context.ApplicationOrders.Any(y => (y.ApplicationId == x.ApplicationId &&
                     y.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped))).ToListAsync();
 
 

@@ -6,6 +6,7 @@ using BusinessLayer.Extensions;
 using BusinessLayer.Options;
 using BusinessLayer.Mapper.Profiles;
 using ApiLayer.Extensions;
+using Stripe;
 
 
 
@@ -54,6 +55,8 @@ else
 
 
 builder.UseSerilog();
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);

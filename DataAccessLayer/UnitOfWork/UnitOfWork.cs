@@ -73,9 +73,9 @@ namespace DataAccessLayer.UnitOfWork
             ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
             IShoppingCartRepository shoppingCartRepository, IProductsInShoppingCartRepository productsInShoppingCartRepository,
             IApplicationTypeRepository applicationTypeRepository, IShippingCostRepository shippingCostRepository,
-            IPaymentTypeRepository paymentTypeRepository, IPaymentRepository paymentRepository, 
+            IPaymentTypeRepository paymentTypeRepository , 
             IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository, 
-            IApplicationOrderRepository applicationOrderRepository)
+            IApplicationOrderRepository applicationOrderRepository, IPaymentRepository paymentRepository)
         {
             this._context = context;
             this._logger = logger;
@@ -101,10 +101,10 @@ namespace DataAccessLayer.UnitOfWork
             this.applicationTypeRepository = applicationTypeRepository;
             this.shippingCostRepository = shippingCostRepository;
             this.paymentTypeRepository = paymentTypeRepository;
-            this.paymentRepository = paymentRepository;
             this.applicationRepository = applicationRepository;
             this.applicationOrderTypeRepository = applicationOrderTypeRepository;
             this.applicationOrderRepository = applicationOrderRepository;
+            this.paymentRepository = paymentRepository;
         }
 
         public async Task BeginTransactionAsync()
