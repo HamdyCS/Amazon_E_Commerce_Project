@@ -376,5 +376,62 @@ namespace BusinessLayer.Servicese
 
             return productSearchResultsDtosList;
         }
+
+        public async Task<IEnumerable<ProductDto>> GetAllOrderByBestSellerDescAsync()
+        {
+            var products = await _unitOfWork.
+               productRepository.GetAllOrderByBestSellerDescAsync();
+
+
+            var productsDtosList = _genericMapper.
+                MapCollection<Product, ProductDto>(products);
+
+            if (productsDtosList is null)
+            {
+                return null;
+            }
+
+            foreach (var productDto in productsDtosList)
+            {
+                var productImagesDtosList = await _productImageService.FindAllProductImagesByProductIdAsync(productDto.Id);
+
+                if (productImagesDtosList is not null || productImagesDtosList.Any())
+                {
+                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                }
+            }
+
+            return productsDtosList;
+        }
+
+        public async Task<IEnumerable<ProductDto>> GetPagedOrderByBestSellerDescAsync(int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            var products = await _unitOfWork.
+               productRepository.GetPagedOrderByBestSellerDescAsync(pageNumber,pageSize);
+
+
+            var productsDtosList = _genericMapper.
+                MapCollection<Product, ProductDto>(products);
+
+            if (productsDtosList is null)
+            {
+                return null;
+            }
+
+            foreach (var productDto in productsDtosList)
+            {
+                var productImagesDtosList = await _productImageService.FindAllProductImagesByProductIdAsync(productDto.Id);
+
+                if (productImagesDtosList is not null || productImagesDtosList.Any())
+                {
+                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                }
+            }
+
+            return productsDtosList;
+        }
     }
 }

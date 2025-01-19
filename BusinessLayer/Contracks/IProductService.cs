@@ -1,5 +1,4 @@
 ﻿using BusinessLayer.Dtos;
-using DataAccessLayer.Entities;
 
 namespace BusinessLayer.Contracks
 {
@@ -29,5 +28,8 @@ namespace BusinessLayer.Contracks
         Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string NameEn, int pageSize);
 
         Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize);
+
+        Task<IEnumerable<ProductDto>> GetAllOrderByBestSellerDescAsync();
+        Task<IEnumerable<ProductDto>> GetPagedOrderByBestSellerDescAsync(int pageNumber, int pageSize);
     }
 }

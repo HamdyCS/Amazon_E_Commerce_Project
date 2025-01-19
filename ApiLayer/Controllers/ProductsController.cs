@@ -117,6 +117,31 @@ namespace ApiLayer.Controllers
         }
 
 
+
+        [HttpGet("all-order-by-best-seler-desc", Name = "GetAllOrderByBestSellerDesc")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<ProductDto>> GetAllOrderByBestSellerDesc()
+        {
+
+            try
+            {
+                var productsDtosList = await _productService.GetAllOrderByBestSellerDescAsync();
+
+                if (productsDtosList == null || !productsDtosList.Any())
+                    return NotFound($"Didnot find any product.");
+
+                return Ok(productsDtosList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
         [HttpGet("count", Name = "GetCountOfProducts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -146,6 +171,32 @@ namespace ApiLayer.Controllers
             try
             {
                 var productsDtosList = await _productService.GetPagedDataAsync(pageNumber, pageSize);
+
+                if (productsDtosList == null || !productsDtosList.Any())
+                    return NotFound($"Didnot find any product.");
+
+                return Ok(productsDtosList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
+
+
+        [HttpGet("all-paged-order-by-best-seler-desc", Name = "GetPagedOrderByBestSellerDesc")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<IEnumerable<ProductCategoryDto>>> GetPagedOrderByBestSellerDesc([FromQuery] int pageNumber, [FromQuery] int pageSize)
+        {
+            if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
+
+            try
+            {
+                var productsDtosList = await _productService.GetPagedOrderByBestSellerDescAsync(pageNumber, pageSize);
 
                 if (productsDtosList == null || !productsDtosList.Any())
                     return NotFound($"Didnot find any product.");
