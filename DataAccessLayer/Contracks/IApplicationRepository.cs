@@ -10,7 +10,11 @@ namespace DataAccessLayer.Contracks
     public interface IApplicationRepository : IGenericRepository<Application>
     {
         Task<IEnumerable<Application>> GetAllUserApplicationsByUserIdAsync(string UserId);
+        Task<Application> GetByIdAndUserIdAsync(long ApplicationId, string userId);
+
+        Task<IEnumerable<Application>> GetAllReturnApplicationsAsync();
+        Task<IEnumerable<Application>> GetAllUserReturnApplicationsByUserIdAsync(string UserId);
     }
 
-    
+
 }

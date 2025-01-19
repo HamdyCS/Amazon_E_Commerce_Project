@@ -14,5 +14,8 @@ namespace BusinessLayer.Dtos
 
         public long ApplicationTypeId { get; set; }
 
+        public long? ReturnApplicationId { get; set; }
+
+       
     }
 }

@@ -10,9 +10,16 @@ namespace BusinessLayer.Contracks
 {
     public interface IApplicationService
     {
-        Task<ApplicationDto> AddNewAsync(string userId,EnApplicationType enApplicationType);
+        Task<ApplicationDto> AddNewOrderApplicationAsync(string userId);
+
+        Task<ApplicationDto> AddNewReturnApplicationAsync(string userId,long OrderApplicationId);
 
         Task<IEnumerable<ApplicationDto>> GetAllUserApplicationsByUserIdAsync(string UserId);
+
+        Task<IEnumerable<ApplicationDto>> GetAllReturnApplicationsAsync();
+
+        Task<IEnumerable<ApplicationDto>> GetAllUserReturnApplicationsByUserIdAsync(string UserId);
+
         Task<ApplicationDto> FindByIdAsync(long ApplicationId);
     }
 }

@@ -20,12 +20,15 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericMapper _genericMapper;
         private readonly IUserService _userService;
+        private readonly IMailService _mailService;
 
-        public ApplicationService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, IUserService userService)
+        public ApplicationService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, IUserService userService,
+            IMailService mailService)
         {
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;
             this._userService = userService;
+            this._mailService = mailService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -34,10 +37,9 @@ namespace BusinessLayer.Servicese
             return NumberOfRowsAfected > 0;
         }
 
-        public async Task<ApplicationDto> AddNewAsync(string userId, EnApplicationType enApplicationType)
+        public async Task<ApplicationDto> AddNewOrderApplicationAsync(string userId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
-            ParamaterException.CheckIfObjectIfNotNull(enApplicationType, nameof(enApplicationType));
 
             var userDto = await _userService.FindByIdAsync(userId);
             if (userDto == null) return null;
@@ -46,7 +48,7 @@ namespace BusinessLayer.Servicese
             {
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                ApplicationTypeId = (long)enApplicationType
+                ApplicationTypeId = (long)EnApplicationType.Order
             };
 
             await _unitOfWork.applicationRepository.AddAsync(application);
@@ -84,6 +86,86 @@ namespace BusinessLayer.Servicese
             return applicationsDtosList;
         }
 
+        public async Task<ApplicationDto> AddNewReturnApplicationAsync(string userId, long OrderApplicationId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(OrderApplicationId, nameof(OrderApplicationId));
 
+            var userDto = await _userService.FindByIdAsync(userId);
+            if (userDto == null) return null;
+
+            var OrderApplication = await _unitOfWork.applicationRepository.GetByIdAndUserIdAsync(OrderApplicationId,userId);
+            if (OrderApplication is null) return null;
+
+            var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(OrderApplicationId);
+            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.Delivered)
+                return null;
+
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+                
+                var NewReturnApplication = new Application()
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    ApplicationTypeId = (long)EnApplicationType.Return
+                };
+
+                await _unitOfWork.applicationRepository.AddAsync(NewReturnApplication);
+
+                var IsReturnApplicationAdded = await _CompleteAsync();
+                if (!IsReturnApplicationAdded) throw new Exception("ReturnApplication not added.");
+
+
+                var ReturnApplicationDto = _genericMapper.MapSingle<Application, ApplicationDto>(NewReturnApplication);
+
+                OrderApplication.ReturnApplicationId = NewReturnApplication.Id;
+
+
+                await _unitOfWork.applicationRepository.UpdateAsync(OrderApplicationId, OrderApplication);
+
+                var IsOrderApplicationUpdated = await _CompleteAsync();
+                if (!IsOrderApplicationUpdated) throw new Exception("OrderApplication not Updated.");
+
+
+                await _unitOfWork.CommitTransactionAsync();
+
+
+                await _mailService.SendEmailAsync(userDto.Email, $"Your order ({OrderApplicationId}) has been successfully cancelled..", $"Your order ({OrderApplicationId}) has been successfully cancelled.");
+
+                return ReturnApplicationDto;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+          
+        }
+
+        public async Task<IEnumerable<ApplicationDto>> GetAllReturnApplicationsAsync()
+        {
+           
+            var applicationsList = await _unitOfWork.applicationRepository.GetAllReturnApplicationsAsync();
+            if (applicationsList is null || !applicationsList.Any()) return null;
+
+            var applicationsDtosList = _genericMapper.MapCollection<Application, ApplicationDto>(applicationsList);
+            return applicationsDtosList;
+        }
+
+        public async Task<IEnumerable<ApplicationDto>> GetAllUserReturnApplicationsByUserIdAsync(string UserId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
+            var userDto = await _userService.FindByIdAsync(UserId);
+            if (userDto == null) return null;
+
+            var applicationsList = await _unitOfWork.applicationRepository.GetAllUserReturnApplicationsByUserIdAsync(UserId);
+            if (applicationsList is null || !applicationsList.Any()) return null;
+
+            var applicationsDtosList = _genericMapper.MapCollection<Application, ApplicationDto>(applicationsList);
+            return applicationsDtosList;
+        }
     }
 }

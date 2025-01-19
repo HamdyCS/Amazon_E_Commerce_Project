@@ -104,7 +104,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ApplicationTypeId)
                 .HasConstraintName("FK_Application_ApplicationTypeId");
 
-            
+            entity.HasOne(x => x.ReturnApplication).WithOne().HasForeignKey<Application>(x => x.ReturnApplicationId);
         });
 
         modelBuilder.Entity<ApplicationOrder>(entity =>

@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250119082454_Add new ReturnApplicationId to Applications table")]
+    partial class AddnewReturnApplicationIdtoApplicationstable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,10 +50,6 @@ namespace DataAccessLayer.Migrations
                         .HasName("PK__Applicat__3214EC072B1F9265");
 
                     b.HasIndex("ApplicationTypeId");
-
-                    b.HasIndex("ReturnApplicationId")
-                        .IsUnique()
-                        .HasFilter("[ReturnApplicationId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -992,11 +991,6 @@ namespace DataAccessLayer.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Application_ApplicationTypeId");
 
-                    b.HasOne("DataAccessLayer.Entities.Application", "ReturnApplication")
-                        .WithOne()
-                        .HasForeignKey("DataAccessLayer.Entities.Application", "ReturnApplicationId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("DataAccessLayer.Identity.Entities.User", "user")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -1004,8 +998,6 @@ namespace DataAccessLayer.Migrations
                         .IsRequired();
 
                     b.Navigation("ApplicationType");
-
-                    b.Navigation("ReturnApplication");
 
                     b.Navigation("user");
                 });

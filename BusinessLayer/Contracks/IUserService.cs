@@ -18,6 +18,8 @@ namespace BusinessLayer.Contracks
 
         public Task<UserDto> FindByIdAsync(string Id);
 
+        public Task<UserDto> FindByEmailAsync(string Email);
+
         public Task<IEnumerable<UserDto>> GetAllAsync();
 
         public Task<long> GetCountOfUsersAsync();

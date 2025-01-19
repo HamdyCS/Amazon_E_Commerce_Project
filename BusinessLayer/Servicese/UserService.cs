@@ -504,5 +504,31 @@ namespace BusinessLayer.Servicese
                 throw;
             }
         }
+
+        public async Task<UserDto> FindByEmailAsync(string Email)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetByEmailAsync(Email);
+
+                if (user is null) return null;
+
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+
+                var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(user.PersonId);
+
+                if (user is null) return null;
+
+                _genericMapper.MapSingle(person, userDto);
+
+                return userDto;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

@@ -137,7 +137,7 @@ namespace BusinessLayer.Servicese
             if (ShoppingCart is null) return null;
 
          
-                var NewApplication = await _applicationService.AddNewAsync(UserId, EnApplicationType.Order);
+                var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
                 if (NewApplication is null) return null;
 
                 var NewApplicationOrder = new ApplicationOrder()
