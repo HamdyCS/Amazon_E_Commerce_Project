@@ -80,7 +80,7 @@ namespace BusinessLayer.Servicese
 
             var ActiveShoppingCartDto = _genericMapper.MapSingle<ShoppingCart,ShoppingCartDto>(ActiveShoppingCart);
 
-            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllProductsInShoppingCartByShoppingCartIdAsync(ActiveShoppingCart.Id);
+            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(ActiveShoppingCart.Id);
 
             if (productsinShoppingCartDtosList is null)
                 return ActiveShoppingCartDto;
@@ -106,7 +106,7 @@ namespace BusinessLayer.Servicese
 
             foreach (var userShoppingCartDto in UserShoppingCartsDtosList)
             {
-                var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllProductsInShoppingCartByShoppingCartIdAsync(userShoppingCartDto.Id);
+                var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(userShoppingCartDto.Id);
 
                 if (productsinShoppingCartDtosList is null)
                     continue;
@@ -137,7 +137,7 @@ namespace BusinessLayer.Servicese
 
             var ShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(shoopingCart);
 
-            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllProductsInShoppingCartByShoppingCartIdAsync(shoopingCart.Id);
+            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(shoopingCart.Id);
 
             if (productsinShoppingCartDtosList is null)
                 return ShoppingCartDto;

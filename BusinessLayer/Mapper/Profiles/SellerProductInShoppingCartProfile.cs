@@ -9,16 +9,16 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Mapper.Profiles
 {
-    public class ProductInShoppingCartProfile : Profile
+    public class SellerProductInShoppingCartProfile : Profile
     {
-        public ProductInShoppingCartProfile() 
+        public SellerProductInShoppingCartProfile() 
         {
-            CreateMap<ProductInShoppingCartDto, ProductInShoppingCart>().ForMember(e => e.Id,
+            CreateMap<SellerProductInShoppingCartDto, SellerProductInShoppingCart>().ForMember(e => e.Id,
                 opt => opt.Ignore()).ForMember
                 (e=>e.ShoppingCartId,opt=>
                 opt.Ignore());
 
-            CreateMap<ProductInShoppingCart, ProductInShoppingCartDto>();
+            CreateMap<SellerProductInShoppingCart, SellerProductInShoppingCartDto>();
 
         }
     }

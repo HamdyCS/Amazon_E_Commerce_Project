@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Contracks
 {
-    public interface IProductsInShoppingCartRepository : IGenericRepository<ProductInShoppingCart>
+    public interface IProductsInShoppingCartRepository : IGenericRepository<SellerProductInShoppingCart>
     {
-        Task<IEnumerable<ProductInShoppingCart>> GetAllProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId);
+        Task<IEnumerable<SellerProductInShoppingCart>> GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId);
 
-        Task<ProductInShoppingCart> GetByIdAndShoppingCartIdAndUserIdAsync(long Id,long shoppingCartId, string userId);
+        Task<SellerProductInShoppingCart> GetByIdAndShoppingCartIdAndUserIdAsync(long Id,long shoppingCartId, string userId);
 
     }
 }

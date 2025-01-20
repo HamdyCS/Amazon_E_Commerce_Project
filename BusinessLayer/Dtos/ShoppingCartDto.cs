@@ -11,6 +11,6 @@ namespace BusinessLayer.Dtos
     {
         [Required]
         public long Id { get; set; }
-        public List<ProductInShoppingCartDto> ProductsInShoppingCartsDtosList { get; set; }
+        public List<SellerProductInShoppingCartDto> ProductsInShoppingCartsDtosList { get; set; }
     }
 }

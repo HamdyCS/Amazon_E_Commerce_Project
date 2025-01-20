@@ -17,5 +17,5 @@ public partial class ShoppingCart
 
     public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 
-    public virtual ICollection<ProductInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<ProductInShoppingCart>();
+    public virtual ICollection<SellerProductInShoppingCart> SellerProductsInShoppingCart { get; set; } = new List<SellerProductInShoppingCart>();
 }

@@ -55,7 +55,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<SellerProductReview> SellerProductReviews { get; set; }
 
-    public virtual DbSet<ProductInShoppingCart> ProductsInShoppingCarts { get; set; }
+    public virtual DbSet<SellerProductInShoppingCart> SellerProductsInShoppingCarts { get; set; }
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
@@ -345,8 +345,9 @@ public class AppDbContext : IdentityDbContext<User>
 
         });
 
-        modelBuilder.Entity<ProductInShoppingCart>(entity =>
+        modelBuilder.Entity<SellerProductInShoppingCart>(entity =>
         {
+            entity.ToTable("SellerProductsInShoppingCarts");
             entity.HasKey(e => e.Id).HasName("PK__Products__3214EC0709E6EA67");
 
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(10, 2)");
@@ -355,7 +356,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.SellerProductId)
                 .HasConstraintName("FK_ProductsInShoppingCarts_SellerProductId");
 
-            entity.HasOne(d => d.ShoppingCart).WithMany(p => p.ProductsInShoppingCarts)
+            entity.HasOne(d => d.ShoppingCart).WithMany(p => p.SellerProductsInShoppingCart)
                 .HasForeignKey(d => d.ShoppingCartId)
                 .HasConstraintName("FK_ProductsInShoppingCarts_ShoppingCartId");
         });

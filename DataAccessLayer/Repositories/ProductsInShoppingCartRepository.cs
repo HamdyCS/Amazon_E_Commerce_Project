@@ -12,27 +12,27 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
-    public class ProductsInShoppingCartRepository : GenericRepository<ProductInShoppingCart>, IProductsInShoppingCartRepository
+    public class ProductsInShoppingCartRepository : GenericRepository<SellerProductInShoppingCart>, IProductsInShoppingCartRepository
     {
         private readonly AppDbContext _context;
         private readonly ILogger<ProductsInShoppingCartRepository> _logger;
 
-        public ProductsInShoppingCartRepository(AppDbContext context, ILogger<ProductsInShoppingCartRepository> logger) : base(context, logger, "ProductsInShoppingCarts")
+        public ProductsInShoppingCartRepository(AppDbContext context, ILogger<ProductsInShoppingCartRepository> logger) : base(context, logger, "SellerProductsInShoppingCarts")
         {
             this._context = context;
             this._logger = logger;
         }
 
-        public async Task<IEnumerable<ProductInShoppingCart>> GetAllProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
+        public async Task<IEnumerable<SellerProductInShoppingCart>> GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
             try
             {
-                var productsInShoppingCart = await _context.ShoppingCarts.Include(e=>e.ProductsInShoppingCarts)
+                var shoppingCart = await _context.ShoppingCarts.Include(e=>e.SellerProductsInShoppingCart)
                     .FirstOrDefaultAsync(e=>e.Id == shoppingCartId);
 
-                return productsInShoppingCart is null ? null : productsInShoppingCart.ProductsInShoppingCarts;
+                return shoppingCart is null ? null : shoppingCart.SellerProductsInShoppingCart;
             }
             catch (Exception ex)
             {
@@ -40,7 +40,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<ProductInShoppingCart> GetByIdAndShoppingCartIdAndUserIdAsync(long Id, long shoppingCartId, string userId)
+        public async Task<SellerProductInShoppingCart> GetByIdAndShoppingCartIdAndUserIdAsync(long Id, long shoppingCartId, string userId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
@@ -48,7 +48,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var productInShoppinCart = await _context.ProductsInShoppingCarts.Include(e => e.ShoppingCart).FirstOrDefaultAsync(e =>
+                var productInShoppinCart = await _context.SellerProductsInShoppingCarts.Include(e => e.ShoppingCart).FirstOrDefaultAsync(e =>
                 e.Id == Id && e.ShoppingCartId == shoppingCartId && e.ShoppingCart != null && e.ShoppingCart.Id == shoppingCartId);
 
                 return productInShoppinCart;

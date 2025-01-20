@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataAccessLayer.Entities;
 
-public partial class ProductInShoppingCart
+public partial class SellerProductInShoppingCart
 {
     public long Id { get; set; }
 

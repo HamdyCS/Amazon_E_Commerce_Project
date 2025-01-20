@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class ProductInShoppingCartDto
+    public class SellerProductInShoppingCartDto
     {
 
         public long Id { get; set; }

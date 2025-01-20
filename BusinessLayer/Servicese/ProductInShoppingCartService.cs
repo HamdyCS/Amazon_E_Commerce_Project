@@ -34,7 +34,7 @@ namespace BusinessLayer.Servicese
             var numbersOfRowsAffeted = await _unitOfWork.CompleteAsync();
             return numbersOfRowsAffeted > 0;
         }
-        public async Task<ProductInShoppingCartDto> AddAsync(ProductInShoppingCartDto productInShoppingCartDto, long ShoppingCartId, string UserId)
+        public async Task<SellerProductInShoppingCartDto> AddAsync(SellerProductInShoppingCartDto productInShoppingCartDto, long ShoppingCartId, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(productInShoppingCartDto, nameof(productInShoppingCartDto));
             ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId, nameof(ShoppingCartId));
@@ -52,10 +52,10 @@ namespace BusinessLayer.Servicese
 
 
             // بتاكد انه مش متضاف قبل كدة في السلة
-            if(ActiveShoppingCart.ProductsInShoppingCarts.Any())
+            if(ActiveShoppingCart.SellerProductsInShoppingCart.Any())
             {
                 
-                foreach(var productInActiveShoppingCart in ActiveShoppingCart.ProductsInShoppingCarts)
+                foreach(var productInActiveShoppingCart in ActiveShoppingCart.SellerProductsInShoppingCart)
                 {
                     if (productInActiveShoppingCart.SellerProductId == productInShoppingCartDto.SellerProductId)
                         return null;
@@ -67,7 +67,7 @@ namespace BusinessLayer.Servicese
                 return null;
 
 
-            var productInShoppingCart = _genericMapper.MapSingle<ProductInShoppingCartDto, ProductInShoppingCart>(productInShoppingCartDto);
+            var productInShoppingCart = _genericMapper.MapSingle<SellerProductInShoppingCartDto, SellerProductInShoppingCart>(productInShoppingCartDto);
             if (productInShoppingCart == null) return null;
 
 
@@ -87,13 +87,13 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<IEnumerable<ProductInShoppingCartDto>> AddRangeAsync(IEnumerable<ProductInShoppingCartDto> productsInShoppingCartsDtoList, long ShoppingCartId, string UserId)
+        public async Task<IEnumerable<SellerProductInShoppingCartDto>> AddRangeAsync(IEnumerable<SellerProductInShoppingCartDto> productsInShoppingCartsDtoList, long ShoppingCartId, string UserId)
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(productsInShoppingCartsDtoList, nameof(productsInShoppingCartsDtoList));
             ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId, nameof(ShoppingCartId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            var NewProductsInShoppingCartDtosList = new List<ProductInShoppingCartDto>();
+            var NewProductsInShoppingCartDtosList = new List<SellerProductInShoppingCartDto>();
 
             try
             {
@@ -155,7 +155,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId, nameof(ShoppingCartId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            var NewProductsInShoppingCartDtosList = new List<ProductInShoppingCartDto>();
+            var NewProductsInShoppingCartDtosList = new List<SellerProductInShoppingCartDto>();
 
             try
             {
@@ -183,32 +183,32 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<ProductInShoppingCartDto> FindByIdAndShoppingCartIdAndUserIdAsync(long productInShoppingCartId, long ShoppingCartId,string UserId)
+        public async Task<SellerProductInShoppingCartDto> FindByIdAndShoppingCartIdAndUserIdAsync(long productInShoppingCartId, long ShoppingCartId,string UserId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productInShoppingCartId,nameof(productInShoppingCartId));
             var productInShoppingCart = await _unitOfWork.productsInShoppingCartRepository.GetByIdAndShoppingCartIdAndUserIdAsync(productInShoppingCartId,ShoppingCartId,UserId);
 
             if (productInShoppingCart is null) return null;
 
-            var productInShoppingCartDto = _genericMapper.MapSingle<ProductInShoppingCart, ProductInShoppingCartDto>(productInShoppingCart);
+            var productInShoppingCartDto = _genericMapper.MapSingle<SellerProductInShoppingCart, SellerProductInShoppingCartDto>(productInShoppingCart);
             return productInShoppingCartDto;
         }
 
-        public async Task<IEnumerable<ProductInShoppingCartDto>> GetAllProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
+        public async Task<IEnumerable<SellerProductInShoppingCartDto>> GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
 
-            var productsInShoppingCartList = await _unitOfWork.productsInShoppingCartRepository.GetAllProductsInShoppingCartByShoppingCartIdAsync(shoppingCartId);
+            var productsInShoppingCartList = await _unitOfWork.productsInShoppingCartRepository.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(shoppingCartId);
             if (productsInShoppingCartList is null || !productsInShoppingCartList.Any()) return null;
 
 
-            var productsInShoppingCartDtosList = _genericMapper.MapCollection<ProductInShoppingCart, ProductInShoppingCartDto>(productsInShoppingCartList);
+            var productsInShoppingCartDtosList = _genericMapper.MapCollection<SellerProductInShoppingCart, SellerProductInShoppingCartDto>(productsInShoppingCartList);
             return productsInShoppingCartDtosList;
 
         }
 
-        public async Task<bool> UpdateAsync(long ProductInShoppingCartId, ProductInShoppingCartDto productInShoppingCartDto, long ShoppingCartId, string UserId)
+        public async Task<bool> UpdateAsync(long ProductInShoppingCartId, SellerProductInShoppingCartDto productInShoppingCartDto, long ShoppingCartId, string UserId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ProductInShoppingCartId, nameof(ProductInShoppingCartId));
             ParamaterException.CheckIfObjectIfNotNull(productInShoppingCartDto, nameof(productInShoppingCartDto));

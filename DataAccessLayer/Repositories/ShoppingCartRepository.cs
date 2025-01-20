@@ -30,7 +30,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                
-                var ActiveShoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders).Include(e=>e.ProductsInShoppingCarts)
+                var ActiveShoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders).Include(e=>e.SellerProductsInShoppingCart)
                     .FirstOrDefaultAsync(e => !e.ApplicationOrders.Any());
 
                 return ActiveShoppingCart;
@@ -65,7 +65,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var TotalPrice = await _context.ProductsInShoppingCarts
+                var TotalPrice = await _context.SellerProductsInShoppingCarts
                     .Where(e => e.ShoppingCartId == shoppingCartId).SumAsync(e => e.TotalPrice);
                 
 
