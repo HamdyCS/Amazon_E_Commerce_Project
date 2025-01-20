@@ -11,9 +11,10 @@ namespace DataAccessLayer.Contracks
     {
         Task<IEnumerable<Application>> GetAllUserApplicationsByUserIdAsync(string UserId);
         Task<Application> GetByIdAndUserIdAsync(long ApplicationId, string userId);
-
+        Task<long> GetShoppingCartIdByApplicationIdAndUserIdAsync(long ApplicationId, string userId);
         Task<IEnumerable<Application>> GetAllReturnApplicationsAsync();
         Task<IEnumerable<Application>> GetAllUserReturnApplicationsByUserIdAsync(string UserId);
+        Task<IEnumerable<Application>> GetAllUserOrderApplicationsByUserIdAsync(string UserId);
     }
 
 

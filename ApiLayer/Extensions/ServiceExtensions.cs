@@ -76,6 +76,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
 
+            services.AddScoped<IOrderApplicationSummaryService, OrderApplicationSummaryService>();
+
             return services;
 
         }

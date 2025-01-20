@@ -21,5 +21,8 @@ namespace BusinessLayer.Contracks
         Task<IEnumerable<ApplicationDto>> GetAllUserReturnApplicationsByUserIdAsync(string UserId);
 
         Task<ApplicationDto> FindByIdAsync(long ApplicationId);
+
+        public Task<ShoppingCartDto> FindShoppingCartByApplicationIdAndUserIdAsync(long ApplicationId, string userId);
+       
     }
 }

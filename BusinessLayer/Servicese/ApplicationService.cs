@@ -21,14 +21,16 @@ namespace BusinessLayer.Servicese
         private readonly IGenericMapper _genericMapper;
         private readonly IUserService _userService;
         private readonly IMailService _mailService;
+        private readonly IShoppingCartService _shoppingCartService;
 
         public ApplicationService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, IUserService userService,
-            IMailService mailService)
+            IMailService mailService,IShoppingCartService shoppingCartService)
         {
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;
             this._userService = userService;
             this._mailService = mailService;
+            this._shoppingCartService = shoppingCartService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -166,6 +168,19 @@ namespace BusinessLayer.Servicese
 
             var applicationsDtosList = _genericMapper.MapCollection<Application, ApplicationDto>(applicationsList);
             return applicationsDtosList;
+        }
+
+        public async Task<ShoppingCartDto> FindShoppingCartByApplicationIdAndUserIdAsync(long ApplicationId, string userId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            var shoppingCartid = await _unitOfWork.applicationRepository.GetShoppingCartIdByApplicationIdAndUserIdAsync(ApplicationId, userId);
+            if (shoppingCartid == -1) return null;
+
+            var shoppingCartDto = await _shoppingCartService.FindByIdAsync(shoppingCartid);
+            return shoppingCartDto;
+
         }
     }
 }

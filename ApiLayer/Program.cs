@@ -55,6 +55,7 @@ else
 
 
 builder.UseSerilog();
+
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 
