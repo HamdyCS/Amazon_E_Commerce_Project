@@ -7,12 +7,15 @@ using BusinessLayer.Servicese;
 using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/cities/shipping-costs")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ShippingCostsController : ControllerBase
     {
         private readonly IShippingCostService _shippingCostService;

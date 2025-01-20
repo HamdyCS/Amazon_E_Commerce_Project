@@ -11,6 +11,7 @@ using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace BusinessLayer.Extensions
 {
@@ -176,6 +177,25 @@ namespace BusinessLayer.Extensions
             return services;
         }
 
+
+        public static IServiceCollection AddCustomRateLimiting(this IServiceCollection serviceCollection,RateLimitOptions rateLimitOptions)
+        {
+           serviceCollection.AddRateLimiter(options =>
+            {
+                // تعريف سياسة Fixed Window مع اسم "FixedWindowPolicy"
+                options.AddPolicy("FixedWindowPolicyByUserIpAddress", context =>
+                    RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", x => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = rateLimitOptions.PermitLimit,               // عدد الطلبات المسموح بها
+                        Window = TimeSpan.FromSeconds(rateLimitOptions.Window), // مدة النافذة الزمنية
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = rateLimitOptions.QueueLimit                  // عدم السماح بطلبات إضافية في قائمة الانتظار
+                    })
+                ).RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            });
+
+            return serviceCollection;
+        }
     }
 
 }

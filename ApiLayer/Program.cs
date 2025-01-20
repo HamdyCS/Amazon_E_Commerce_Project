@@ -49,7 +49,7 @@ if (mailOptions != null)
 }
 else
 {
-    Environment.Exit(0);
+    Environment.Exit(Environment.ExitCode);
 }
 
 
@@ -61,6 +61,17 @@ StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);
+
+var rateLimitOptions = builder.Configuration.GetSection("RateLimitOption").Get<RateLimitOptions>();
+if (rateLimitOptions != null)
+{
+    builder.Services.AddCustomRateLimiting(rateLimitOptions);
+}
+else
+{
+    Environment.Exit(Environment.ExitCode);
+}
+
 
 var app = builder.Build();
 
@@ -79,6 +90,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication(); // إضافة المصادقة أولاً
 app.UseAuthorization();  // ثم التفويض
+app.UseRateLimiter();// عشان ال rate limter
 app.MapControllers();
 app.AddCustomMiddlewares();
 

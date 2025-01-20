@@ -6,6 +6,7 @@ using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApiLayer.Controllers
@@ -13,6 +14,8 @@ namespace ApiLayer.Controllers
     [Route("api/Authentication")]
     [ApiController]
     [Authorize]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class AuthenticationController : ControllerBase
     {
         private readonly IOtpService _otpService;

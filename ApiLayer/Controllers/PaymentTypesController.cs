@@ -3,11 +3,14 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/payment-types")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class PaymentTypesController : ControllerBase
     {
         private readonly IPaymentTypeService _paymentTypeService;

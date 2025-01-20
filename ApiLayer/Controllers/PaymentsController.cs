@@ -4,6 +4,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
@@ -11,6 +12,8 @@ namespace ApiLayer.Controllers
     [Route("api/shopping-carts/payments")]
     [ApiController]
     [Authorize(Roles = Role.Customer)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class PaymentsController : ControllerBase
     {
         private readonly IPaymentService _paymentService;

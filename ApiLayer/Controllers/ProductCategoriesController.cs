@@ -5,6 +5,7 @@ using BusinessLayer.Roles;
 using BusinessLayer.Servicese;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApiLayer.Controllers
@@ -12,6 +13,8 @@ namespace ApiLayer.Controllers
     [Route("api/product-categories")]
     [ApiController]
     [Authorize(Roles = Role.Admin)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ProductCategoriesController : ControllerBase
     {
         private readonly IProductCategoryService _productCategoryService;

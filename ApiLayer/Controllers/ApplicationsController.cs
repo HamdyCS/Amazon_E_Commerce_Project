@@ -5,11 +5,14 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/applications")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ApplicationsController : ControllerBase
     {
         private readonly IApplicationService _applicationService;

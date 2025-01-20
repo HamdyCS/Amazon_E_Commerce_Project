@@ -4,12 +4,16 @@ using BusinessLayer.Roles;
 using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/admin/applications")]
     [ApiController]
     [Authorize(Roles =Role.Admin)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
+
     public class AdminApplicationOrdersController : ControllerBase
     {
         private readonly IApplicationOrderService _applicationOrderService;

@@ -6,11 +6,14 @@ using BusinessLayer.Servicese;
 using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/application-types")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ApplicationTypesController : ControllerBase
     {
         private readonly IApplicationTypeService _applicationTypeService;

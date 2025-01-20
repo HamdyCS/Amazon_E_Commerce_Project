@@ -6,12 +6,15 @@ using BusinessLayer.Servicese;
 using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/shopping-carts/{ShoppingCartId}/seller-products")]
     [ApiController]
     [Authorize(Roles = Role.Customer)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
 
     public class SellerProductsInShoppingCartsController : ControllerBase
     {

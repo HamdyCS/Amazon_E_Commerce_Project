@@ -2,6 +2,7 @@ using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApiLayer.Controllers
@@ -9,6 +10,8 @@ namespace ApiLayer.Controllers
     [Route("api/UsersAddresses")]
     [ApiController]
     [Authorize]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class UsersAddressesController : ControllerBase
     {
         private readonly IUserAddressService _userAddressService;

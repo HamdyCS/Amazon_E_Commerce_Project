@@ -4,12 +4,15 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/cities")]
     [ApiController]
     [Authorize]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class CitiesController : ControllerBase
     {
         private readonly ICityService _cityService;

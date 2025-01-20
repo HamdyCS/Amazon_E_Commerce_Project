@@ -6,12 +6,15 @@ using BusinessLayer.Roles;
 using BusinessLayer.Servicese;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/seller-products")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class SellerProductsController : ControllerBase
     {
         private readonly ISellerProductService _SellerProductService;

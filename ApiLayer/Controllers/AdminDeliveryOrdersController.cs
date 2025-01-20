@@ -4,6 +4,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
@@ -11,6 +12,8 @@ namespace ApiLayer.Controllers
     [Route("api/admin/applications/application-order/delivery-orders")]
     [ApiController]
     [Authorize(Roles =Role.Admin)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class AdminDeliveryOrdersController : ControllerBase
     {
         public IDeliveryOrderService _DeliveryOrderService { get; }

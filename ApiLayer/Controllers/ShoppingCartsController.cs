@@ -6,11 +6,14 @@ using BusinessLayer.Servicese;
 using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/shopping-carts")]
     [ApiController]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ShoppingCartsController : ControllerBase
     {
         // عامل ان الفرونت ايند ميبعتش Id

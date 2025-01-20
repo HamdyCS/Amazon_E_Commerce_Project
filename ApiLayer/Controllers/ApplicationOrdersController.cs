@@ -4,12 +4,15 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
     [Route("api/applications")]
     [ApiController]
     [Authorize(Roles = Role.Customer)]
+    [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
+
     public class ApplicationOrdersController : ControllerBase
     {
         private readonly IApplicationOrderService _applicationOrderService;
