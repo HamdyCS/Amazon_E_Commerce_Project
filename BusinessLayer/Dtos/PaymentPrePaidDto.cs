@@ -14,8 +14,14 @@ namespace BusinessLayer.Dtos
         [Required, Range(1, double.MaxValue, ErrorMessage = "ShoppingCartId must be bigger than zero")]
         public long ShoppingCartId { get; set; }
 
+        //[Required]
+        //public CardInfoDto CardInfo { get; set; }
+
         [Required]
-        public CardInfoDto CardInfo { get; set; }
+        public string SuccessUrl { get; set; }
+
+        [Required]
+        public string CancelUrl { get; set; }
     }
 
 }

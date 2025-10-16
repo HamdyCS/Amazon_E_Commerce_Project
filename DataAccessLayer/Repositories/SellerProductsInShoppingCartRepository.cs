@@ -4,20 +4,15 @@ using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
-    public class ProductsInShoppingCartRepository : GenericRepository<SellerProductInShoppingCart>, IProductsInShoppingCartRepository
+    public class SellerProductsInShoppingCartRepository : GenericRepository<SellerProductInShoppingCart>, ISellerProductInShoppingCartRepository
     {
         private readonly AppDbContext _context;
-        private readonly ILogger<ProductsInShoppingCartRepository> _logger;
+        private readonly ILogger<SellerProductsInShoppingCartRepository> _logger;
 
-        public ProductsInShoppingCartRepository(AppDbContext context, ILogger<ProductsInShoppingCartRepository> logger) : base(context, logger, "SellerProductsInShoppingCarts")
+        public SellerProductsInShoppingCartRepository(AppDbContext context, ILogger<SellerProductsInShoppingCartRepository> logger) : base(context, logger, "SellerProductsInShoppingCarts")
         {
             this._context = context;
             this._logger = logger;
@@ -29,8 +24,8 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var shoppingCart = await _context.ShoppingCarts.Include(e=>e.SellerProductsInShoppingCart)
-                    .FirstOrDefaultAsync(e=>e.Id == shoppingCartId);
+                var shoppingCart = await _context.ShoppingCarts.Include(e => e.SellerProductsInShoppingCart).ThenInclude(x => x.SellerProduct).ThenInclude(x => x.Product)
+                    .FirstOrDefaultAsync(e => e.Id == shoppingCartId);
 
                 return shoppingCart is null ? null : shoppingCart.SellerProductsInShoppingCart;
             }

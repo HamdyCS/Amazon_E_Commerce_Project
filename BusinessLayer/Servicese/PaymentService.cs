@@ -5,11 +5,6 @@ using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
 using DataAccessLayer.UnitOfWork.Contracks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -26,8 +21,8 @@ namespace BusinessLayer.Servicese
 
         public PaymentService(IGenericMapper genericMapper, IUserService userService, IUnitOfWork unitOfWork,
             IUserAddressService userAdderssService,
-            IShippingCostService shippingCostService, IShoppingCartService shoppingCartService, 
-            IApplicationOrderService applicationOrderService,IStripeService stripeService)
+            IShippingCostService shippingCostService, IShoppingCartService shoppingCartService,
+            IApplicationOrderService applicationOrderService, IStripeService stripeService)
         {
             this._genericMapper = genericMapper;
             this._userService = userService;
@@ -72,7 +67,7 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<bool> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId)
+        public async Task<string> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(paymentPrePaidDto, nameof(paymentPrePaidDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
@@ -84,38 +79,41 @@ namespace BusinessLayer.Servicese
             };
 
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
-            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentDto.ShoppingCartId) return false;
+            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentDto.ShoppingCartId) return string.Empty;
 
 
             var userAddressDto = await _userAdderssService.FindByIdAndUserIdAsync(paymentDto.UserAddressId, UserId);
-            if (userAddressDto == null) return false;
+            if (userAddressDto == null) return string.Empty;
 
 
             var shippingCostDto = await _shippingCostService.FindByCityIdAsync(userAddressDto.CityId);
-            if (shippingCostDto == null) return false;
+            if (shippingCostDto == null) return string.Empty;
 
 
             var ShoppingCartTotalPrice = await _shoppingCartService.GetTotalPriceInShoppingCartByShoppingCartIdAsync(ActiveShoppingCartDto.Id);
-            if (ShoppingCartTotalPrice == -1) return false;
+            if (ShoppingCartTotalPrice == -1) return string.Empty;
 
+            var sellerProductsInCart = await _unitOfWork.SellerProductsInShoppingCartRepository.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(ActiveShoppingCartDto.Id);
+            if (sellerProductsInCart == null || !sellerProductsInCart.Any()) return string.Empty;
 
             var TotalPrice = ShoppingCartTotalPrice + shippingCostDto.Price;
 
 
-            if (!(TotalPrice>0)) return false;
+            if (!(TotalPrice > 0)) return string.Empty;
 
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
 
 
-                var payment = _genericMapper.MapSingle<PaymentDto,Payment>(paymentDto);
+                var payment = _genericMapper.MapSingle<PaymentDto, Payment>(paymentDto);
                 if (payment == null) throw new Exception("payment is null");
 
                 payment.TotalPrice = TotalPrice;
                 payment.CreatedAt = DateTime.UtcNow;
                 payment.PaymentTypeId = (long)EnPaymentType.PrePaid;
                 payment.shippingCostId = shippingCostDto.Id;
+                payment.PaymentStatusId = (int)EnPaymentStatus.Pending;
 
                 await _unitOfWork.paymentRepository.AddAsync(payment);
                 var IsPaymentAdded = await _CompleteAsync();
@@ -129,23 +127,54 @@ namespace BusinessLayer.Servicese
                 if (NewApplicationOrderDto == null) throw new Exception("not new application order added");
 
 
-                var newStripeToken = await _stripeService.CreateStripeTokenAsync(paymentPrePaidDto.CardInfo);
-                if (newStripeToken == null) throw new Exception("New strip token is null");
+                //var newStripeToken = await _stripeService.CreateStripeTokenAsync(paymentPrePaidDto.CardInfo);
+                //if (newStripeToken == null) throw new Exception("New strip token is null");
 
 
-                var IsStripeChargeCompletedSuccessfuly = await _stripeService.CreateStripeChargeAsync(paymentPrePaidDto.CardInfo,
-                    newStripeToken.Id, (long)TotalPrice * 100, "EGP", "Test payment");
+                //var IsStripeChargeCompletedSuccessfuly = await _stripeService.CreateStripeChargeAsync(paymentPrePaidDto.CardInfo,
+                //    newStripeToken.Id, (long)TotalPrice * 100, "EGP", "Test payment");
 
-                if(!IsStripeChargeCompletedSuccessfuly) throw new Exception("not stripe charge completed sucessfuly");
+                //if(!IsStripeChargeCompletedSuccessfuly) throw new Exception("not stripe charge completed sucessfuly");
 
+
+                //stripe session
+
+                //new payment dto
+                var NewPaymentDto = new PaymentDto
+                {
+                    Id = payment.Id,
+                    ShoppingCartId = ActiveShoppingCartDto.Id,
+                    UserAddressId = paymentDto.UserAddressId,
+                };
+
+                //create session dto
+                var createSessionDto = new CreateSessionDto
+                {
+                    paymentDto = NewPaymentDto,
+                    PaymentId = payment.Id,
+                    TotalPrice = TotalPrice,
+                    ShippingCost = shippingCostDto.Price,
+                    SuccessUrl = paymentPrePaidDto.SuccessUrl,
+                    CancelUrl = paymentPrePaidDto.CancelUrl
+                };
+
+                //create stripe session
+                var stripeDto = await _stripeService.CreateSessionAsync(createSessionDto);
+                if (stripeDto == null) throw new Exception("stripe dto is null");
+
+                payment.SessionId = stripeDto.SessionId;
+                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+
+                var IsPaymentUpdated = await _CompleteAsync();
+                if (!IsPaymentUpdated) throw new Exception("Payment not Updated");
 
                 await _unitOfWork.CommitTransactionAsync();
-                return true;
+                return stripeDto.SessionUrl;
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return false;
+                return string.Empty;
             }
         }
 
@@ -154,7 +183,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfObjectIfNotNull(paymentDto, nameof(paymentDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-           
+
 
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
             if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentDto.ShoppingCartId) return false;
@@ -200,13 +229,88 @@ namespace BusinessLayer.Servicese
 
                 if (NewApplicationOrderDto == null) throw new Exception("not new application order added");
 
-               
+
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdatePaymentStatusByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
+
+            try
+            {
+                //get payment by id
+                var payment = await _unitOfWork.paymentRepository.GetByIdAsNoTrackingAsync(paymentId);
+                if (payment == null) return false;
+
+                //update payment status
+                payment.PaymentStatusId = (int)enPaymentStatus;
+                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+
+                var IsPaymentUpdated = await _CompleteAsync();
+                return IsPaymentUpdated;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateInvoiceIdByIdAsync(long paymentId, string invoiceId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(invoiceId, nameof(invoiceId));
+
+            try
+            {
+                //get payment by id
+                var payment = await _unitOfWork.paymentRepository.GetByIdAsNoTrackingAsync(paymentId);
+                if (payment == null) return false;
+
+                //update payment status
+                payment.InvoiceId = invoiceId;
+                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+
+                var IsPaymentUpdated = await _CompleteAsync();
+                return IsPaymentUpdated;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(invoiceId, nameof(invoiceId));
+
+
+            try
+            {
+                //get payment by id
+                var payment = await _unitOfWork.paymentRepository.GetByIdAsNoTrackingAsync(paymentId);
+                if (payment == null) return false;
+
+                //update payment
+                payment.PaymentStatusId = (int)enPaymentStatus;
+
+                payment.InvoiceId = invoiceId;
+
+                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+
+                var IsPaymentUpdated = await _CompleteAsync();
+                return IsPaymentUpdated;
+            }
+            catch (Exception ex)
+            {
                 return false;
             }
         }

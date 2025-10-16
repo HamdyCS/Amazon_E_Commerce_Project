@@ -64,12 +64,12 @@ namespace ApiLayer.Controllers
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
                 if (userId is null) return Unauthorized();
 
-                var IsPaymentCompletedSuccessfuly = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto,userId);
+                var SessionUrl = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto, userId);
 
-                if (!IsPaymentCompletedSuccessfuly)
+                if (string.IsNullOrEmpty(SessionUrl))
                     return BadRequest("Payment didnot complet Successfully.");
 
-                return Ok("Payment completed Successfully.");
+                return Ok(SessionUrl);
             }
             catch (Exception ex)
             {

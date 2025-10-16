@@ -2,8 +2,6 @@
 using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
-using BusinessLayer.Servicese;
-using DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -18,13 +16,13 @@ namespace ApiLayer.Controllers
     {
         // عامل ان الفرونت ايند ميبعتش Id
         //shopping cart
-        // عاشن ميبعتش بتاع مستخدم اخر بالغلط وتحصل مصيبة
+        // عاشن ميبعتش بتاع مستخدم اخر بالغلط وتحصل مشكلة
         // فانا من هنا مهندل الموضوع اتوماتيك
 
 
         private readonly IShoppingCartService _shoppingCartService;
 
-        public ShoppingCartsController (IShoppingCartService shoppingCartService)
+        public ShoppingCartsController(IShoppingCartService shoppingCartService)
         {
             this._shoppingCartService = shoppingCartService;
         }
@@ -86,7 +84,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable< ShoppingCartDto>>> GetAllUserShoppingCarts()
+        public async Task<ActionResult<IEnumerable<ShoppingCartDto>>> GetAllUserShoppingCarts()
         {
 
             try
@@ -154,7 +152,7 @@ namespace ApiLayer.Controllers
 
                 if (shoppingCartDto == null) return BadRequest("Cannot add new shopping cart.");
 
-                return CreatedAtRoute("GetShoppingCartById",new { ShoppingCartId = shoppingCartDto.Id },shoppingCartDto);
+                return CreatedAtRoute("GetShoppingCartById", new { ShoppingCartId = shoppingCartDto.Id }, shoppingCartDto);
             }
             catch (Exception ex)
             {

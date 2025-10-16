@@ -5,13 +5,7 @@ using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Roles;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
-using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -24,9 +18,9 @@ namespace BusinessLayer.Servicese
         private readonly IGenericMapper _genericMapper;
         private readonly IShoppingCartService _shoppingCartService;
 
-        public ApplicationOrderService(IUnitOfWork unitOfWork,IUserService userService,IApplicationService applicationService,
-            IApplicationTypeService applicationTypeService,IMailService mailService,
-            IGenericMapper genericMapper,IShoppingCartService shoppingCartService)
+        public ApplicationOrderService(IUnitOfWork unitOfWork, IUserService userService, IApplicationService applicationService,
+            IApplicationTypeService applicationTypeService, IMailService mailService,
+            IGenericMapper genericMapper, IShoppingCartService shoppingCartService)
         {
             this._unitOfWork = unitOfWork;
             this._userService = userService;
@@ -57,7 +51,7 @@ namespace BusinessLayer.Servicese
             if (!IsThisUserDelivered) return null;
 
             var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(ApplicationId);
-            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.UnderProcessing)
+            if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.UnderProcessing || (activeApplictionOrder.Payment.PaymentStatusId != (int)EnPaymentStatus.Succeeded && activeApplictionOrder.Payment.PaymentTypeId != (long)EnPaymentType.CashOnDelivery))
                 return null;
 
             var UserDto = await _userService.FindByIdAsync(activeApplictionOrder.CreatedBy);
@@ -100,7 +94,7 @@ namespace BusinessLayer.Servicese
             var UserDto = await _userService.FindByIdAsync(activeApplictionOrder.CreatedBy);
             if (UserDto is null) return null;
 
-            var NewApplicationOrder = _genericMapper.MapSingle<ApplicationOrder,ApplicationOrder>(activeApplictionOrder);
+            var NewApplicationOrder = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrder>(activeApplictionOrder);
             if (NewApplicationOrder is null) return null;
 
 
@@ -125,7 +119,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<ApplicationOrderDto> AddNewUnderProcessingApplicationOrderAsync(long ShoppingCartId, long PaymentId, string UserId)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId,nameof(ShoppingCartId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId, nameof(ShoppingCartId));
             ParamaterException.CheckIfLongIsBiggerThanZero(PaymentId, nameof(PaymentId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
@@ -136,30 +130,30 @@ namespace BusinessLayer.Servicese
             var ShoppingCart = await _shoppingCartService.FindByIdAsync(ShoppingCartId);
             if (ShoppingCart is null) return null;
 
-         
-                var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
-                if (NewApplication is null) return null;
 
-                var NewApplicationOrder = new ApplicationOrder()
-                {
-                    ApplicationId = NewApplication.Id,
-                    ApplicationOrderTypeId = (long)EnApplicationOrderType.UnderProcessing,
-                    ShoppingCartId = ShoppingCartId,
-                    PaymentId = PaymentId,
-                    CreatedAt = DateTime.UtcNow,
-                    CreatedBy = UserId
-                };
+            var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
+            if (NewApplication is null) return null;
 
-                await _unitOfWork.applicationOrderRepository.AddAsync(NewApplicationOrder);
+            var NewApplicationOrder = new ApplicationOrder()
+            {
+                ApplicationId = NewApplication.Id,
+                ApplicationOrderTypeId = (long)EnApplicationOrderType.UnderProcessing,
+                ShoppingCartId = ShoppingCartId,
+                PaymentId = PaymentId,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = UserId
+            };
 
-                var IsNewApplicationOrderAdded = await _CompleteAsync();
-                if (!IsNewApplicationOrderAdded) return null;
+            await _unitOfWork.applicationOrderRepository.AddAsync(NewApplicationOrder);
+
+            var IsNewApplicationOrderAdded = await _CompleteAsync();
+            if (!IsNewApplicationOrderAdded) return null;
 
 
-                await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplication.Id}) is under processing", $"Your order ({NewApplication.Id}) is under processing");
+            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplication.Id}) is under processing", $"Your order ({NewApplication.Id}) is under processing");
 
-                var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder,ApplicationOrderDto>(NewApplicationOrder);
-                return NewApplicationOrderDto;
+            var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(NewApplicationOrder);
+            return NewApplicationOrderDto;
         }
 
         public async Task<ApplicationOrderDto> FindActiveApplicationOrderByApplicationIdAndUserIdAsync(long ApplicationId, string userId)
@@ -174,7 +168,7 @@ namespace BusinessLayer.Servicese
             var userDto = await _userService.FindByIdAsync(userId);
             if (userDto == null) return null;
 
-            var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAndUserIdAsync(ApplicationId,userId);
+            var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAndUserIdAsync(ApplicationId, userId);
             if (activeApplictionOrder == null)
                 return null;
 
@@ -187,7 +181,7 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationOrderId, nameof(ApplicationOrderId));
 
-            
+
             var applictionOrder = await _unitOfWork.applicationOrderRepository.GetByIdAsNoTrackingAsync(ApplicationOrderId);
             if (applictionOrder == null)
                 return null;
@@ -256,7 +250,7 @@ namespace BusinessLayer.Servicese
             var application = await _applicationService.FindByIdAsync(ApplicationId);
             if (application == null) return null;
 
-           
+
             var applicationOrdersList = await _unitOfWork.applicationOrderRepository.GetAllApplicationOrdersByApplicatonIdAsync(ApplicationId);
             if (applicationOrdersList == null || !applicationOrdersList.Any())
                 return null;

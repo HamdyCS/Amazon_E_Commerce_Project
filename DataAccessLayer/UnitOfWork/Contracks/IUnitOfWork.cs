@@ -1,9 +1,4 @@
 ﻿using DataAccessLayer.Contracks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.UnitOfWork.Contracks
 {
@@ -36,7 +31,7 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 
         public IShoppingCartRepository shoppingCartRepository { get; }
 
-        public IProductsInShoppingCartRepository productsInShoppingCartRepository { get; }
+        public ISellerProductInShoppingCartRepository SellerProductsInShoppingCartRepository { get; }
 
         public IApplicationTypeRepository applicationTypeRepository { get; }
 
@@ -45,7 +40,7 @@ namespace DataAccessLayer.UnitOfWork.Contracks
         public IPaymentTypeRepository paymentTypeRepository { get; }
 
         public IPaymentRepository paymentRepository { get; }
-        
+
         public IApplicationRepository applicationRepository { get; }
 
         public IApplicationOrderTypeRepository applicationOrderTypeRepository { get; }

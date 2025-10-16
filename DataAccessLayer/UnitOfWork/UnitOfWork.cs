@@ -45,7 +45,7 @@ namespace DataAccessLayer.UnitOfWork
 
         public IShoppingCartRepository shoppingCartRepository { get; private set; }
 
-        public IProductsInShoppingCartRepository productsInShoppingCartRepository { get; private set; }
+        public ISellerProductInShoppingCartRepository SellerProductsInShoppingCartRepository { get; private set; }
 
         public IApplicationTypeRepository applicationTypeRepository { get; private set; }
 
@@ -73,7 +73,7 @@ namespace DataAccessLayer.UnitOfWork
             IProductSubCategoryRepository productSubCategoryRepository, IProductImageRepository productImageRepository
             , IProductRepository productRepository, ISellerProductRepository sellerProductRepository,
             ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
-            IShoppingCartRepository shoppingCartRepository, IProductsInShoppingCartRepository productsInShoppingCartRepository,
+            IShoppingCartRepository shoppingCartRepository, ISellerProductInShoppingCartRepository productsInShoppingCartRepository,
             IApplicationTypeRepository applicationTypeRepository, IShippingCostRepository shippingCostRepository,
             IPaymentTypeRepository paymentTypeRepository , 
             IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository, 
@@ -99,8 +99,8 @@ namespace DataAccessLayer.UnitOfWork
             this.sellerProductReviewRepository = sellerProductReviewRepository;
             this.CitiyWhereDeliveyWorkRepository = citiyWhereDeliveyWorkRepository;
             this.shoppingCartRepository = shoppingCartRepository;
-            this.productsInShoppingCartRepository = productsInShoppingCartRepository;
-            this.productsInShoppingCartRepository = productsInShoppingCartRepository;
+            this.SellerProductsInShoppingCartRepository = productsInShoppingCartRepository;
+            this.SellerProductsInShoppingCartRepository = productsInShoppingCartRepository;
             this.applicationTypeRepository = applicationTypeRepository;
             this.shippingCostRepository = shippingCostRepository;
             this.paymentTypeRepository = paymentTypeRepository;

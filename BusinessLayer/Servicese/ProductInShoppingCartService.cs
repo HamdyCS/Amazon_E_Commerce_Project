@@ -75,7 +75,7 @@ namespace BusinessLayer.Servicese
             productInShoppingCart.TotalPrice = productInShoppingCartDto.Number * sellerProductDto.Price;
 
             
-            await _unitOfWork.productsInShoppingCartRepository.AddAsync(productInShoppingCart);
+            await _unitOfWork.SellerProductsInShoppingCartRepository.AddAsync(productInShoppingCart);
 
 
             var IsProductInShoppingCartAdded = await _completeAsync();
@@ -137,12 +137,12 @@ namespace BusinessLayer.Servicese
             var ActiveShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(UserId);
             if (ActiveShoppingCart is null || ActiveShoppingCart.Id != ShoppingCartId) return false;
 
-            var productInShopping = await _unitOfWork.productsInShoppingCartRepository.
+            var productInShopping = await _unitOfWork.SellerProductsInShoppingCartRepository.
                 GetByIdAndShoppingCartIdAndUserIdAsync(productInShopingCartId, ShoppingCartId, UserId);
 
             if (productInShopping is null) return false;
 
-            await _unitOfWork.productsInShoppingCartRepository.DeleteAsync(productInShopingCartId);
+            await _unitOfWork.SellerProductsInShoppingCartRepository.DeleteAsync(productInShopingCartId);
 
             var IsProductInShoppingCartDeleted = await _completeAsync();
 
@@ -186,7 +186,7 @@ namespace BusinessLayer.Servicese
         public async Task<SellerProductInShoppingCartDto> FindByIdAndShoppingCartIdAndUserIdAsync(long productInShoppingCartId, long ShoppingCartId,string UserId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productInShoppingCartId,nameof(productInShoppingCartId));
-            var productInShoppingCart = await _unitOfWork.productsInShoppingCartRepository.GetByIdAndShoppingCartIdAndUserIdAsync(productInShoppingCartId,ShoppingCartId,UserId);
+            var productInShoppingCart = await _unitOfWork.SellerProductsInShoppingCartRepository.GetByIdAndShoppingCartIdAndUserIdAsync(productInShoppingCartId,ShoppingCartId,UserId);
 
             if (productInShoppingCart is null) return null;
 
@@ -199,7 +199,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
 
-            var productsInShoppingCartList = await _unitOfWork.productsInShoppingCartRepository.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(shoppingCartId);
+            var productsInShoppingCartList = await _unitOfWork.SellerProductsInShoppingCartRepository.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(shoppingCartId);
             if (productsInShoppingCartList is null || !productsInShoppingCartList.Any()) return null;
 
 
@@ -222,7 +222,7 @@ namespace BusinessLayer.Servicese
             var ActiveShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(UserId);
             if (ActiveShoppingCart is null || ActiveShoppingCart.Id != ShoppingCartId) return false;
 
-            var productInShoppingCart = await _unitOfWork.productsInShoppingCartRepository.
+            var productInShoppingCart = await _unitOfWork.SellerProductsInShoppingCartRepository.
                 GetByIdAndShoppingCartIdAndUserIdAsync(ProductInShoppingCartId, ShoppingCartId, UserId);
             if(productInShoppingCart is null) return false;
 
@@ -239,7 +239,7 @@ namespace BusinessLayer.Servicese
 
             productInShoppingCart.TotalPrice = productInShoppingCartDto.Number * sellerProductDto.Price;
 
-            await _unitOfWork.productsInShoppingCartRepository.UpdateAsync(ShoppingCartId, productInShoppingCart);
+            await _unitOfWork.SellerProductsInShoppingCartRepository.UpdateAsync(ShoppingCartId, productInShoppingCart);
 
             var IsProductInShoppingCartUpdated = await _completeAsync();
 

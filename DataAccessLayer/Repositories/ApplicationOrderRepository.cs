@@ -3,14 +3,8 @@ using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
-using DataAccessLayer.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
@@ -25,16 +19,16 @@ namespace DataAccessLayer.Repositories
             this._logger = logger;
         }
 
-        public async Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAndUserIdAsync(long ApplicationId,string UserId)
+        public async Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAndUserIdAsync(long ApplicationId, string UserId)
         {
-           ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
-           ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
             try
             {
                 var applicationOrders = await _context.ApplicationOrders.
-                    Where(x=>x.ApplicationId == ApplicationId
-                    &&x.CreatedBy==UserId).OrderByDescending(x=>x.ApplicationOrderTypeId).ToListAsync();
+                    Where(x => x.ApplicationId == ApplicationId
+                    && x.CreatedBy == UserId).OrderByDescending(x => x.ApplicationOrderTypeId).ToListAsync();
 
                 if (applicationOrders is null || !applicationOrders.Any()) return null;
 
@@ -54,7 +48,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var applicationOrders = await _context.ApplicationOrders.
+                var applicationOrders = await _context.ApplicationOrders.Include(x => x.Payment).
                     Where(x => x.ApplicationId == applicationId
                    ).OrderByDescending(x => x.ApplicationOrderTypeId).ToListAsync();
 
@@ -89,11 +83,11 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var ActiveShippingApplicationOrdersList = await _context.ApplicationOrders.
-                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped&&!
-                    _context.ApplicationOrders.Any(y=>(y.ApplicationId==x.ApplicationId&&
-                    y.ApplicationOrderTypeId== (long)EnApplicationOrderType.Delivered ))).ToListAsync();
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped && !
+                    _context.ApplicationOrders.Any(y => (y.ApplicationId == x.ApplicationId &&
+                    y.ApplicationOrderTypeId == (long)EnApplicationOrderType.Delivered))).ToListAsync();
 
-                
+
 
                 return ActiveShippingApplicationOrdersList;
             }
@@ -107,8 +101,8 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
-                var ActiveUnderProcessingApplicationOrdersList = await _context.ApplicationOrders.
-                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.UnderProcessing && !
+                var ActiveUnderProcessingApplicationOrdersList = await _context.ApplicationOrders.Include(x => x.Payment).
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.UnderProcessing && x.Payment != null && (x.Payment.PaymentStatusId == (int)EnPaymentStatus.Succeeded || x.Payment.PaymentTypeId == (long)EnPaymentType.CashOnDelivery) && !
                     _context.ApplicationOrders.Any(y => (y.ApplicationId == x.ApplicationId &&
                     y.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped))).ToListAsync();
 
@@ -129,8 +123,8 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var applicationOrders = await _context.ApplicationOrders.
-                    Where(x => x.ApplicationId == ApplicationId && 
-                    x.CreatedBy==UserId).OrderBy(x => x.ApplicationOrderTypeId).ToListAsync();
+                    Where(x => x.ApplicationId == ApplicationId &&
+                    x.CreatedBy == UserId).OrderBy(x => x.ApplicationOrderTypeId).ToListAsync();
 
                 return applicationOrders;
 
@@ -148,8 +142,8 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var applicationOrders = await _context.ApplicationOrders.
-                    Where(x => x.ApplicationId == ApplicationId).OrderBy(x=>x.ApplicationOrderTypeId).ToListAsync();
-     
+                    Where(x => x.ApplicationId == ApplicationId).OrderBy(x => x.ApplicationOrderTypeId).ToListAsync();
+
                 return applicationOrders;
 
             }

@@ -1,11 +1,11 @@
-﻿using DataAccessLayer.Data;
+﻿using ApiLayer.Extensions;
+using BusinessLayer.Extensions;
+using BusinessLayer.Mapper.Profiles;
+using BusinessLayer.Options;
+using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using BusinessLayer.Extensions;
-using BusinessLayer.Options;
-using BusinessLayer.Mapper.Profiles;
-using ApiLayer.Extensions;
 using Stripe;
 
 
@@ -28,7 +28,7 @@ builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppD
 
 builder.Services.AddAutoMapper(typeof(PersonProfile));
 
-
+//jwt options
 var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
 
 
@@ -41,6 +41,7 @@ else
     Environment.Exit(0);
 }
 
+//mail options
 var mailOptions = builder.Configuration.GetSection("Mail").Get<MailOptions>();
 
 if (mailOptions != null)
@@ -57,6 +58,17 @@ else
 builder.UseSerilog();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+//stripe options 
+var stripeOptions = builder.Configuration.GetSection("Stripe").Get<StripeOptions>();
+if (stripeOptions != null)
+{
+    builder.Services.AddSingleton(stripeOptions);
+}
+else
+{
+    Environment.Exit(Environment.ExitCode);
+}
 
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
@@ -81,7 +93,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-   // app.MapOpenApi();
+    // app.MapOpenApi();
 
 }
 

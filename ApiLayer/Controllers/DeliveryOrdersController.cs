@@ -20,7 +20,7 @@ namespace ApiLayer.Controllers
 
         public DeliveryOrdersController(IDeliveryOrderService deliveryOrderService)
         {
-           _DeliveryOrderService = deliveryOrderService;
+            _DeliveryOrderService = deliveryOrderService;
         }
 
         [HttpGet("need-to-delivery", Name = "GetDeliveryOrdersNeedsDelivery")]
@@ -75,8 +75,6 @@ namespace ApiLayer.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-
 
     }
 }

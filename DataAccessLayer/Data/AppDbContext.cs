@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using DataAccessLayer.Entities;
+﻿using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 
 namespace DataAccessLayer.Data;
 
@@ -22,7 +19,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     }
 
-    
+
     public virtual DbSet<Application> Applications { get; set; }
 
     public virtual DbSet<ApplicationOrder> ApplicationOrders { get; set; }
@@ -69,11 +66,13 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<Otp> Otps { get; set; }
 
+    public virtual DbSet<PaymentStatus> PaymentStatuses { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
 
-         optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
+        optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
 
     }
 
@@ -85,9 +84,9 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.HasKey(e => e.Id);
 
-            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
-            entity.Property(e=>e.IsUsed).HasDefaultValue(false);
+            entity.Property(e => e.IsUsed).HasDefaultValue(false);
 
             entity.Property(e => e.Code);
         });
@@ -168,7 +167,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.HasQueryFilter(e => !e.IsDeleted);
 
-           
+
         });
 
         modelBuilder.Entity<CityWhereDeliveryWork>(entity =>
@@ -193,7 +192,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasMaxLength(255)
                 .HasColumnName("Name_En");
 
-            entity.HasOne(p => p.user).WithMany().HasForeignKey(c=>c.CreatedBy);
+            entity.HasOne(p => p.user).WithMany().HasForeignKey(c => c.CreatedBy);
 
             entity.Property(p => p.IsDeleted).HasDefaultValue(false);
 
@@ -213,9 +212,11 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.HasOne(e => e.shoppingCart).WithOne(e => e.payment).HasForeignKey<Payment>(e => e.ShoppingCartId);
 
-            entity.HasOne(e=>e.shippingCost).WithMany(e=>e.Payments).HasForeignKey(e=>e.shippingCostId);
+            entity.HasOne(e => e.shippingCost).WithMany(e => e.Payments).HasForeignKey(e => e.shippingCostId);
 
-            entity.HasOne(a => a.UserAddress).WithMany(e=>e.Payments).HasForeignKey(a => a.UserAddressId);
+            entity.HasOne(a => a.UserAddress).WithMany(e => e.Payments).HasForeignKey(a => a.UserAddressId);
+
+            entity.HasOne(x => x.paymentStatus).WithMany(x => x.Payments).HasForeignKey(x => x.PaymentStatusId);
 
         });
 
@@ -232,7 +233,7 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.ToTable("UsersAddresses");
             entity.HasKey(e => e.Id);
-            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
             entity.Property(e => e.Address).HasMaxLength(500);
 
@@ -251,7 +252,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.FirstName).HasMaxLength(255);
             entity.Property(e => e.LastName).HasMaxLength(255);
         });
-       
+
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Products__3214EC07813EF3B4");
@@ -316,7 +317,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.ProductCategoryId)
                 .HasConstraintName("FK_ProductCategoryImages_ProductCategoryId");
 
-           
+
         });
 
         modelBuilder.Entity<ProductImage>(entity =>
@@ -410,25 +411,35 @@ public class AppDbContext : IdentityDbContext<User>
             entity.ToTable("Users");
             entity.Ignore(p => p.PhoneNumberConfirmed);
 
-            entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a=>a.UserId);
-            entity.HasQueryFilter(e=>!e.IsDeleted);
+            entity.HasMany(u => u.UserAddresses).WithOne(a => a.user).HasForeignKey(a => a.UserId);
+            entity.HasQueryFilter(e => !e.IsDeleted);
 
-            entity.Property(p=>p.IsDeleted).HasDefaultValue(false);
+            entity.Property(p => p.IsDeleted).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<ProductSubCategory>(entity =>
         {
             entity.ToTable("ProductSubCategories");
             entity.HasKey(e => e.Id);
-            entity.Property(e=>e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
             entity.HasOne(e => e.user).WithMany().HasForeignKey(e => e.CreatedBy);
 
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.HasQueryFilter(e => !e.IsDeleted);
 
-            entity.HasOne(e=>e.productCategory).WithMany(e=>e.ProductSubCategories)
-            .HasForeignKey(e=>e.ProductCategoryId);
+            entity.HasOne(e => e.productCategory).WithMany(e => e.ProductSubCategories)
+            .HasForeignKey(e => e.ProductCategoryId);
+        });
+
+        modelBuilder.Entity<PaymentStatus>(entity =>
+        {
+            entity.ToTable("PaymentStatuses");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
+            entity.Property(e => e.Name).HasMaxLength(255);
         });
 
         modelBuilder.Ignore<IdentityUserClaim<string>>();
@@ -439,7 +450,7 @@ public class AppDbContext : IdentityDbContext<User>
         modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
-        
+
         ApplyDeleteRestrict(modelBuilder);
     }
 

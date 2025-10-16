@@ -119,7 +119,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 
-            services.AddScoped<IProductsInShoppingCartRepository, ProductsInShoppingCartRepository>();
+            services.AddScoped<ISellerProductInShoppingCartRepository, SellerProductsInShoppingCartRepository>();
 
             services.AddScoped<IApplicationTypeRepository, ApplicationTypeRepository>();
 

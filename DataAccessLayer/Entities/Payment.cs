@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DataAccessLayer.Entities;
+﻿namespace DataAccessLayer.Entities;
 
 public partial class Payment
 {
@@ -15,9 +12,17 @@ public partial class Payment
 
     public long ShoppingCartId { get; set; }
 
-    public long shippingCostId {  get; set; }
+    public long shippingCostId { get; set; }
 
     public long UserAddressId { get; set; }
+
+    public int? PaymentStatusId { get; set; }
+
+    public string? SessionId { get; set; }
+
+    public string? InvoiceId { get; set; }
+
+    public virtual PaymentStatus paymentStatus { get; set; }
 
     public virtual UserAddress? UserAddress { get; set; }
 
