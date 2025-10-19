@@ -442,10 +442,11 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
-        modelBuilder.Ignore<IdentityUserClaim<string>>();
-        modelBuilder.Ignore<IdentityRoleClaim<string>>();
-        modelBuilder.Ignore<IdentityUserLogin<string>>();
-        modelBuilder.Ignore<IdentityUserToken<string>>();
+        //to enable Login with providers
+        //modelBuilder.Ignore<IdentityUserClaim<string>>();
+        //modelBuilder.Ignore<IdentityRoleClaim<string>>();
+        //modelBuilder.Ignore<IdentityUserLogin<string>>();
+        //modelBuilder.Ignore<IdentityUserToken<string>>();
 
         modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");

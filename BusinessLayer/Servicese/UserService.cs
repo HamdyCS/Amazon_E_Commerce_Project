@@ -2,18 +2,12 @@
 using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
-using DataAccessLayer.Entities;
+using BusinessLayer.Roles;
 using DataAccessLayer.Identity.Entities;
-using DataAccessLayer.UnitOfWork;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -25,7 +19,7 @@ namespace BusinessLayer.Servicese
         private readonly IGenericMapper _genericMapper;
         private readonly IOtpService _otpService;
 
-      
+
         public UserService(IUnitOfWork unitOfWork, IPersonService personService, ILogger<UserService> logger,
             IGenericMapper genericMapper, IOtpService otpService)
         {
@@ -62,7 +56,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
             try
             {
-                
+
                 var IsDeleted = await _unitOfWork.userRepository.DeleteAsync(Id);
 
                 return IsDeleted;
@@ -89,7 +83,7 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return null;
 
-                _genericMapper.MapSingle(person,userDto);
+                _genericMapper.MapSingle(person, userDto);
 
                 return userDto;
             }
@@ -110,9 +104,9 @@ namespace BusinessLayer.Servicese
                 List<UserDto> usersDtos = new();
                 foreach (var user in users)
                 {
-                    var userDto = _genericMapper.MapSingle<User,UserDto>(user);
+                    var userDto = _genericMapper.MapSingle<User, UserDto>(user);
                     if (userDto is null) return null;
-                    
+
                     var person = await _personService.FindByIdAsync(user.PersonId);
                     if (person is null) return null;
 
@@ -181,10 +175,10 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var otpDto = new OtpDto { Code = Code ,Email = NewEmail};
+                var otpDto = new OtpDto { Code = Code, Email = NewEmail };
 
                 var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
-                if(!IsOtpValid) return false;
+                if (!IsOtpValid) return false;
 
                 var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
 
@@ -348,12 +342,12 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return false;
 
-                var roles = new List<string>();
+                var rolesStringList = new List<string>();
 
                 foreach (var roleDto in rolesDtos)
-                    roles.Add(roleDto.Name);
+                    rolesStringList.Add(roleDto.Name);
 
-                var result = await _unitOfWork.userRepository.AddUserToRolesByIdAsync(UserID, roles);
+                var result = await _unitOfWork.userRepository.AddUserToRolesByIdAsync(UserID, rolesStringList);
 
                 return result;
             }
@@ -496,7 +490,7 @@ namespace BusinessLayer.Servicese
 
                 var IsPersonUpdated = await _personService.UpdateByIdAsync(user.PersonId, personDto);
 
-                
+
                 return IsPersonUpdated;
             }
             catch (Exception ex)
@@ -528,6 +522,40 @@ namespace BusinessLayer.Servicese
             catch (Exception ex)
             {
                 throw;
+            }
+        }
+
+        public AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl)
+        {
+            try
+            {
+                return _unitOfWork.userRepository.CreateAuthenticationProperties(provider, redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="role">using it when create new user</param>
+        /// <returns></returns>
+        public async Task<UserDto> LoginByProviderAsync(string role)
+        {
+            try
+            {
+                //login
+                var user = await _unitOfWork.userRepository.LoginByProviderAsync(Role.Customer);
+                if (user is null) return null;
+
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+                return userDto;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }

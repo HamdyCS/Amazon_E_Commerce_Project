@@ -1,13 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.UnitOfWork.Contracks;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.UnitOfWork
 {
@@ -75,8 +69,8 @@ namespace DataAccessLayer.UnitOfWork
             ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
             IShoppingCartRepository shoppingCartRepository, ISellerProductInShoppingCartRepository productsInShoppingCartRepository,
             IApplicationTypeRepository applicationTypeRepository, IShippingCostRepository shippingCostRepository,
-            IPaymentTypeRepository paymentTypeRepository , 
-            IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository, 
+            IPaymentTypeRepository paymentTypeRepository,
+            IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository,
             IApplicationOrderRepository applicationOrderRepository, IPaymentRepository paymentRepository,
             IDeliveryOrderRepository deliveryOrderRepository)
         {

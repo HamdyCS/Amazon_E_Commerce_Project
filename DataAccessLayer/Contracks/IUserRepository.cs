@@ -1,10 +1,5 @@
 ﻿using DataAccessLayer.Identity.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 
 namespace DataAccessLayer.Contracks
 {
@@ -35,7 +30,7 @@ namespace DataAccessLayer.Contracks
 
         public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);
 
-        public Task<bool> UpdateEmailByIdAsync(string Id, string NewEmail,string NewUserName);
+        public Task<bool> UpdateEmailByIdAsync(string Id, string NewEmail, string NewUserName);
 
         public Task<bool> UpdatePasswordByIdAsync(string Id, string password, string Newpassword);
 
@@ -54,5 +49,9 @@ namespace DataAccessLayer.Contracks
         public Task<bool> UpdatePasswordByEmailAsync(string Email, string Password);
 
         Task<bool> IsUserDeletedByIdAsync(string Id);
+
+        AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl);
+
+        Task<User> LoginByProviderAsync(string role);
     }
 }

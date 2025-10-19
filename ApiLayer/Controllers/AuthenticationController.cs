@@ -1,10 +1,12 @@
 ﻿using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
+using BusinessLayer.Enums;
 using BusinessLayer.Help;
 using BusinessLayer.Roles;
-using DataAccessLayer.Entities;
+using DataAccessLayer.Identity.Entities;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
@@ -22,14 +24,16 @@ namespace ApiLayer.Controllers
         private readonly IMailService _mailService;
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
+        private readonly SignInManager<User> _signInManager;
 
         public AuthenticationController(IOtpService otpService, IMailService mailService,
-            IUserService userService, ITokenService tokenService)
+            IUserService userService, ITokenService tokenService, SignInManager<User> signInManager)
         {
             _otpService = otpService;
             _mailService = mailService;
             _userService = userService;
             _tokenService = tokenService;
+            _signInManager = signInManager;
         }
 
 
@@ -41,7 +45,7 @@ namespace ApiLayer.Controllers
 
         public async Task<ActionResult<bool>> GetUserInfo()
         {
-           
+
 
             try
             {
@@ -49,7 +53,7 @@ namespace ApiLayer.Controllers
                 if (userId is null)
                     return Unauthorized();
 
-              var userDto =await _userService.FindByIdAsync(userId); 
+                var userDto = await _userService.FindByIdAsync(userId);
                 return Ok(userDto);
 
             }
@@ -86,14 +90,14 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> SendOtpToEmail([FromBody]string Email)
+        public async Task<ActionResult> SendOtpToEmail([FromBody] string Email)
         {
             if (string.IsNullOrEmpty(Email)) return BadRequest("Email cannot be null or empty");
 
             try
             {
                 var code = Helper.GenerateRandomSixDigitNumber();
-                var otpDto = new OtpDto { Email = Email ,Code = code.ToString()};
+                var otpDto = new OtpDto { Email = Email, Code = code.ToString() };
 
                 var NewOptDto = await _otpService.AddNewOtpAsync(otpDto);
                 if (NewOptDto is null) return BadRequest("Cannot add new opt");
@@ -117,7 +121,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] UserDto userDto,[FromQuery] string Code)
+        public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] UserDto userDto, [FromQuery] string Code)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -298,9 +302,9 @@ namespace ApiLayer.Controllers
 
             try
             {
-                
+
                 var Email = User.FindFirst(ClaimTypes.Email).Value;
-                if(Email is null) return Unauthorized("Email not found");
+                if (Email is null) return Unauthorized("Email not found");
 
                 var IsResetedPassword = await _userService.ResetPasswordByEmailAsync(Email, NewPassword, Code);
                 if (!IsResetedPassword) return BadRequest("Cannot reseted password");
@@ -427,7 +431,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult> DeleteAccountById([FromRoute]string Id)
+        public async Task<ActionResult> DeleteAccountById([FromRoute] string Id)
         {
             if (string.IsNullOrEmpty(Id)) return BadRequest("Id cannot be null");
             try
@@ -461,9 +465,9 @@ namespace ApiLayer.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userId is null) return BadRequest("User id is null");
 
-                bool IsEmailUpdated = await _userService.UpdateEmailAsync(userId, NewEmail,Code);
+                bool IsEmailUpdated = await _userService.UpdateEmailAsync(userId, NewEmail, Code);
 
-                if 
+                if
                     (IsEmailUpdated) return Ok("Updated email successfuly");
                 else
                     return BadRequest("Cannot update email");
@@ -472,7 +476,7 @@ namespace ApiLayer.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-            
+
 
         }
 
@@ -506,20 +510,20 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("is-otp-valid",Name = "CheckIfOtpValid")]
+        [HttpGet("is-otp-valid", Name = "CheckIfOtpValid")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<bool>> CheckIfOtpValid([FromQuery]string Code, [FromQuery] string Email)
+        public async Task<ActionResult<bool>> CheckIfOtpValid([FromQuery] string Code, [FromQuery] string Email)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
-               
+
                 if (Email is null) return Unauthorized("Email not found");
 
-                bool IsOtpActiveAndNotUsed = await _otpService.CheckIfOtpActiveAndNotUsedAsync(new OtpDto { Email = Email,Code = Code});
+                bool IsOtpActiveAndNotUsed = await _otpService.CheckIfOtpActiveAndNotUsedAsync(new OtpDto { Email = Email, Code = Code });
 
                 if
                     (IsOtpActiveAndNotUsed) return Ok(true);
@@ -567,7 +571,93 @@ namespace ApiLayer.Controllers
             }
         }
 
+        [HttpGet("login/customar/github", Name = "LoginCustomarWithGithub")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(302)]
+        public IActionResult LoginCustomarWithGithub([FromQuery] string returnUrl)
+        {
 
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Authentication", new { returnUrl }, Request.Scheme);
+
+            if (redirectUrl == null)
+                return BadRequest("Cannot create redirect url");
+
+            var propertes = _userService.CreateAuthenticationProperties(EnProvider.GitHub.ToString(), redirectUrl);
+            //HTTP 302 Redirect توجيه المستخدم لموقع تسجيل الدخول الخاص بال provider
+            return Challenge(propertes, EnProvider.GitHub.ToString());
+        }
+
+
+        [HttpGet("login/customar/google", Name = "LoginCustomarWithGoogle")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(302)]
+        public IActionResult LoginCustomarWithGoogle([FromQuery] string returnUrl)
+        {
+
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Authentication", new { returnUrl }, Request.Scheme);
+
+            if (redirectUrl == null)
+                return BadRequest("Cannot create redirect url");
+
+            //var propertes = _userService.CreateAuthenticationProperties(EnProvider.GitHub.ToString(), redirectUrl);
+            AuthenticationProperties propertes = _signInManager.ConfigureExternalAuthenticationProperties(EnProvider.Google.ToString(), redirectUrl);
+
+            //HTTP 302 Redirect توجيه المستخدم لموقع تسجيل الدخول الخاص بال provider
+            return Challenge(propertes, EnProvider.Google.ToString());
+        }
+
+
+
+        [HttpGet("external-login-callback", Name = "ExternalLoginCallback")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        public async Task<ActionResult<ExternalLoginCallbackDto>> ExternalLoginCallback([FromQuery] string returnUrl, [FromQuery] string? remoteError)
+        {
+            if (string.IsNullOrEmpty(returnUrl))
+                return BadRequest("ReturnUrl cannot be null or empty");
+
+            if (!string.IsNullOrEmpty(remoteError))
+                return BadRequest($"Error from external provider: {remoteError}");
+
+            try
+            {
+                //Login
+                var userDto = await _userService.LoginByProviderAsync(Role.Customer);
+                if (userDto == null)
+                    return Unauthorized("Cannot login by provider");
+
+                //get user roles
+                var userRoles = await _userService.GetAllUserRolesByIdAsync(userDto.Id);
+                if (userRoles is null) return BadRequest("Invaild get user roles");
+
+                //convert userRoles to string of user roles
+                var userRolesString = new List<string>();
+                foreach (var role in userRoles) userRolesString.Add(role.Name);
+
+                //jwt
+                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, userRolesString);
+                var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(userDto.Id);
+
+                var tokenDto = new TokenDto { Token = token, RefreshToken = refreshToken };
+                var externalLoginCallbackDto = new ExternalLoginCallbackDto
+                {
+                    returnUrl = returnUrl,
+                    tokenDto = tokenDto
+                };
+
+                return Ok(externalLoginCallbackDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
     }
 }

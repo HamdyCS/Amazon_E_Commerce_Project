@@ -1,5 +1,4 @@
-﻿using ApiLayer.Extensions;
-using BusinessLayer.Extensions;
+﻿using BusinessLayer.Extensions;
 using BusinessLayer.Mapper.Profiles;
 using BusinessLayer.Options;
 using DataAccessLayer.Data;
@@ -84,6 +83,22 @@ else
     Environment.Exit(Environment.ExitCode);
 }
 
+//Authentication
+
+//github auth
+builder.Services.AddAuthentication().AddCookie().AddGitHub("GitHub", githubOptions =>
+{
+    githubOptions.ClientId = builder.Configuration["Authentication:Github:ClientId"]!;
+    githubOptions.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+});
+
+//google auth
+builder.Services.AddAuthentication().AddGoogle("Google", googleOptions =>
+{
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+});
+
 
 var app = builder.Build();
 
@@ -93,6 +108,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
     // app.MapOpenApi();
 
 }
@@ -104,7 +120,7 @@ app.UseAuthentication(); // إضافة المصادقة أولاً
 app.UseAuthorization();  // ثم التفويض
 app.UseRateLimiter();// عشان ال rate limter
 app.MapControllers();
-app.AddCustomMiddlewares();
+//app.AddCustomMiddlewares();
 
 app.Run();
 

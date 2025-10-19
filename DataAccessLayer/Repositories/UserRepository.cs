@@ -1,22 +1,16 @@
 ﻿
 using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
-using DataAccessLayer.Identity.Entities;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
-using Microsoft.AspNet.Identity.EntityFramework;
+using DataAccessLayer.Identity.Entities;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Data;
+using System.Net.Mail;
+using System.Security.Claims;
 
 namespace DataAccessLayer.Repositories
 {
@@ -41,6 +35,7 @@ namespace DataAccessLayer.Repositories
             _signInManager = signInManager;
         }
         public async Task<bool> AddAsync(User user, string Password)
+
         {
             ParamaterException.CheckIfObjectIfNotNull(user, nameof(user));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Password, nameof(Password));
@@ -93,11 +88,11 @@ namespace DataAccessLayer.Repositories
                 user.IsDeleted = true;
                 user.DateOfDeletion = DateTime.UtcNow;
 
-                 _context.Users.Update(user);
-               
+                _context.Users.Update(user);
+
                 var RowsAffeted = await _context.SaveChangesAsync();
 
-                return RowsAffeted>0 ;
+                return RowsAffeted > 0;
             }
             catch (Exception ex)
             {
@@ -540,12 +535,132 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var user = await _userManager.FindByIdAsync(Id);
-                if(user is null) return true;
+                if (user is null) return true;
 
                 return user.IsDeleted;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
+                throw _HandelDataBaseException(ex);
+            }
+        }
+
+        public AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(provider, nameof(provider));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(redirectUrl, nameof(redirectUrl));
+
+            try
+            {
+                AuthenticationProperties? authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+                return authenticationProperties;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on create authenticationProperties. Message: {message}", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<User> LoginByProviderAsync(string role)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(role, nameof(role));
+
+            try
+            {
+                //get info from httpcontext
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info is null)
+                    return null;
+
+                //try to logion to cheack if user in system or create it
+                var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+                if (result is null)
+                    return null;
+
+                //user found in system
+                if (result.Succeeded)
+                {
+                    var userInSystem = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+                    //if user found return it
+                    if (userInSystem != null)
+                        return userInSystem;
+                }
+
+                //cheack if claims is not null
+                if (info.Principal == null)
+                    return null;
+
+                //user not found in system, create new user
+
+                //get user data from provider
+                var EmailCliam = info.Principal.FindFirst(ClaimTypes.Email);
+
+                //claims
+                var nameClaim = info.Principal.FindFirst(ClaimTypes.Name);
+                var firstNameClaim = info.Principal.FindFirst(ClaimTypes.GivenName);
+                var lastNameClaim = info.Principal.FindFirst(ClaimTypes.Surname);
+                var dateOfBirthClaim = info.Principal.FindFirst(ClaimTypes.DateOfBirth);
+
+                //data
+                var Email = EmailCliam?.Value ?? null;
+                var name = nameClaim?.Value ?? "";
+                var firstName = firstNameClaim?.Value ?? "";
+                var lastName = lastNameClaim?.Value ?? "";
+                DateTime? dateOfBirth = DateTime.TryParse(dateOfBirthClaim?.Value, out var date) ? date : null;
+
+
+                string userName = name;
+                if (!string.IsNullOrEmpty(Email))
+                    userName = new MailAddress(Email).User;
+
+
+                //create person
+                var person = new Person
+                {
+                    FirstName = firstName,
+                    LastName = lastName,
+                    DateOfBirth = dateOfBirth,
+                };
+
+                //add person
+                await _context.People.AddAsync(person);
+
+                var rowsEffeted = await _context.SaveChangesAsync();
+                //check if person added
+                if (!(rowsEffeted > 0)) return null;
+
+
+                //create user
+                var user = new User
+                {
+                    Email = Email,
+                    UserName = userName,
+                    PersonId = person.Id,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+
+
+                //add user
+                var AddUserIdentityResult = await _userManager.CreateAsync(user);
+                if (!AddUserIdentityResult.Succeeded)
+                    return null;
+
+
+                //add to role
+                IdentityResult AddedToRoleIdentityResult = await _userManager.AddToRoleAsync(user, role);
+                if (!AddedToRoleIdentityResult.Succeeded) return null;
+
+                //Login
+                IdentityResult LoginUserIdentityResult = await _userManager.AddLoginAsync(user, info);
+                return LoginUserIdentityResult.Succeeded ? user : null;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on login by provider. Message: {message}", ex.Message);
                 throw;
             }
         }

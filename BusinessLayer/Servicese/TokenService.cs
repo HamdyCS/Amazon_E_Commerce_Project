@@ -1,19 +1,15 @@
 ﻿using BusinessLayer.Contracks;
-using BusinessLayer.Dtos;
+using BusinessLayer.Exceptions;
 using BusinessLayer.Options;
 using DataAccessLayer.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -111,19 +107,20 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public string GenerateJwtToken(string UserId, string Email, IEnumerable<string> roles)
+        public string GenerateJwtToken(string UserId, string? Email, IEnumerable<string> roles)
         {
             if (string.IsNullOrEmpty(UserId)) throw new ArgumentException("Cannot be null", nameof(UserId));
-            if (string.IsNullOrEmpty(Email)) throw new ArgumentException("Cannot be null", nameof(Email));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(roles, nameof(roles));
 
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
 
             var claims = new List<Claim>()
                         {
                             new Claim(ClaimTypes.NameIdentifier, UserId),
-                            new Claim(ClaimTypes.Email, Email),
-
                         };
+
+            if (!string.IsNullOrEmpty(Email)) claims.Add(new Claim(ClaimTypes.Email, Email));
+
 
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));

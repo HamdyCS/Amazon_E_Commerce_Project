@@ -1,18 +1,12 @@
 ﻿using BusinessLayer.Dtos;
-using BusinessLayer.Servicese;
-using DataAccessLayer.Identity.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 
 namespace BusinessLayer.Contracks
 {
-    public interface IUserService 
+    public interface IUserService
     {
 
-        public  Task<UserDto> GetUserByEmailAndPasswordAsync(LoginDto loginDto);
+        public Task<UserDto> GetUserByEmailAndPasswordAsync(LoginDto loginDto);
 
         public Task<bool> DeleteByIdAsync(string Id);
 
@@ -26,15 +20,15 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<UserDto>> GetPagedDataAsync(int pageNumber, int pageSize);
 
-        public  Task<bool> UpdateEmailAsync(string Id,  string NewEmail, string Code);
+        public Task<bool> UpdateEmailAsync(string Id, string NewEmail, string Code);
 
-        public  Task<bool> UpdatePasswordAsync(string Id,string NewPassword);
+        public Task<bool> UpdatePasswordAsync(string Id, string NewPassword);
 
-        public Task<IEnumerable< RoleDto>> GetAllUserRolesByIdAsync(string userId);
+        public Task<IEnumerable<RoleDto>> GetAllUserRolesByIdAsync(string userId);
 
-        public Task<bool> IsUserInRoleByIdAsync(string UserID,RoleDto roleDto);
+        public Task<bool> IsUserInRoleByIdAsync(string UserID, RoleDto roleDto);
 
-        public Task<bool> DeleteUserFromRoleByIdAsync(string UserID,RoleDto roleDto);
+        public Task<bool> DeleteUserFromRoleByIdAsync(string UserID, RoleDto roleDto);
 
         public Task<bool> DeleteUserFromRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos);
 
@@ -42,14 +36,18 @@ namespace BusinessLayer.Contracks
 
         public Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos);
 
-        public Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto,string Email,string code);
+        public Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto, string Email, string code);
 
         public Task<bool> IsEmailExistAsync(string Email);
 
-        public Task<bool> ResetPasswordByEmailAsync(string Email,string Password, string Code);
+        public Task<bool> ResetPasswordByEmailAsync(string Email, string Password, string Code);
 
         Task<bool> IsUserDeletedByIdAsync(string Id);
 
-        Task<bool> UpdateUserByIdAsync(string Id,UserDto userDto);
+        Task<bool> UpdateUserByIdAsync(string Id, UserDto userDto);
+
+        AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl);
+
+        Task<UserDto> LoginByProviderAsync(string role);
     }
 }
