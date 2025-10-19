@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Extensions;
+﻿using ApiLayer.Filters;
+using BusinessLayer.Extensions;
 using BusinessLayer.Mapper.Profiles;
 using BusinessLayer.Options;
 using DataAccessLayer.Data;
@@ -56,6 +57,7 @@ else
 
 builder.UseSerilog();
 
+//stripe key
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 //stripe options 
@@ -83,7 +85,7 @@ else
     Environment.Exit(Environment.ExitCode);
 }
 
-//Authentication
+//Authentication by providers
 
 //github auth
 builder.Services.AddAuthentication().AddCookie().AddGitHub("GitHub", githubOptions =>
@@ -99,6 +101,12 @@ builder.Services.AddAuthentication().AddGoogle("Google", googleOptions =>
     googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
+
+//add filters
+builder.Services.AddControllers(opt =>
+{
+    opt.Filters.Add<CheckIfUserIsNotDeletedFilter>();
+});
 
 var app = builder.Build();
 
