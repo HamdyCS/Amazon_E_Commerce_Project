@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BusinessLayer.Contracks;
+﻿using BusinessLayer.Contracks;
 
 using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
-using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Crypto;
 namespace BusinessLayer.Servicese
 {
     public class ProductCategoryImageService : IProductCategoryImageService
@@ -68,7 +61,7 @@ namespace BusinessLayer.Servicese
                     newProductCategoryImageDtos.Add(newProductCategoryImageDto);
             }
 
-            if(!newProductCategoryImageDtos.Any()) return null;
+            if (!newProductCategoryImageDtos.Any()) return null;
             return newProductCategoryImageDtos;
         }
 

@@ -5,12 +5,6 @@ using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Crypto;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -21,16 +15,18 @@ namespace BusinessLayer.Servicese
         private readonly IGenericMapper _genericMapper;
         private readonly IProductCategoryImageService _productCategoryImageService;
         private readonly IUserService _userService;
+        private readonly IImageService _imageService;
 
         public ProductCategoryService(ILogger<ProductCategoryService> logger, IUnitOfWork unitOfWork,
             IGenericMapper genericMapper, IProductCategoryImageService productCategoryImageService,
-            IUserService userService)
+            IUserService userService, IImageService imageService)
         {
             this._logger = logger;
             this._unitOfWork = unitOfWork;
             this._genericMapper = genericMapper;
             this._productCategoryImageService = productCategoryImageService;
             this._userService = userService;
+            _imageService = imageService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -39,27 +35,30 @@ namespace BusinessLayer.Servicese
             return NumberOfRowsAfected > 0;
         }
 
-        public async Task<ProductCategoryDto> AddAsync(ProductCategoryDto dto, string UserId)
+        public async Task<ProductCategoryDto> AddAsync(CreateProductCategoryDto createProductCategoryDto, string UserId)
         {
-            ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
+            ParamaterException.CheckIfObjectIfNotNull(createProductCategoryDto, nameof(createProductCategoryDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
-       
+
             try
             {
                 var userDto = await _userService.FindByIdAsync(UserId);
                 if (userDto == null) return null;
 
-                var productCategory = _genericMapper.MapSingle<ProductCategoryDto, ProductCategory>(dto);
+                var productCategory = _genericMapper.MapSingle<CreateProductCategoryDto, ProductCategory>(createProductCategoryDto);
                 if (productCategory is null) return null;
 
                 productCategory.CreatedBy = UserId;
 
-                if (string.IsNullOrEmpty(dto.DescriptionEn))
+                if (string.IsNullOrEmpty(createProductCategoryDto.DescriptionEn))
                     productCategory.DescriptionEn = null;
 
 
-                if (string.IsNullOrEmpty(dto.DescriptionAr))
+                if (string.IsNullOrEmpty(createProductCategoryDto.DescriptionAr))
                     productCategory.DescriptionAr = null;
+
+                //check if not images to add
+                if (createProductCategoryDto.Images is null || !createProductCategoryDto.Images.Any()) return null;
 
                 await _unitOfWork.BeginTransactionAsync();
                 await _unitOfWork.productCategoryRepository.AddAsync(productCategory);
@@ -71,29 +70,38 @@ namespace BusinessLayer.Servicese
                     return null;
                 }
 
-                _genericMapper.MapSingle(productCategory, dto);
+                _genericMapper.MapSingle(productCategory, createProductCategoryDto);
 
-               
 
-                if (dto.Images is null || !dto.Images.Any()) return dto;
+                //upload images
+                var uploadedImagesDtos = await _imageService.UploadImagesAsync(createProductCategoryDto.Images);
+                if (!uploadedImagesDtos.Any())
+                    return null;
 
                 var NewProductCategoryImageList = new List<ProductCategoryImageDto>();
-                foreach (var image in dto.Images)
+                foreach (var imageDto in uploadedImagesDtos)
                 {
                     ProductCategoryImageDto NewProductCategoryImageDto = new()
                     {
                         ProductCategoryId = productCategory.Id,
-                        Image = image
+                        ImageUrl = imageDto.Url,
+                        PublicId = imageDto.PublicId
+
                     };
 
                     NewProductCategoryImageList.Add(NewProductCategoryImageDto);
                 }
 
+                //save images info to db
                 await _productCategoryImageService.AddRangeAsync(NewProductCategoryImageList);
+
+                //map to dto
+                var productCategoryDto = _genericMapper.MapSingle<ProductCategory, ProductCategoryDto>(productCategory);
+                productCategoryDto.Images = uploadedImagesDtos;
 
                 await _unitOfWork.CommitTransactionAsync();
 
-                return dto;
+                return productCategoryDto;
             }
             catch (Exception ex)
             {
@@ -102,7 +110,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<IEnumerable<ProductCategoryDto>> AddRangeAsync(IEnumerable<ProductCategoryDto> dtos, string UserId)
+        public async Task<IEnumerable<ProductCategoryDto>> AddRangeAsync(IEnumerable<CreateProductCategoryDto> dtos, string UserId)
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
@@ -122,14 +130,23 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
 
-            var productCategory = await _unitOfWork.productCategoryRepository.GetByIdAsNoTrackingAsync(Id);
-            if (productCategory == null) return false;
+            try
+            {
 
-            await _unitOfWork.productCategoryRepository.DeleteAsync(Id);
+                var productCategory = await _unitOfWork.productCategoryRepository.GetByIdAsNoTrackingAsync(Id);
+                if (productCategory == null) return false;
 
-            var IsDeleted = await _CompleteAsync();
+                await _unitOfWork.productCategoryRepository.DeleteAsync(Id);
 
-            return IsDeleted;
+                var IsDeleted = await _CompleteAsync();
+
+                return IsDeleted;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
 
         public async Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids)
@@ -163,7 +180,7 @@ namespace BusinessLayer.Servicese
 
             if (productCategoryImagesDtos is not null || productCategoryImagesDtos.Any())
             {
-                productCategoryDto.Images = productCategoryImagesDtos.Select(e => e.Image).ToList();
+                productCategoryDto.Images = productCategoryImagesDtos.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
             return productCategoryDto;
         }
@@ -181,7 +198,7 @@ namespace BusinessLayer.Servicese
 
             if (productCategoryImagesDtos is not null || productCategoryImagesDtos.Any())
             {
-                productCategoryDto.Images = productCategoryImagesDtos.Select(e => e.Image).ToList();
+                productCategoryDto.Images = productCategoryImagesDtos.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
 
             return productCategoryDto;
@@ -200,7 +217,7 @@ namespace BusinessLayer.Servicese
 
             if (productCategoryImagesDtos is not null || productCategoryImagesDtos.Any())
             {
-                productCategoryDto.Images = productCategoryImagesDtos.Select(e => e.Image).ToList();
+                productCategoryDto.Images = productCategoryImagesDtos.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
 
             return productCategoryDto;
@@ -226,7 +243,7 @@ namespace BusinessLayer.Servicese
 
                 if (productCategoryImagesDtos is not null || productCategoryImagesDtos.Any())
                 {
-                    productCategoryDto.Images = productCategoryImagesDtos.Select(e => e.Image).ToList();
+                    productCategoryDto.Images = productCategoryImagesDtos.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 
@@ -261,19 +278,19 @@ namespace BusinessLayer.Servicese
 
                 if (productCategoryImagesDtos is not null || productCategoryImagesDtos.Any())
                 {
-                    productCategoryDto.Images = productCategoryImagesDtos.Select(e => e.Image).ToList();
+                    productCategoryDto.Images = productCategoryImagesDtos.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 
             return productCategoriesDtos;
         }
 
-        public async Task<bool> UpdateByIdAsync(long Id, ProductCategoryDto dto)
+        public async Task<bool> UpdateByIdAsync(long Id, CreateProductCategoryDto dto)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
 
-            
+
             try
             {
 
@@ -281,28 +298,44 @@ namespace BusinessLayer.Servicese
 
                 if (productCategory == null) return false;
 
-               
+
+                //get all product category images
+                var productCategoryImagesDtos = await _productCategoryImageService.FindAllProductCategoryImagesByProductCategoryIdAsync(Id);
+                if (!productCategoryImagesDtos.Any())
+                    return false;
+
+                var ImageDtos = _genericMapper.MapCollection<ProductCategoryImageDto, ImageDto>(productCategoryImagesDtos);
+
+                //remove old images from image server
+                var isImagesDeletedFromServer = await _imageService.DeleteImagesAsync(ImageDtos);
+                if (!isImagesDeletedFromServer)
+                {
+                    throw new Exception("Failed to delete old images from image server during product category update.");
+                }
+
 
                 await _unitOfWork.BeginTransactionAsync();
 
+                //delete old images from db
                 var IsProductCategoryImagesDeleted = await _productCategoryImageService.DeleteAllProductCategoryImagesByProductCategoryIdAsync(Id);
 
-     
-
+                //update product category info
                 _genericMapper.MapSingle(dto, productCategory);
 
                 if (string.IsNullOrEmpty(dto.DescriptionEn))
                     productCategory.DescriptionEn = null;
 
-
                 if (string.IsNullOrEmpty(dto.DescriptionAr))
                     productCategory.DescriptionAr = null;
+
 
                 await _unitOfWork.productCategoryRepository.UpdateAsync(Id, productCategory);
 
                 var IsProductCategoryUpdated = await _CompleteAsync();
-
-                if (!IsProductCategoryUpdated) return false;
+                if (!IsProductCategoryUpdated)
+                {
+                    throw new Exception("Failed to update product category info.");
+                }
 
 
                 if (dto.Images is null || !dto.Images.Any())
@@ -311,21 +344,37 @@ namespace BusinessLayer.Servicese
                     return true;
                 }
 
+                //upload new images
+                var uploadedImagesDtos = await _imageService.UploadImagesAsync(dto.Images);
+                if (!uploadedImagesDtos.Any())
+                {
+                    _logger.LogError("No images were uploaded during product category update.");
+                    throw new Exception("No images were uploaded during product category update.");
+                }
+
+
+                //Add new product Category Images images to db
+
                 var NewProductCategoryImageList = new List<ProductCategoryImageDto>();
-                foreach (var image in dto.Images)
+                foreach (var imageDto in uploadedImagesDtos)
                 {
                     ProductCategoryImageDto NewProductCategoryImageDto = new()
                     {
                         ProductCategoryId = productCategory.Id,
-                        Image = image
+                        ImageUrl = imageDto.Url,
+                        PublicId = imageDto.PublicId
                     };
 
                     NewProductCategoryImageList.Add(NewProductCategoryImageDto);
                 }
 
-               var productCategoryImagesDtosList = await _productCategoryImageService.AddRangeAsync(NewProductCategoryImageList);
+                var productCategoryImagesDtosList = await _productCategoryImageService.AddRangeAsync(NewProductCategoryImageList);
 
-                if (productCategoryImagesDtosList is null) return false;
+                if (productCategoryImagesDtosList is null)
+                {
+                    _logger.LogError("Failed to add new product category images during update.");
+                    throw new Exception("Failed to add new product category images during update.");
+                }
 
                 await _unitOfWork.CommitTransactionAsync();
                 return true;

@@ -4,7 +4,6 @@ using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Options;
 using BusinessLayer.Servicese;
 using DataAccessLayer.Contracks;
-using DataAccessLayer.Entities;
 using DataAccessLayer.Repositories;
 using DataAccessLayer.UnitOfWork;
 using DataAccessLayer.UnitOfWork.Contracks;
@@ -37,11 +36,13 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IUserAddressService, UserAddressService>();
 
+            services.AddScoped<IImageService, ImageService>();
+
             services.AddScoped<IProductCategoryImageService, ProductCategoryImageService>();
 
             services.AddScoped<IProductCategoryService, ProductCategoryService>();
 
-            services.AddScoped<IBrandService,BrandService>();
+            services.AddScoped<IBrandService, BrandService>();
 
             services.AddScoped<IProductSubCategoryService, ProductSubCategoryService>();
 
@@ -49,19 +50,19 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IProductService, ProductService>();
 
-            services.AddScoped<ISellerProductService,SellerProductService>();
+            services.AddScoped<ISellerProductService, SellerProductService>();
 
-            services.AddScoped<ISellerProductReviewService,SellerProductReviewService>();
+            services.AddScoped<ISellerProductReviewService, SellerProductReviewService>();
 
             services.AddScoped<ICityWhereDeliveyWorkService, CityWhereDeliveyWorkService>();
 
             services.AddScoped<IShoppingCartService, ShoppingCartService>();
 
             services.AddScoped<IProductInShoppingCartService, ProductInShoppingCartService>();
-            
+
             services.AddScoped<IApplicationTypeService, ApplicationTypeService>();
 
-            services.AddScoped<IShippingCostService,ShippingCostService>();
+            services.AddScoped<IShippingCostService, ShippingCostService>();
 
             services.AddScoped<IPaymentTypeService, PaymentTypeService>();
 
@@ -123,7 +124,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationTypeRepository, ApplicationTypeRepository>();
 
-            services.AddScoped<IShippingCostRepository,ShippingCostRepository>();
+            services.AddScoped<IShippingCostRepository, ShippingCostRepository>();
 
             services.AddScoped<IPaymentTypeRepository, PaymentsTypeRepository>();
 
@@ -133,9 +134,9 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationOrderRepository, ApplicationOrderRepository>();
 
-            services.AddScoped<IPaymentRepository,PaymentRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-            services.AddScoped<IDeliveryOrderRepository,DeliveryOrderRepository>();
+            services.AddScoped<IDeliveryOrderRepository, DeliveryOrderRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -173,26 +174,26 @@ namespace BusinessLayer.Extensions
 
                 });
 
-           
+
             return services;
         }
 
 
-        public static IServiceCollection AddCustomRateLimiting(this IServiceCollection serviceCollection,RateLimitOptions rateLimitOptions)
+        public static IServiceCollection AddCustomRateLimiting(this IServiceCollection serviceCollection, RateLimitOptions rateLimitOptions)
         {
-           serviceCollection.AddRateLimiter(options =>
-            {
-                // تعريف سياسة Fixed Window مع اسم "FixedWindowPolicy"
-                options.AddPolicy("FixedWindowPolicyByUserIpAddress", context =>
-                    RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", x => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = rateLimitOptions.PermitLimit,               // عدد الطلبات المسموح بها
-                        Window = TimeSpan.FromSeconds(rateLimitOptions.Window), // مدة النافذة الزمنية
-                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                        QueueLimit = rateLimitOptions.QueueLimit                  // عدم السماح بطلبات إضافية في قائمة الانتظار
-                    })
-                ).RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            });
+            serviceCollection.AddRateLimiter(options =>
+             {
+                 // تعريف سياسة Fixed Window مع اسم "FixedWindowPolicy"
+                 options.AddPolicy("FixedWindowPolicyByUserIpAddress", context =>
+                     RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", x => new FixedWindowRateLimiterOptions
+                     {
+                         PermitLimit = rateLimitOptions.PermitLimit,               // عدد الطلبات المسموح بها
+                         Window = TimeSpan.FromSeconds(rateLimitOptions.Window), // مدة النافذة الزمنية
+                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                         QueueLimit = rateLimitOptions.QueueLimit                  // عدم السماح بطلبات إضافية في قائمة الانتظار
+                     })
+                 ).RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+             });
 
             return serviceCollection;
         }

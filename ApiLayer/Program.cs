@@ -71,6 +71,17 @@ else
     Environment.Exit(Environment.ExitCode);
 }
 
+//Cloudinary
+var cloudinaryOptions = builder.Configuration.GetSection("Cloudinary").Get<CloudinaryOptions>();
+if (cloudinaryOptions != null)
+{
+    builder.Services.AddSingleton(cloudinaryOptions);
+}
+else
+{
+    Environment.Exit(Environment.ExitCode);
+}
+
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);
