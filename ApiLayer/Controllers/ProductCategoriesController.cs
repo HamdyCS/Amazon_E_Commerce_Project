@@ -2,11 +2,9 @@ using ApiLayer.Help;
 using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
-using BusinessLayer.Servicese;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
@@ -169,7 +167,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<ProductCategoryDto>> AddProductCategory(ProductCategoryDto productCategoryDto)
+        public async Task<ActionResult<ProductCategoryDto>> AddProductCategory([FromForm] CreateProductCategoryDto createProductCategory)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -178,9 +176,9 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductCategoryDto = await  _productCategoryService.AddAsync(productCategoryDto,UserId);
+                var NewproductCategoryDto = await _productCategoryService.AddAsync(createProductCategory, UserId);
 
-                if(NewproductCategoryDto == null) return BadRequest("Cannot add new product Category");
+                if (NewproductCategoryDto == null) return BadRequest("Cannot add new product Category");
 
                 return CreatedAtRoute("GetById", new { Id = NewproductCategoryDto.Id }, NewproductCategoryDto);
             }
@@ -197,7 +195,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<string>> AddRangeOfProductCategories(IEnumerable< ProductCategoryDto> productCategoriesDtos)
+        public async Task<ActionResult<string>> AddRangeOfProductCategories([FromForm] IEnumerable<CreateProductCategoryDto> createProductCategoryDtos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -206,7 +204,7 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductCategoriesDtosList = await _productCategoryService.AddRangeAsync(productCategoriesDtos, UserId);
+                var NewproductCategoriesDtosList = await _productCategoryService.AddRangeAsync(createProductCategoryDtos, UserId);
 
                 if (NewproductCategoriesDtosList == null || !NewproductCategoriesDtosList.Any()) return BadRequest("Cannot add new product Categories");
 
@@ -224,15 +222,15 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateProductCategoryById([FromRoute]long Id, [FromBody] ProductCategoryDto productCategoryDto)
+        public async Task<ActionResult<string>> UpdateProductCategoryById([FromRoute] long Id, [FromForm] CreateProductCategoryDto createProductCategoryDto)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero");
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-               
-                var IsProductCategoryUpdated = await _productCategoryService.UpdateByIdAsync(Id,productCategoryDto);
+
+                var IsProductCategoryUpdated = await _productCategoryService.UpdateByIdAsync(Id, createProductCategoryDto);
 
                 if (!IsProductCategoryUpdated) return BadRequest("Cannot Update product Category");
 
