@@ -2,11 +2,9 @@ using ApiLayer.Help;
 using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
-using BusinessLayer.Servicese;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
@@ -169,7 +167,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<ProductCategoryDto>> Addbrand(BrandDto brandDto)
+        public async Task<ActionResult<ProductCategoryDto>> Addbrand([FromForm] CreateBrandDto createBrandDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -178,7 +176,7 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewBrandDto = await _BrandService.AddAsync(brandDto, UserId);
+                var NewBrandDto = await _BrandService.AddAsync(createBrandDto, UserId);
 
                 if (NewBrandDto == null) return BadRequest("Cannot add new brand");
 
@@ -197,7 +195,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<string>> AddRangeOfBrands(IEnumerable<BrandDto> brnadsDtos)
+        public async Task<ActionResult<IEnumerable<BrandDto>>> AddRangeOfBrands([FromForm] IEnumerable<CreateBrandDto> createBrandDtos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -206,11 +204,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewBrandsDtos = await _BrandService.AddRangeAsync(brnadsDtos, UserId);
+                var NewBrandsDtos = await _BrandService.AddRangeAsync(createBrandDtos, UserId);
 
                 if (NewBrandsDtos == null || !NewBrandsDtos.Any()) return BadRequest("Cannot add new brands");
 
-                return Ok("Added new product Categories successfully");
+                return Ok(NewBrandsDtos);
             }
             catch (Exception ex)
             {
@@ -224,15 +222,14 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateBrandById([FromRoute] long Id, [FromBody] BrandDto brandDto)
+        public async Task<ActionResult<string>> UpdateBrandById([FromRoute] long Id, [FromForm] CreateBrandDto createBrandDto)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
-
-                var IsBrandUpdated = await _BrandService.UpdateByIdAsync(Id, brandDto);
+                var IsBrandUpdated = await _BrandService.UpdateByIdAsync(Id, createBrandDto);
 
                 if (!IsBrandUpdated) return BadRequest("Cannot Update brand");
 

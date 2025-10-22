@@ -67,7 +67,6 @@ namespace BusinessLayer.Servicese
 
                 if (!IsProductCategoryAdded)
                 {
-                    _logger.LogError("Failed to add product category.");
                     throw new Exception("Failed to add product category.");
                 }
 
@@ -78,7 +77,6 @@ namespace BusinessLayer.Servicese
                 var uploadedImagesDtos = await _imageService.UploadImagesAsync(createProductCategoryDto.Images);
                 if (!uploadedImagesDtos.Any())
                 {
-                    _logger.LogError("No images were uploaded during product category creation.");
                     throw new Exception("No images were uploaded during product category creation.");
                 }
 
@@ -352,8 +350,7 @@ namespace BusinessLayer.Servicese
                 var uploadedImagesDtos = await _imageService.UploadImagesAsync(dto.Images);
                 if (!uploadedImagesDtos.Any())
                 {
-                    _logger.LogError("No images were uploaded during product category update.");
-                    throw new Exception("No images were uploaded during product category update.");
+                    throw new Exception(message: "No images were uploaded during product category update.");
                 }
 
 

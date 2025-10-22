@@ -1,6 +1,4 @@
 ﻿using DataAccessLayer.Identity.Entities;
-using System;
-using System.Collections.Generic;
 
 namespace DataAccessLayer.Entities;
 
@@ -14,7 +12,9 @@ public partial class Brand
 
     public string CreatedBy { get; set; }
 
-    public byte[] Image { get; set; }
+    public string ImageUrl { get; set; }
+
+    public string PublicId { get; set; }
 
     public virtual User? user { get; set; }
 

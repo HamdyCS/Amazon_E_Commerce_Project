@@ -1,9 +1,4 @@
 ﻿using BusinessLayer.Dtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Contracks
 {
@@ -14,11 +9,11 @@ namespace BusinessLayer.Contracks
         public Task<BrandDto> FindByNameArAsync(string NameAr);
         public Task<IEnumerable<BrandDto>> GetAllAsync();
         public Task<long> GetCountAsync();
-        public Task<BrandDto> AddAsync(BrandDto dto, string UserId);
+        public Task<BrandDto> AddAsync(CreateBrandDto createBrandDto, string UserId);
 
-        public Task<IEnumerable<BrandDto>> AddRangeAsync(IEnumerable<BrandDto> dtos, string UserId);
+        public Task<IEnumerable<BrandDto>> AddRangeAsync(IEnumerable<CreateBrandDto> createBrandDtos, string UserId);
 
-        public Task<bool> UpdateByIdAsync(long Id, BrandDto dto);
+        public Task<bool> UpdateByIdAsync(long Id, CreateBrandDto createBrandDto);
 
         public Task<bool> DeleteByIdAsync(long Id);
 

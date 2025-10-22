@@ -4,14 +4,8 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
-using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -21,51 +15,70 @@ namespace BusinessLayer.Servicese
         private readonly ILogger<BrandService> _logger;
         private readonly IGenericMapper _genericMapper;
         private readonly IUserService _userService;
+        private readonly IImageService _imageService;
 
         public BrandService(IUnitOfWork unitOfWork, ILogger<BrandService> logger, IGenericMapper genericMapper,
-            IUserService userService)
+            IUserService userService, IImageService imageService)
         {
             this._unitOfWork = unitOfWork;
             this._logger = logger;
             this._genericMapper = genericMapper;
             this._userService = userService;
+            _imageService = imageService;
         }
 
-        public async Task<BrandDto> AddAsync(BrandDto dto, string UserId)
+        public async Task<BrandDto> AddAsync(CreateBrandDto createBrandDto, string UserId)
         {
-            ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
+            ParamaterException.CheckIfObjectIfNotNull(createBrandDto, nameof(createBrandDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+            try
+            {
+                var userDto = await _userService.FindByIdAsync(UserId);
+                if (userDto == null) return null;
 
-            var userDto = await _userService.FindByIdAsync(UserId);
-            if (userDto == null) return null;
+
+                var NewBrand = _genericMapper.MapSingle<CreateBrandDto, Brand>(createBrandDto);
+                if (NewBrand is null) return null;
+
+                NewBrand.CreatedBy = UserId;
+
+                //Upload Image
+                var imageDto = await _imageService.UploadImageAsync(createBrandDto.Image);
+                if (imageDto is null)
+                {
+                    throw new Exception("Image didnot upload successfuly.");
+                }
+
+                NewBrand.ImageUrl = imageDto.Url;
+                NewBrand.PublicId = imageDto.PublicId;
 
 
-            var NewBrand = _genericMapper.MapSingle<BrandDto, Brand>(dto);
+                await _unitOfWork.brandRepository.AddAsync(NewBrand);
 
-            if (NewBrand is null) return null;
+                var IsNewBrandAdded = await _CompleteAsync();
+                if (!IsNewBrandAdded) return null;
 
-            NewBrand.CreatedBy = UserId;
+                var brandDto = _genericMapper.MapSingle<Brand, BrandDto>(NewBrand);
 
-            await _unitOfWork.brandRepository.AddAsync(NewBrand);
-
-            var IsNewBrandAdded = await _CompleteAsync();
-            if (!IsNewBrandAdded) return null;
-
-            _genericMapper.MapSingle(NewBrand, dto);
-
-            return dto;
+                return brandDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while adding a new brand. {ex.Message}");
+                throw;
+            }
         }
 
-        public async Task<IEnumerable<BrandDto>> AddRangeAsync(IEnumerable<BrandDto> dtos, string UserId)
+        public async Task<IEnumerable<BrandDto>> AddRangeAsync(IEnumerable<CreateBrandDto> createBrandDtos, string UserId)
         {
-            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(createBrandDtos, nameof(createBrandDtos));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
             var userDto = await _userService.FindByIdAsync(UserId);
             if (userDto == null) return null;
 
             var NewBrandsDtoList = new List<BrandDto>();
-            foreach (var d in dtos)
+            foreach (var d in createBrandDtos)
             {
                 var NewBrandDto = await AddAsync(d, UserId);
                 if (NewBrandDto != null) NewBrandsDtoList.Add(NewBrandDto);
@@ -99,7 +112,7 @@ namespace BusinessLayer.Servicese
             var brandDto = _genericMapper.MapSingle<Brand, BrandDto>(brand);
 
             return brandDto;
-            
+
         }
 
         public async Task<BrandDto> FindByNameArAsync(string NameAr)
@@ -134,7 +147,7 @@ namespace BusinessLayer.Servicese
             var brandsDtos = _genericMapper.
                 MapCollection<Brand, BrandDto>(brands);
 
-           return brandsDtos;
+            return brandsDtos;
         }
 
         public async Task<long> GetCountAsync()
@@ -150,7 +163,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
 
             var brands = await _unitOfWork.
-            brandRepository.GetPagedDataAsNoTractingAsync(pageNumber,pageSize);
+            brandRepository.GetPagedDataAsNoTractingAsync(pageNumber, pageSize);
 
             var brandsDtos = _genericMapper.
                 MapCollection<Brand, BrandDto>(brands);
@@ -158,22 +171,55 @@ namespace BusinessLayer.Servicese
             return brandsDtos;
         }
 
-        public async Task<bool> UpdateByIdAsync(long Id, BrandDto dto)
+        public async Task<bool> UpdateByIdAsync(long Id, CreateBrandDto createBrandDto)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
-            ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
+            ParamaterException.CheckIfObjectIfNotNull(createBrandDto, nameof(createBrandDto));
 
-            var brand = await _unitOfWork.brandRepository.GetByIdAsTrackingAsync(Id);
+            try
+            {
+                var brand = await _unitOfWork.brandRepository.GetByIdAsTrackingAsync(Id);
+                if (brand == null) return false;
 
-            if (brand == null) return false;
+                //delete old image
+                var isImageDeleted = await _imageService.DeleteImageAsync(
 
-            _genericMapper.MapSingle(dto, brand);
+                    new ImageDto
+                    {
+                        PublicId = brand.PublicId,
+                        Url = brand.ImageUrl
+                    }
+                );
 
-            await _unitOfWork.brandRepository.UpdateAsync(Id,brand);
+                if (!isImageDeleted)
+                    throw new Exception("Failed to delete old images from image server during brand update.");
 
-            var IsBrandUpdated = await _CompleteAsync();
+                //upload new image
+                var uploadImageDto = await _imageService.UploadImageAsync(createBrandDto.Image);
+                if (uploadImageDto is null)
+                {
+                    throw new Exception("New brand image didnot upload successfully");
+                }
 
-            return IsBrandUpdated;
+                brand.ImageUrl = uploadImageDto.Url;
+                brand.PublicId = uploadImageDto.PublicId;
+
+                _genericMapper.MapSingle(createBrandDto, brand);
+
+                //update brand
+                await _unitOfWork.brandRepository.UpdateAsync(Id, brand);
+
+                var IsBrandUpdated = await _CompleteAsync();
+
+                return IsBrandUpdated;
+            }
+            catch (Exception ex)
+            {
+                string errMesssage = $"An error occurred while Updateing Brand. {ex.Message}";
+                _logger.LogError(errMesssage, ex);
+                throw;
+            }
+
         }
 
         private async Task<bool> _CompleteAsync()
@@ -182,6 +228,6 @@ namespace BusinessLayer.Servicese
             return result > 0;
 
         }
-        
+
     }
 }

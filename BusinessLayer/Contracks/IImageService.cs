@@ -5,13 +5,12 @@ namespace BusinessLayer.Contracks
 {
     public interface IImageService
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="images"></param>
-        /// <returns>return images urls</returns>
         Task<List<ImageDto>> UploadImagesAsync(IEnumerable<IFormFile> images);
 
         Task<bool> DeleteImagesAsync(IEnumerable<ImageDto> imagesDtos);
+
+        Task<bool> DeleteImageAsync(ImageDto imageDto);
+
+        Task<ImageDto> UploadImageAsync(IFormFile image);
     }
 }

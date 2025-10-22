@@ -3,6 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Options;
 using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
@@ -126,5 +127,88 @@ namespace BusinessLayer.Servicese
             }
         }
 
+        public async Task<ImageDto> UploadImageAsync(IFormFile image)
+        {
+            ParamaterException.CheckIfObjectIfNotNull(image, nameof(image));
+            try
+            {
+                //account
+                var account = new Account(
+                    _cloudinaryOptions.CloudName,
+                    _cloudinaryOptions.ApiKey,
+                    _cloudinaryOptions.ApiSecret);
+
+                //cloudinary
+                Cloudinary cloudinary = new Cloudinary(account);
+
+                //check if file extension is not valid
+                if (!_CheckIfFileExtensionValid(Path.GetExtension(image.FileName)))
+                {
+                    _logger.LogError($"Invalid file extension for image {image.FileName}. Allowed extensions are: {string.Join(", ", _allowedExtensions)}");
+                    throw new Exception($"Invalid file extension for image {image.FileName}. Allowed extensions are: {string.Join(", ", _allowedExtensions)}");
+                }
+
+                ImageDto imageDto = new();
+
+                //open stream and auto dispose
+                using (Stream stream = image.OpenReadStream())
+                {
+                    // Set upload parameters
+                    var uploadParams = new CloudinaryDotNet.Actions.ImageUploadParams()
+                    {
+                        File = new FileDescription(image.FileName, stream),// File to upload
+                        PublicId = Guid.NewGuid().ToString(), // Unique Id for the image
+                    };
+
+                    // Upload the image
+                    var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                    if (uploadResult.StatusCode != HttpStatusCode.OK)
+                    {
+                        _logger.LogError($"Failed to upload image {image.FileName} to Cloudinary. Status: {uploadResult.StatusCode}");
+                        throw new Exception($"Failed to upload image {image.FileName} to Cloudinary. Status: {uploadResult.StatusCode}");
+                    }
+
+                    imageDto.Url = uploadResult.SecureUrl.ToString();
+                    imageDto.PublicId = uploadResult.PublicId;
+                }
+
+                return imageDto;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while uploading images. {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteImageAsync(ImageDto imageDto)
+        {
+            ParamaterException.CheckIfObjectIfNotNull(imageDto, nameof(imageDto));
+
+            try
+            {
+                //account
+                var account = new Account(
+                    _cloudinaryOptions.CloudName,
+                    _cloudinaryOptions.ApiKey,
+                    _cloudinaryOptions.ApiSecret);
+
+                //cloudinary
+                var cloudinary = new Cloudinary(account);
+
+                //deletaion parames
+                var deletaionParames = new DeletionParams(imageDto.PublicId);
+
+                // Delete images
+                var deleteImagesResult = await cloudinary.DestroyAsync(deletaionParames);
+
+                return deleteImagesResult.Result.ToLower() == "ok";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while deleting image. {ex.Message}");
+                throw;
+            }
+        }
     }
 }
