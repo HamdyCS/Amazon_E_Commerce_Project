@@ -67,7 +67,8 @@ namespace BusinessLayer.Servicese
 
                 if (!IsProductCategoryAdded)
                 {
-                    return null;
+                    _logger.LogError("Failed to add product category.");
+                    throw new Exception("Failed to add product category.");
                 }
 
                 _genericMapper.MapSingle(productCategory, createProductCategoryDto);
@@ -76,7 +77,10 @@ namespace BusinessLayer.Servicese
                 //upload images
                 var uploadedImagesDtos = await _imageService.UploadImagesAsync(createProductCategoryDto.Images);
                 if (!uploadedImagesDtos.Any())
-                    return null;
+                {
+                    _logger.LogError("No images were uploaded during product category creation.");
+                    throw new Exception("No images were uploaded during product category creation.");
+                }
 
                 var NewProductCategoryImageList = new List<ProductCategoryImageDto>();
                 foreach (var imageDto in uploadedImagesDtos)

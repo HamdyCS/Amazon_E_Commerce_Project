@@ -17,11 +17,12 @@ namespace BusinessLayer.Servicese
         private readonly IUserService _userService;
         private readonly IProductSubCategoryService _productSubCategoryService;
         private readonly IBrandService _brandService;
+        private readonly IImageService _imageService;
 
         public ProductService(ILogger<ProductService> logger, IUnitOfWork unitOfWork,
             IGenericMapper genericMapper, IProductImageService productImageService,
-            IUserService userService,IProductSubCategoryService productSubCategoryService,
-            IBrandService brandService)
+            IUserService userService, IProductSubCategoryService productSubCategoryService,
+            IBrandService brandService, IImageService imageService)
         {
             this._logger = logger;
             this._unitOfWork = unitOfWork;
@@ -30,6 +31,7 @@ namespace BusinessLayer.Servicese
             this._userService = userService;
             this._productSubCategoryService = productSubCategoryService;
             this._brandService = brandService;
+            _imageService = imageService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -38,25 +40,28 @@ namespace BusinessLayer.Servicese
             return NumberOfRowsAfected > 0;
         }
 
-        public async Task<ProductDto> AddAsync(ProductDto productDto, string UserId)
+        public async Task<ProductDto> AddAsync(CreateProductDto createProductDto, string UserId)
         {
-            ParamaterException.CheckIfObjectIfNotNull(productDto, nameof(productDto));
+            ParamaterException.CheckIfObjectIfNotNull(createProductDto, nameof(createProductDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            
+
             try
             {
                 var userDto = await _userService.FindByIdAsync(UserId);
                 if (userDto == null) return null;
 
-                var productSubCategoryDto = await _productSubCategoryService.FindByIdAsync(productDto.ProductSubCategoryId);
+                var productSubCategoryDto = await _productSubCategoryService.FindByIdAsync(createProductDto.ProductSubCategoryId);
                 if (productSubCategoryDto == null) return null;
 
-                var brandDto = await _brandService.FindByIdAsync(productDto.BrandId);
+                var brandDto = await _brandService.FindByIdAsync(createProductDto.BrandId);
                 if (brandDto is null) return null;
 
 
-                  var NewProduct = _genericMapper.MapSingle<ProductDto, Product>(productDto);
+                //check if not images to add
+                if (createProductDto.Images is null || !createProductDto.Images.Any()) return null;
+
+                var NewProduct = _genericMapper.MapSingle<CreateProductDto, Product>(createProductDto);
                 if (NewProduct is null) return null;
 
                 NewProduct.CreatedBy = UserId;
@@ -70,28 +75,44 @@ namespace BusinessLayer.Servicese
 
                 if (!IsProductAdded)
                 {
-                    return null;
+                    _logger.LogError("Failed to add product.");
+                    throw new Exception("Failed to add product.");
                 }
 
-                _genericMapper.MapSingle(NewProduct, productDto);
+                //map from createProductDto to NewProduct
+                _genericMapper.MapSingle(NewProduct, createProductDto);
 
-               
+                //upload images
+                var uploadedImagesDtos = await _imageService.UploadImagesAsync(createProductDto.Images);
+                if (!uploadedImagesDtos.Any())
+                {
+                    _logger.LogError("No images were uploaded during product category creation.");
+                    throw new Exception("No images were uploaded during product category creation.");
+                }
 
-                if (productDto.Images is null || !productDto.Images.Any()) return productDto;
+
 
                 var NewProductImageList = new List<ProductImageDto>();
-                foreach (var image in productDto.Images)
+                foreach (var image in uploadedImagesDtos)
                 {
                     ProductImageDto NewProductImageDto = new()
                     {
                         ProductId = NewProduct.Id,
-                        Image = image
+                        PublicId = image.PublicId,
+                        ImageUrl = image.Url,
                     };
 
                     NewProductImageList.Add(NewProductImageDto);
                 }
 
+                //save images info to db
                 await _productImageService.AddRangeAsync(NewProductImageList);
+
+
+                //map to dto
+                var productDto = _genericMapper.MapSingle<Product, ProductDto>(NewProduct);
+                productDto.Images = uploadedImagesDtos;
+
 
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -104,7 +125,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<IEnumerable<ProductDto>> AddRangeAsync(IEnumerable<ProductDto> dtos, string UserId)
+        public async Task<IEnumerable<ProductDto>> AddRangeAsync(IEnumerable<CreateProductDto> dtos, string UserId)
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(dtos, nameof(dtos));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
@@ -161,13 +182,13 @@ namespace BusinessLayer.Servicese
 
             var productDto = _genericMapper.MapSingle<Product, ProductDto>(product);
 
-            if (productDto is null) return null ;
+            if (productDto is null) return null;
 
             var productImagesDtoList = await _productImageService.FindAllProductImagesByProductIdAsync(productDto.Id);
 
             if (productImagesDtoList is not null || productImagesDtoList.Any())
             {
-                productDto.Images = productImagesDtoList.Select(e => e.Image).ToList();
+                productDto.Images = productImagesDtoList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
             return productDto;
         }
@@ -187,7 +208,7 @@ namespace BusinessLayer.Servicese
 
             if (productImagesDtoList is not null || productImagesDtoList.Any())
             {
-                productDto.Images = productImagesDtoList.Select(e => e.Image).ToList();
+                productDto.Images = productImagesDtoList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
             return productDto;
         }
@@ -207,7 +228,7 @@ namespace BusinessLayer.Servicese
 
             if (productImagesDtoList is not null || productImagesDtoList.Any())
             {
-                productDto.Images = productImagesDtoList.Select(e => e.Image).ToList();
+                productDto.Images = productImagesDtoList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
             }
             return productDto;
         }
@@ -232,7 +253,7 @@ namespace BusinessLayer.Servicese
 
                 if (productImagesDtosList is not null || productImagesDtosList.Any())
                 {
-                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                    productDto.Images = productImagesDtosList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 
@@ -251,7 +272,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
 
             var products = await _unitOfWork.
-                productRepository.GetPagedDataAsNoTractingAsync(pageNumber,pageSize);
+                productRepository.GetPagedDataAsNoTractingAsync(pageNumber, pageSize);
 
 
             var productsDtosList = _genericMapper.
@@ -268,14 +289,14 @@ namespace BusinessLayer.Servicese
 
                 if (productImagesDtosList is not null || productImagesDtosList.Any())
                 {
-                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                    productDto.Images = productImagesDtosList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 
             return productsDtosList;
         }
 
-        public async Task<bool> UpdateByIdAsync(long Id, ProductDto dto)
+        public async Task<bool> UpdateByIdAsync(long Id, CreateProductDto dto)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
@@ -289,22 +310,39 @@ namespace BusinessLayer.Servicese
                 if (product == null) return false;
 
 
+                //get all product category images
+                var productImagesDtos = await _productImageService.FindAllProductImagesByProductIdAsync(Id);
+                if (!productImagesDtos.Any())
+                    return false;
+
+                var ImageDtos = _genericMapper.MapCollection<ProductImageDto, ImageDto>(productImagesDtos);
+
+                //remove old images from image server
+                var isImagesDeletedFromServer = await _imageService.DeleteImagesAsync(ImageDtos);
+                if (!isImagesDeletedFromServer)
+                {
+                    throw new Exception("Failed to delete old images from image server during product category update.");
+                }
+
 
                 await _unitOfWork.BeginTransactionAsync();
 
+                //delete old images from db
                 var IsProductImagesDeleted = await _productImageService.DeleteAllProductImagesByProductIdAsync(Id);
 
-
-
+                //update product category info
                 _genericMapper.MapSingle(dto, product);
 
-                
 
                 await _unitOfWork.productRepository.UpdateAsync(Id, product);
 
                 var IsProductUpdated = await _CompleteAsync();
 
-                if (!IsProductUpdated) return false;
+                if (!IsProductUpdated)
+                {
+                    throw new Exception("Failed to update product info.");
+                }
+
 
 
                 if (dto.Images is null || !dto.Images.Any())
@@ -313,21 +351,37 @@ namespace BusinessLayer.Servicese
                     return true;
                 }
 
+                //upload new images
+                var uploadedImagesDtos = await _imageService.UploadImagesAsync(dto.Images);
+                if (!uploadedImagesDtos.Any())
+                {
+                    _logger.LogError("No images were uploaded during product category update.");
+                    throw new Exception("No images were uploaded during product category update.");
+                }
+
+                //Add new product Images images to db
                 var NewProductImageList = new List<ProductImageDto>();
-                foreach (var image in dto.Images)
+                foreach (var image in uploadedImagesDtos)
                 {
                     ProductImageDto NewProductImageDto = new()
                     {
                         ProductId = product.Id,
-                        Image = image
+                        ImageUrl = image.Url,
+                        PublicId = image.PublicId,
                     };
 
                     NewProductImageList.Add(NewProductImageDto);
                 }
 
-               var productImagesDtosList = await _productImageService.AddRangeAsync(NewProductImageList);
 
-                if(productImagesDtosList is null) return false;
+                var productImagesDtosList = await _productImageService.AddRangeAsync(NewProductImageList);
+
+                if (productImagesDtosList is null)
+                {
+                    _logger.LogError("Failed to add new product images during update.");
+                    throw new Exception("Failed to add new product images during update.");
+                }
+
 
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
@@ -343,7 +397,7 @@ namespace BusinessLayer.Servicese
 
         public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string NameEn, int pageSize)
         {
-            var productsList = await 
+            var productsList = await
                 _unitOfWork.productRepository.SearchByNameEnAsync(NameEn, pageSize);
 
             var productSearchResultsDtosList = productsList.Select(e =>
@@ -397,7 +451,7 @@ namespace BusinessLayer.Servicese
 
                 if (productImagesDtosList is not null || productImagesDtosList.Any())
                 {
-                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                    productDto.Images = productImagesDtosList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 
@@ -410,7 +464,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
 
             var products = await _unitOfWork.
-               productRepository.GetPagedOrderByBestSellerDescAsync(pageNumber,pageSize);
+               productRepository.GetPagedOrderByBestSellerDescAsync(pageNumber, pageSize);
 
 
             var productsDtosList = _genericMapper.
@@ -427,7 +481,7 @@ namespace BusinessLayer.Servicese
 
                 if (productImagesDtosList is not null || productImagesDtosList.Any())
                 {
-                    productDto.Images = productImagesDtosList.Select(e => e.Image).ToList();
+                    productDto.Images = productImagesDtosList.Select(e => new ImageDto() { PublicId = e.PublicId, Url = e.ImageUrl }).ToList();
                 }
             }
 

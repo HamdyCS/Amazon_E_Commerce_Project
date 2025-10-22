@@ -5,7 +5,6 @@ namespace BusinessLayer.Dtos
 {
     public class CreateProductCategoryDto
     {
-        public long Id { get; set; }
 
         [Required]
         public string NameEn { get; set; }

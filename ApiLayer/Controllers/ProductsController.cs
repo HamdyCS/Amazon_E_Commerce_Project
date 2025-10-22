@@ -2,11 +2,9 @@ using ApiLayer.Help;
 using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using BusinessLayer.Roles;
-using BusinessLayer.Servicese;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
@@ -219,7 +217,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<ProductDto>> AddNew(ProductDto productDto)
+        public async Task<ActionResult<ProductDto>> AddNew([FromForm] CreateProductDto createProductDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -228,7 +226,7 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductDto = await _productService.AddAsync(productDto, UserId);
+                var NewproductDto = await _productService.AddAsync(createProductDto, UserId);
 
                 if (NewproductDto == null) return BadRequest("Cannot add new product.");
 
@@ -247,7 +245,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<string>> AddRange(IEnumerable<ProductDto> productsDtosList)
+        public async Task<ActionResult<string>> AddRange([FromForm] IEnumerable<CreateProductDto> createProductDtos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -256,11 +254,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewproductsDtosList = await _productService.AddRangeAsync(productsDtosList, UserId);
+                var NewproductsDtosList = await _productService.AddRangeAsync(createProductDtos, UserId);
 
                 if (NewproductsDtosList == null || !NewproductsDtosList.Any()) return BadRequest("Cannot add new product Categories.");
 
-                return Ok("Added new products successfully.");
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -274,7 +272,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateById([FromRoute] long Id, [FromBody] ProductDto productDto)
+        public async Task<ActionResult<string>> UpdateById([FromRoute] long Id, [FromForm] CreateProductDto createProductDto)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -282,7 +280,7 @@ namespace ApiLayer.Controllers
             try
             {
 
-                var IsProductUpdated = await _productService.UpdateByIdAsync(Id, productDto);
+                var IsProductUpdated = await _productService.UpdateByIdAsync(Id, createProductDto);
 
                 if (!IsProductUpdated) return BadRequest("Cannot Update product.");
 
@@ -319,7 +317,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("search/{name}",Name = "SearchByName")]
+        [HttpGet("search/{name}", Name = "SearchByName")]
         [AllowAnonymous]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -337,12 +335,12 @@ namespace ApiLayer.Controllers
 
             try
             {
-                if(lang.ToLower()=="ar")
+                if (lang.ToLower() == "ar")
                 {
                     var productSearchResultsDtos = await _productService.SearchByNameArAsync(name, pageSize);
                     return Ok(productSearchResultsDtos);
                 }
-                else if(lang.ToLower()=="en")
+                else if (lang.ToLower() == "en")
                 {
                     var productSearchResultsDtos = await _productService.SearchByNameEnAsync(name, pageSize);
                     return Ok(productSearchResultsDtos);
@@ -352,7 +350,7 @@ namespace ApiLayer.Controllers
                     return BadRequest("This language cannot be accepted.");
                 }
             }
-            
+
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);

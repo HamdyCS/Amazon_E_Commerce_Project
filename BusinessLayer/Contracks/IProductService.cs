@@ -13,11 +13,11 @@ namespace BusinessLayer.Contracks
 
         public Task<long> GetCountAsync();
 
-        public Task<ProductDto> AddAsync(ProductDto productDto, string UserId);
+        public Task<ProductDto> AddAsync(CreateProductDto createProductDto, string UserId);
 
-        public Task<IEnumerable<ProductDto>> AddRangeAsync(IEnumerable<ProductDto> productDtos, string UserId);
+        public Task<IEnumerable<ProductDto>> AddRangeAsync(IEnumerable<CreateProductDto> createProductDtos, string UserId);
 
-        public Task<bool> UpdateByIdAsync(long Id, ProductDto productDto);
+        public Task<bool> UpdateByIdAsync(long Id, CreateProductDto createProductDto);
 
         public Task<bool> DeleteByIdAsync(long Id);
 
@@ -30,6 +30,7 @@ namespace BusinessLayer.Contracks
         Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize);
 
         Task<IEnumerable<ProductDto>> GetAllOrderByBestSellerDescAsync();
+
         Task<IEnumerable<ProductDto>> GetPagedOrderByBestSellerDescAsync(int pageNumber, int pageSize);
     }
 }

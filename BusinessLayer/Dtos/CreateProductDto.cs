@@ -1,10 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace BusinessLayer.Dtos
 {
-    public class ProductDto
+    public class CreateProductDto
     {
-        public long Id { get; set; }
 
         [Required]
         public string NameEn { get; set; }
@@ -42,8 +42,7 @@ namespace BusinessLayer.Dtos
         public long BrandId { get; set; }
 
         [Required]
-
-        public List<ImageDto> Images { get; set; }
+        public List<IFormFile> Images { get; set; }
 
     }
 }

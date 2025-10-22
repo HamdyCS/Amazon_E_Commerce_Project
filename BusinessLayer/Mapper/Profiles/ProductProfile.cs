@@ -2,11 +2,6 @@
 using BusinessLayer.Dtos;
 using BusinessLayer.Help;
 using DataAccessLayer.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Mapper.Profiles
 {
@@ -19,15 +14,17 @@ namespace BusinessLayer.Mapper.Profiles
                 ForMember(e => e.DescriptionEn,
                 opt => opt.MapFrom(e =>
                 Helper.ReturnNullIfEmpty(e.DescriptionEn)))
-                .ForMember(e=>e.DescriptionAr,opt=>
-                opt.MapFrom(e=>Helper.ReturnNullIfEmpty(e.DescriptionAr)));
-               
+                .ForMember(e => e.DescriptionAr, opt =>
+                opt.MapFrom(e => Helper.ReturnNullIfEmpty(e.DescriptionAr)));
+
 
             CreateMap<Product, ProductDto>();
+
+            CreateMap<CreateProductDto, Product>().ForMember(e => e.Id,
+             otp => otp.Ignore());
+
+            CreateMap<Product, CreateProductDto>();
         }
 
-       
-
-        
     }
 }

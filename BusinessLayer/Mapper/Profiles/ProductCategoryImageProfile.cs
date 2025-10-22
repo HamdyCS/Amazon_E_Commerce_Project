@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using BusinessLayer.Dtos;
 using DataAccessLayer.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Mapper.Profiles
 {
@@ -14,8 +9,11 @@ namespace BusinessLayer.Mapper.Profiles
         public ProductCategoryImageProfile()
         {
             CreateMap<ProductCategoryImage, ProductCategoryImageDto>();
-            CreateMap<ProductCategoryImageDto, ProductCategoryImage>().ForMember(e=>e.Id,
-                opt=>opt.Ignore());
+            CreateMap<ProductCategoryImageDto, ProductCategoryImage>().ForMember(e => e.Id,
+                opt => opt.Ignore());
+
+            CreateMap<ImageDto, ProductCategoryImageDto>().ForMember(x => x.ImageUrl, opt => opt.MapFrom(x => x.Url));
+            CreateMap<ProductCategoryImageDto, ImageDto>().ForMember(x => x.Url, opt => opt.MapFrom(x => x.ImageUrl));
         }
     }
 }
