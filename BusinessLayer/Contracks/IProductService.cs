@@ -32,5 +32,7 @@ namespace BusinessLayer.Contracks
         Task<IEnumerable<ProductDto>> GetAllOrderByBestSellerDescAsync();
 
         Task<IEnumerable<ProductDto>> GetPagedOrderByBestSellerDescAsync(int pageNumber, int pageSize);
+
+        Task UpdateProductsInRedisCacheAsync();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ApiLayer.Filters;
+using BusinessLayer.BackgroundServices;
 using BusinessLayer.Extensions;
 using BusinessLayer.Mapper.Profiles;
 using BusinessLayer.Options;
@@ -82,6 +83,14 @@ else
     Environment.Exit(Environment.ExitCode);
 }
 
+//redis
+builder.Services.AddStackExchangeRedisCache(opt =>
+{
+    opt.Configuration = builder.Configuration["Redis:ConnectionString"];
+    opt.InstanceName = builder.Configuration["Redis:InstanceName"];
+});
+
+
 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);
@@ -118,6 +127,9 @@ builder.Services.AddControllers(opt =>
 {
     opt.Filters.Add<CheckIfUserIsNotDeletedFilter>();
 });
+
+//add background services
+builder.Services.AddHostedService<ProductsCacheUpdateBackgroundService>();
 
 var app = builder.Build();
 

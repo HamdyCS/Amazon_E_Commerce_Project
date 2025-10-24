@@ -24,6 +24,8 @@ namespace BusinessLayer.Mapper.Profiles
              otp => otp.Ignore());
 
             CreateMap<Product, CreateProductDto>();
+
+            CreateMap<Product, CacheProductDto>().ReverseMap();
         }
 
     }

@@ -20,6 +20,8 @@ namespace BusinessLayer.Extensions
         {
             services.AddScoped<IGenericMapper, GenericMapper>();
 
+            services.AddScoped<IRedisCashService, RedisCashService>();
+
             services.AddScoped<IPersonService, PersonService>();
 
             services.AddScoped<ICityService, CityService>();

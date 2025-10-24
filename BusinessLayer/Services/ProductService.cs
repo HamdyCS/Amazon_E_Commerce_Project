@@ -4,6 +4,7 @@ using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace BusinessLayer.Servicese
@@ -18,11 +19,13 @@ namespace BusinessLayer.Servicese
         private readonly IProductSubCategoryService _productSubCategoryService;
         private readonly IBrandService _brandService;
         private readonly IImageService _imageService;
+        private readonly IRedisCashService _redisCashService;
+        private readonly IConfiguration _configuration;
 
         public ProductService(ILogger<ProductService> logger, IUnitOfWork unitOfWork,
             IGenericMapper genericMapper, IProductImageService productImageService,
             IUserService userService, IProductSubCategoryService productSubCategoryService,
-            IBrandService brandService, IImageService imageService)
+            IBrandService brandService, IImageService imageService, IRedisCashService redisCashService, IConfiguration configuration)
         {
             this._logger = logger;
             this._unitOfWork = unitOfWork;
@@ -32,6 +35,8 @@ namespace BusinessLayer.Servicese
             this._productSubCategoryService = productSubCategoryService;
             this._brandService = brandService;
             _imageService = imageService;
+            _redisCashService = redisCashService;
+            _configuration = configuration;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -391,12 +396,16 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string NameEn, int pageSize)
+        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string queryEn, int pageSize)
         {
-            var productsList = await
-                _unitOfWork.productRepository.SearchByNameEnAsync(NameEn, pageSize);
+            //using cacheing
 
-            var productSearchResultsDtosList = productsList.Select(e =>
+            var productCacheDtos = await
+                _redisCashService.GetValueByKeyAsync<IEnumerable<CacheProductDto>>($"Products");
+
+            if (productCacheDtos is null) return [];
+
+            var productSearchResultsDtosList = productCacheDtos.Where(e => e.NameEn.Contains(queryEn)).Take(pageSize).Select(e =>
             {
                 return new ProductSearchResultDto
                 {
@@ -406,16 +415,18 @@ namespace BusinessLayer.Servicese
             });
 
             return productSearchResultsDtosList;
-
-
         }
 
-        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize)
+        public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string queryAr, int pageSize)
         {
-            var productsList = await
-                _unitOfWork.productRepository.SearchByNameArAsync(NameAr, pageSize);
+            //using cacheing
 
-            var productSearchResultsDtosList = productsList.Select(e =>
+            var productCacheDtos = await
+                _redisCashService.GetValueByKeyAsync<IEnumerable<CacheProductDto>>($"Products");
+
+            if (productCacheDtos is null) return null;
+
+            var productSearchResultsDtosList = productCacheDtos.Where(e => e.NameAr.Contains(queryAr)).Take(pageSize).Select(e =>
             {
                 return new ProductSearchResultDto
                 {
@@ -482,6 +493,28 @@ namespace BusinessLayer.Servicese
             }
 
             return productsDtosList;
+        }
+
+        public async Task UpdateProductsInRedisCacheAsync()
+        {
+            //get all products
+            var products = await _unitOfWork.
+               productRepository.GetAllAsNoTrackingAsync();
+
+            if (products is null || !products.Any())
+                return;
+
+            //map to cache dto
+            var cacheProductDtosList = _genericMapper.MapCollection<Product, CacheProductDto>(products);
+
+            if (cacheProductDtosList is null || !cacheProductDtosList.Any())
+                return;
+
+            //number of houers
+            int hours = _configuration.GetValue<int>("Redis:ProductsDurationInHoues");
+
+            //set in redis cash
+            await _redisCashService.SetValueByKeyAsync("Products", cacheProductDtosList, TimeSpan.FromHours(hours));
         }
     }
 }
