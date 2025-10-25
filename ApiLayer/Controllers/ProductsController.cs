@@ -21,6 +21,7 @@ namespace ApiLayer.Controllers
             this._productService = productService;
         }
 
+
         [HttpGet("{Id}", Name = "GetProductById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

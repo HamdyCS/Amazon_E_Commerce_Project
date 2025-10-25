@@ -573,7 +573,7 @@ namespace DataAccessLayer.Repositories
                 if (info is null)
                     return null;
 
-                //try to logion to cheack if user in system or create it
+                //try to login to cheack if user in system or create it
                 var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
                 if (result is null)
                     return null;
@@ -611,6 +611,7 @@ namespace DataAccessLayer.Repositories
                 DateTime? dateOfBirth = DateTime.TryParse(dateOfBirthClaim?.Value, out var date) ? date : null;
 
 
+                //generate username
                 string userName = name;
                 if (!string.IsNullOrEmpty(Email))
                     userName = new MailAddress(Email).User;

@@ -1,5 +1,6 @@
 ﻿using ApiLayer.Filters;
 using BusinessLayer.BackgroundServices;
+using BusinessLayer.Exceptions;
 using BusinessLayer.Extensions;
 using BusinessLayer.Mapper.Profiles;
 using BusinessLayer.Options;
@@ -55,7 +56,7 @@ else
 }
 
 
-
+//serilog
 builder.UseSerilog();
 
 //stripe key
@@ -91,10 +92,11 @@ builder.Services.AddStackExchangeRedisCache(opt =>
 });
 
 
-
+//custom services and repositories
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);
 
+//rate limiting
 var rateLimitOptions = builder.Configuration.GetSection("RateLimitOption").Get<RateLimitOptions>();
 if (rateLimitOptions != null)
 {
@@ -131,6 +133,12 @@ builder.Services.AddControllers(opt =>
 //add background services
 builder.Services.AddHostedService<ProductsCacheUpdateBackgroundService>();
 
+//add global exception handler 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+//proplem details
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 
@@ -151,7 +159,13 @@ app.UseAuthentication(); // إضافة المصادقة أولاً
 app.UseAuthorization();  // ثم التفويض
 app.UseRateLimiter();// عشان ال rate limter
 app.MapControllers();
+
+//custom middlewares
 //app.AddCustomMiddlewares();
+
+//global error handling middleware
+app.UseExceptionHandler();
+
 
 app.Run();
 
