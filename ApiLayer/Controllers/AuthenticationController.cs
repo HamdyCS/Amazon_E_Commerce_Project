@@ -1,7 +1,7 @@
-﻿using BusinessLayer.Contracks;
+﻿using ApiLayer.Help;
+using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
 using BusinessLayer.Enums;
-using BusinessLayer.Help;
 using BusinessLayer.Roles;
 using DataAccessLayer.Identity.Entities;
 using Microsoft.AspNetCore.Authentication;
@@ -49,7 +49,7 @@ namespace ApiLayer.Controllers
 
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (userId is null)
                     return Unauthorized();
 
@@ -96,7 +96,7 @@ namespace ApiLayer.Controllers
 
             try
             {
-                var code = Helper.GenerateRandomSixDigitNumber();
+                var code = BusinessLayer.Help.Helper.GenerateRandomSixDigitNumber();
                 var otpDto = new OtpDto { Email = Email, Code = code.ToString() };
 
                 var NewOptDto = await _otpService.AddNewOtpAsync(otpDto);
@@ -601,7 +601,6 @@ namespace ApiLayer.Controllers
             if (redirectUrl == null)
                 return BadRequest("Cannot create redirect url");
 
-            //var propertes = _userService.CreateAuthenticationProperties(EnProvider.GitHub.ToString(), redirectUrl);
             AuthenticationProperties propertes = _signInManager.ConfigureExternalAuthenticationProperties(EnProvider.Google.ToString(), redirectUrl);
 
             //HTTP 302 Redirect توجيه المستخدم لموقع تسجيل الدخول الخاص بال provider
@@ -659,5 +658,29 @@ namespace ApiLayer.Controllers
             }
         }
 
+        [HttpPost("logout",Name ="Logout")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<string>> Logout()
+        {
+            try
+            {
+                var userId = Helper.GetIdFromClaimsPrincipal(User);
+                if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+                var IsLogout = await _tokenService.RemoveAllUserRefrechTokensByUserIdAsync(userId);
+
+                if (!IsLogout)
+                    return NotFound("Not found any refresh token.");
+
+
+                return Ok("Logout successfuly.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            } 
+        }
     }
 }

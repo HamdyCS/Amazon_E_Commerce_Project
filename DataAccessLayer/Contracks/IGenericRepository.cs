@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DataAccessLayer.Contracks
+﻿namespace DataAccessLayer.Contracks
 {
     public interface IGenericRepository<T> where T : class
     {
@@ -22,7 +16,7 @@ namespace DataAccessLayer.Contracks
 
         public Task AddRangeAsync(IEnumerable<T> entities);
 
-        public Task UpdateAsync(long Id,T entity);
+        public Task UpdateAsync(long Id, T entity);
 
         public Task DeleteAsync(long id);
 
@@ -33,6 +27,8 @@ namespace DataAccessLayer.Contracks
         public Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize);
 
         Task<bool> IsExistByIdAsync(long Id);
+
+        Task<IEnumerable<T>> FilterAsync(Predicate<T> predicate);
 
     }
 

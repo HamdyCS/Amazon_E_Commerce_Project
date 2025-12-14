@@ -5,6 +5,7 @@ using BusinessLayer.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Net;
 
 namespace ApiLayer.Controllers
 {
@@ -332,7 +333,6 @@ namespace ApiLayer.Controllers
 
             var lang = Request.Headers["lang"].ToString();
             if (lang == null) return BadRequest("Cannot find lang var in header");
-
 
             try
             {

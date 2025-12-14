@@ -36,8 +36,7 @@ namespace BusinessLayer.BackgroundServices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error updating product cache: {Message}", ex.Message);
-                    Console.WriteLine($"Error updating product cache: {ex.Message}");
+                    _logger.LogError(ex, "Error while updating products cache. {Message}", ex.Message);
                 }
 
                 // Wait for the specified interval before the next update

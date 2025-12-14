@@ -161,5 +161,17 @@ namespace BusinessLayer.Servicese
 
             return TokenString;
         }
+
+        public async Task<bool> RemoveAllUserRefrechTokensByUserIdAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+          
+
+            //remove all user refreshTokens
+            await _unitOfWork.refreshTokenRepository.DeleteAllUserRefreshTokensByUserId(userId);
+            var isRefreshTokensDeleted = await _CompleteAsync();
+            
+            return isRefreshTokensDeleted;
+        }
     }
 }

@@ -3,12 +3,6 @@ using DataAccessLayer.Data;
 using DataAccessLayer.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DataAccessLayer.Repositories
 {
@@ -75,14 +69,14 @@ namespace DataAccessLayer.Repositories
                 var entry = _context.Set<T>().Entry(entity);
                 var isDeletedProperty = entry.Metadata.FindProperty("IsDeleted");
 
-                if(isDeletedProperty is null)
+                if (isDeletedProperty is null)
                 {
                     _context.Set<T>().Remove(entity);
                     return;
                 }
 
                 var IsDeletedProperty = entry.Property("IsDeleted");
-                
+
                 if (IsDeletedProperty is null)
                 {
                     _context.Set<T>().Remove(entity);
@@ -93,7 +87,7 @@ namespace DataAccessLayer.Repositories
 
                     var DateOfDeletionProperty = _context.Set<T>().Entry(entity).Property("DateOfDeletion");
 
-                    if(DateOfDeletionProperty is not null)
+                    if (DateOfDeletionProperty is not null)
                         DateOfDeletionProperty.CurrentValue = DateTime.UtcNow;
 
                 }
@@ -112,7 +106,7 @@ namespace DataAccessLayer.Repositories
             {
                 foreach (long Id in Ids)
                 {
-                   await DeleteAsync(Id);
+                    await DeleteAsync(Id);
                 }
             }
             catch (Exception ex)
@@ -240,13 +234,27 @@ namespace DataAccessLayer.Repositories
 
         public async Task<bool> IsExistByIdAsync(long Id)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(Id,nameof(Id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
 
             var existingEntity = await _context.Set<T>().FindAsync(Id);
 
             return existingEntity is not null;
         }
 
+        public async Task<IEnumerable<T>> FilterAsync(Predicate<T> predicate)
+        {
+            ParamaterException.CheckIfObjectIfNotNull(predicate, nameof(predicate));
+
+            try
+            {
+                var result = await _context.Set<T>().Where(e => predicate(e)).ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
     }
 
 }

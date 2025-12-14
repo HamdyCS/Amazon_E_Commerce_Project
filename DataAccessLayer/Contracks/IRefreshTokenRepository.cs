@@ -11,6 +11,8 @@ namespace DataAccessLayer.Contracks
     {
         Task<RefreshToken> GetRefreshTokenByTokenAsync(string Token);
 
+        Task DeleteAllUserRefreshTokensByUserId(string userId);
+
         //bool CheckIfRefreshTokenIsActiveAsync(RefreshToken refreshToken);
     }
 }

@@ -22,6 +22,22 @@ namespace DataAccessLayer.Repositories
             _logger = logger;
         }
 
+        public async Task DeleteAllUserRefreshTokensByUserId(string userId)
+        {
+            try
+            {
+                var refreshTokens = await _context.RefreshTokens.Where(x=>x.UserId == userId).ToListAsync();
+
+                if (!refreshTokens.Any())
+                    return;
+
+                 _context.RefreshTokens.RemoveRange(refreshTokens);
+            }
+            catch (Exception ex) {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
         //public bool CheckIfRefreshTokenIsActiveAsync(RefreshToken refreshToken)
         //{
         //    if (refreshToken == null) throw new ArgumentNullException("Cannot be null", nameof(refreshToken));

@@ -71,7 +71,7 @@ namespace ApiLayer.Filters
             {
                 _logger.LogError(ex, "Error on CheckIfTokenIsValidMiddleWare. Error {error}", ex.Message);
                 context.HttpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                context.HttpContext.Response.WriteAsync($"Internal server error. {ex.Message}");
+               await context.HttpContext.Response.WriteAsync($"Internal server error. {ex.Message}");
             }
 
 
