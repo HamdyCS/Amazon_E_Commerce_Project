@@ -574,12 +574,12 @@ namespace DataAccessLayer.Repositories
                     return null;
 
                 //try to login to cheack if user in system or create it
-                var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
-                if (result is null)
+                var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+                if (signInResult is null)
                     return null;
 
-                //user found in system
-                if (result.Succeeded)
+                //check user signin before
+                if (signInResult.Succeeded)
                 {
                     var userInSystem = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
 
@@ -588,14 +588,18 @@ namespace DataAccessLayer.Repositories
                         return userInSystem;
                 }
 
-                //cheack if claims is not null
+
+
+                //check if claims is not null
                 if (info.Principal == null)
                     return null;
 
-                //user not found in system, create new user
 
                 //get user data from provider
                 var EmailCliam = info.Principal.FindFirst(ClaimTypes.Email);
+
+
+
 
                 //claims
                 var nameClaim = info.Principal.FindFirst(ClaimTypes.Name);
@@ -603,13 +607,28 @@ namespace DataAccessLayer.Repositories
                 var lastNameClaim = info.Principal.FindFirst(ClaimTypes.Surname);
                 var dateOfBirthClaim = info.Principal.FindFirst(ClaimTypes.DateOfBirth);
 
-                //data
+                //email
                 var Email = EmailCliam?.Value ?? null;
+
+                //check if not found any email
+                if (Email == null)
+                    return null;
+
+                //check if email exist => already register by email and password 
+                var userByEmail = await _userManager.FindByEmailAsync(Email);
+                if (userByEmail != null)
+                    return userByEmail;
+
+
+                //user info
                 var name = nameClaim?.Value ?? "";
                 var firstName = firstNameClaim?.Value ?? "";
                 var lastName = lastNameClaim?.Value ?? "";
                 DateTime? dateOfBirth = DateTime.TryParse(dateOfBirthClaim?.Value, out var date) ? date : null;
 
+
+
+                //************ Create new user ***********
 
                 //generate username
                 string userName = name;
@@ -663,6 +682,25 @@ namespace DataAccessLayer.Repositories
             {
                 _logger.LogError(ex, "Error on login by provider. Message: {message}", ex.Message);
                 throw;
+            }
+        }
+
+        public async Task<User> GetUserByRefreshTokenAsync(string token)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(token, nameof(token));
+
+            try
+            {
+                var refreshToken = await _context.RefreshTokens.Include(x=>x.user).FirstOrDefaultAsync(x=>x.Token == token);
+                if (refreshToken == null) return null;
+
+                return refreshToken.user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on get user by refresh token. Message: {message}", ex.Message);
+                throw;
+
             }
         }
     }

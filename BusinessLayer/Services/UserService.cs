@@ -542,12 +542,14 @@ namespace BusinessLayer.Servicese
         /// </summary>
         /// <param name="role">using it when create new user</param>
         /// <returns></returns>
-        public async Task<UserDto> LoginByProviderAsync(string role)
+        public async Task<UserDto> LoginByProviderAsync(string role)    
         {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(role ,nameof(role));
+
             try
             {
                 //login
-                var user = await _unitOfWork.userRepository.LoginByProviderAsync(Role.Customer);
+                var user = await _unitOfWork.userRepository.LoginByProviderAsync(role);
                 if (user is null) return null;
 
                 var userDto = _genericMapper.MapSingle<User, UserDto>(user);
@@ -556,6 +558,25 @@ namespace BusinessLayer.Servicese
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        public async Task<UserDto> GetUserByRefreshTokenAsync(string refreshToken)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(refreshToken, nameof(refreshToken));
+
+            try
+            {
+                var user = await _unitOfWork.userRepository.GetUserByRefreshTokenAsync(refreshToken);
+                if (user == null) return null;
+
+                //create userDto
+                var userDto = _genericMapper.MapSingle<User,UserDto>(user);
+                return userDto;
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
     }

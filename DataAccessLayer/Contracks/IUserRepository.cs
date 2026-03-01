@@ -53,5 +53,7 @@ namespace DataAccessLayer.Contracks
         AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl);
 
         Task<User> LoginByProviderAsync(string role);
+
+        Task<User> GetUserByRefreshTokenAsync(string refreshToken);
     }
 }

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Claims;
 
 namespace ApiLayer.Help
@@ -32,6 +33,23 @@ namespace ApiLayer.Help
                 return null;
             }
 
+        }
+
+        public static void AddAuthInfoToCookie(HttpResponse httpResponse,string token ,string? refreshToken = null)
+        {
+            var cookie = new Cookie();
+            var cookieOptions = new CookieOptions()
+            {
+                Secure = true,
+                HttpOnly = true,
+            };
+
+            //append to cookie
+            httpResponse.Cookies.Append("access_token", token, cookieOptions);
+            if (refreshToken != null)
+            {
+                httpResponse.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+            }
         }
     }
 

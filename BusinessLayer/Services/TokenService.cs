@@ -2,6 +2,7 @@
 using BusinessLayer.Exceptions;
 using BusinessLayer.Options;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -172,6 +173,21 @@ namespace BusinessLayer.Servicese
             var isRefreshTokensDeleted = await _CompleteAsync();
             
             return isRefreshTokensDeleted;
+        }
+
+        public async Task<bool> CheckIfRefreshTokenIsValidAsync(string refreshToken)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(refreshToken, nameof(refreshToken));
+
+            var RefreshToken = await _unitOfWork.refreshTokenRepository.GetRefreshTokenByTokenAsync(refreshToken);
+
+            //check if the refresh token exists and is active
+            if (refreshToken != null && RefreshToken.IsActive)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -49,5 +49,6 @@ namespace BusinessLayer.Contracks
         AuthenticationProperties CreateAuthenticationProperties(string provider, string redirectUrl);
 
         Task<UserDto> LoginByProviderAsync(string role);
+        Task<UserDto> GetUserByRefreshTokenAsync(string refreshToken);
     }
 }

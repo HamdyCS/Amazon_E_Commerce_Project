@@ -173,7 +173,15 @@ namespace BusinessLayer.Extensions
                         TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey.Substring(0, 16))),
                     };
 
-
+                    //get token from cookie not header
+                    opt.Events = new()
+                    {
+                        OnMessageReceived = (contex) =>
+                        {
+                            contex.Token = contex.Request.Cookies["access_token"];
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
 

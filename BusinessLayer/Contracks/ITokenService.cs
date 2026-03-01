@@ -15,6 +15,7 @@ namespace BusinessLayer.Contracks
 
         public Task<bool> CheckIfRefreshTokenIsActiveByUserIdAsync(string UserId,string RefreshTokenString);
         Task<bool> RemoveAllUserRefrechTokensByUserIdAsync(string userId);
+        Task<bool> CheckIfRefreshTokenIsValidAsync(string refreshToken);
 
         //public Task<string> CheckIfRefreshTokenIsActiveByEmailAsync(string Email, string RefreshTokenString);
 

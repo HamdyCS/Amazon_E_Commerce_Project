@@ -30,6 +30,17 @@ builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppD
 
 builder.Services.AddAutoMapper(typeof(PersonProfile));
 
+//cors/allowing origin to access the api
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebsite", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173").AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 //jwt options
 var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
 
@@ -155,6 +166,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseHttpsRedirection();
+app.UseCors("AllowWebsite"); // استخدام سياسة CORS
 app.UseAuthentication(); // إضافة المصادقة أولاً
 app.UseAuthorization();  // ثم التفويض
 app.UseRateLimiter();// عشان ال rate limter
