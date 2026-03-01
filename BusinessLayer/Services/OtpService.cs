@@ -76,7 +76,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> CheckIfOtpActiveAsync(OtpDto otpDto)
+        public async Task<bool> CheckIsOtpValidAsync(OtpDto otpDto)
         {
             ParamaterException.CheckIfObjectIfNotNull(otpDto, nameof(otpDto));
 
@@ -86,7 +86,7 @@ namespace BusinessLayer.Servicese
 
                 if (otp is null) return false;
 
-                return otp.IsActive;
+                return otp.IsActive && !otp.IsUsed;
 
             }
             catch (Exception ex)
@@ -95,24 +95,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> CheckIfOtpUsedAsync(OtpDto otpDto)
-        {
-            ParamaterException.CheckIfObjectIfNotNull(otpDto, nameof(otpDto));
-
-            try
-            {
-                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Code);
-
-                if (otp is null) return false;
-
-                return otp.IsUsed;
-
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
+        
 
         public async Task<OtpDto> GetByIdAsync(long id)
         {
@@ -156,11 +139,6 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> CheckIfOtpActiveAndNotUsedAsync(OtpDto otpDto)
-        {
-            bool IsCodeActive = await CheckIfOtpActiveAsync(otpDto);
-            bool IsCodeUsed = await CheckIfOtpUsedAsync(otpDto);
-            return IsCodeActive && !IsCodeUsed;
-        }
+      
     }
 }

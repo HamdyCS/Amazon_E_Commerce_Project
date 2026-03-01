@@ -10,7 +10,8 @@ namespace BusinessLayer.Dtos
 {
     public class UserDto
     {
-        public string Id { get; set; }
+        
+        public string? Id { get; set; }
 
         [Required]
         public string FirstName { get; set; }

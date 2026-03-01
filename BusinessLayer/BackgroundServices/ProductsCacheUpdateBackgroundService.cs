@@ -21,7 +21,7 @@ namespace BusinessLayer.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             //number of houers
-            int hours = _configuration.GetValue<int>("Redis:ProductsDurationInHoues");
+            int hours = _configuration.GetValue<int>("Redis:ProductsDurationInHours");
             while (!stoppingToken.IsCancellationRequested)
             {
                 try

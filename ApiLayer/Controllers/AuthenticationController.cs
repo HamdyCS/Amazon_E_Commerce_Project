@@ -160,18 +160,16 @@ namespace ApiLayer.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-
-
             try
             {
                 var NewUserDto = await _userService.AddNewUserByEmailAndCodeAsync(userDto, userDto.Email, otp);
-                if (NewUserDto is null) return BadRequest("Code is wrong or not active or user info is Eligible");
+                if (NewUserDto is null) return BadRequest("Code is wrong or not active or user didnot create successfuly");
 
                 var IsAddedToRole = await _userService.AddToRoleByIdAsync(NewUserDto.Id, new RoleDto { Name = Role.Customer });
                 if (!IsAddedToRole) return BadRequest("Cannot add to admin role");
 
                 var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(NewUserDto.Id);
-                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, new List<string> { Role.Customer });
+                var token = _tokenService.GenerateJwtToken(NewUserDto.Id, NewUserDto.Email, new List<string> { Role.Customer });
 
                 Helper.AddAuthInfoToCookie(Response,token, refreshToken);
 
@@ -529,7 +527,7 @@ namespace ApiLayer.Controllers
 
                 if (email is null) return Unauthorized("Email not found");
 
-                bool IsOtpActiveAndNotUsed = await _otpService.CheckIfOtpActiveAndNotUsedAsync(new OtpDto { Email = email, Code = otp });
+                bool IsOtpActiveAndNotUsed = await _otpService.CheckIsOtpValidAsync(new OtpDto { Email = email, Code = otp });
 
                 if
                     (IsOtpActiveAndNotUsed) return Ok(true);

@@ -177,7 +177,7 @@ namespace BusinessLayer.Servicese
             {
                 var otpDto = new OtpDto { Code = Code, Email = NewEmail };
 
-                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return false;
 
                 var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
@@ -369,7 +369,7 @@ namespace BusinessLayer.Servicese
 
                 var otpDto = new OtpDto { Email = Email, Code = code };
 
-                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return null;
 
                 var CheckIsEmailInSystem = await IsEmailExistAsync(Email);
@@ -440,7 +440,7 @@ namespace BusinessLayer.Servicese
                 var user = await _unitOfWork.userRepository.GetByEmailAsync(Email);
                 if (user is null) return false;
 
-                var IsOtpValid = await _otpService.CheckIfOtpActiveAndNotUsedAsync(otpDto);
+                var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return false;
 
 

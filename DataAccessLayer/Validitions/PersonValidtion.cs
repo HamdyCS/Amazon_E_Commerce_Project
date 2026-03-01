@@ -11,7 +11,15 @@ namespace DataAccessLayer.Validitions
     {
         public static ValidationResult DateOfBirthValidtion(DateTime DateOfBirth,ValidationContext validationContext)
         {
-            if ((DateTime.UtcNow.Year - DateOfBirth.Year) >= 18)
+            var dateNow = DateTime.UtcNow.Date;
+            int age = dateNow.Year - DateOfBirth.Year;
+
+            if(DateOfBirth > dateNow.AddYears(-age))
+            {
+                age--;
+            }
+
+            if (age >= 18)
                 return ValidationResult.Success;
 
             return new ValidationResult("Age must be greater than or equal to 18");

@@ -13,12 +13,9 @@ namespace BusinessLayer.Contracks
 
         Task<OtpDto> GetByIdAsync(long id);
 
-        Task<bool> CheckIfOtpActiveAsync(OtpDto otpDto);
-
-        Task<bool> CheckIfOtpUsedAsync(OtpDto otpDto);
+        Task<bool> CheckIsOtpValidAsync(OtpDto otpDto);
 
         Task<bool> MakeOtpUsedAsync(OtpDto otpDto);
 
-        Task<bool> CheckIfOtpActiveAndNotUsedAsync(OtpDto otpDto);
     }
 }
