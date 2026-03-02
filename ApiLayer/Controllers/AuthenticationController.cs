@@ -593,7 +593,7 @@ namespace ApiLayer.Controllers
             }
         }
 
-        [HttpGet("login/customar/github", Name = "LoginCustomarWithGithub")]
+        [HttpGet("login/customer/github", Name = "LoginCustomarWithGithub")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(302)]
@@ -611,7 +611,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("login/customar/google", Name = "LoginCustomarWithGoogle")]
+        [HttpGet("login/customer/google", Name = "LoginCustomarWithGoogle")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(302)]
@@ -634,7 +634,7 @@ namespace ApiLayer.Controllers
         [HttpGet("external-login-callback", Name = "ExternalLoginCallback")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 
         public async Task<ActionResult<ExternalLoginCallbackDto>> ExternalLoginCallback([FromQuery] string returnUrl, [FromQuery] string? remoteError)
@@ -645,6 +645,10 @@ namespace ApiLayer.Controllers
 
             if (!string.IsNullOrEmpty(remoteError))
                 return BadRequest($"Error from external provider: {remoteError}");
+
+            //validate return url
+            if (!Helper.IsValidReturnUrl(returnUrl))
+                return BadRequest("Invalid return url");
 
             try
             {
@@ -666,13 +670,10 @@ namespace ApiLayer.Controllers
                 var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(userDto.Id);
 
                 var tokenDto = new TokenDto { Token = token, RefreshToken = refreshToken };
-                var externalLoginCallbackDto = new ExternalLoginCallbackDto
-                {
-                    returnUrl = returnUrl,
-                    tokenDto = tokenDto
-                };
+               
+                Helper.AddAuthInfoToCookie(Response, token, refreshToken);
 
-                return Ok(externalLoginCallbackDto);
+                return Redirect(returnUrl);
 
             }
             catch (Exception ex)

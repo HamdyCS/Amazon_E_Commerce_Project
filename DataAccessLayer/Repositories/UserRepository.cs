@@ -573,20 +573,13 @@ namespace DataAccessLayer.Repositories
                 if (info is null)
                     return null;
 
-                //try to login to cheack if user in system or create it
-                var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
-                if (signInResult is null)
-                    return null;
 
-                //check user signin before
-                if (signInResult.Succeeded)
-                {
-                    var userInSystem = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                //check if user exist in system by provider key and provider name
+                var userInSystem = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
 
-                    //if user found return it
-                    if (userInSystem != null)
-                        return userInSystem;
-                }
+                //if user found return it
+                if (userInSystem != null)
+                    return userInSystem;
 
 
 
@@ -691,7 +684,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var refreshToken = await _context.RefreshTokens.Include(x=>x.user).FirstOrDefaultAsync(x=>x.Token == token);
+                var refreshToken = await _context.RefreshTokens.Include(x => x.user).FirstOrDefaultAsync(x => x.Token == token);
                 if (refreshToken == null) return null;
 
                 return refreshToken.user;

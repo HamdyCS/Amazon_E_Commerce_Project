@@ -5,6 +5,11 @@ namespace ApiLayer.Help
 {
     public static class Helper
     {
+
+        public static string[] AllowedOrigin = [
+            "http://localhost:5173/"
+            ];
+
         public static string? GetIdFromClaimsPrincipal(ClaimsPrincipal user)
         {
             if (user is null) return null;
@@ -13,11 +18,11 @@ namespace ApiLayer.Help
                 var Id = user.FindFirst(ClaimTypes.NameIdentifier).Value;
                 return Id;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
-            
+
         }
 
         public static string? GetEmailFromClaimsPrincipal(ClaimsPrincipal user)
@@ -35,7 +40,7 @@ namespace ApiLayer.Help
 
         }
 
-        public static void AddAuthInfoToCookie(HttpResponse httpResponse,string token ,string? refreshToken = null)
+        public static void AddAuthInfoToCookie(HttpResponse httpResponse, string token, string? refreshToken = null)
         {
             var cookie = new Cookie();
             var cookieOptions = new CookieOptions()
@@ -50,6 +55,14 @@ namespace ApiLayer.Help
             {
                 httpResponse.Cookies.Append("refresh_token", refreshToken, cookieOptions);
             }
+        }
+
+        public static bool IsValidReturnUrl(string returnUrl)
+        {
+            if (string.IsNullOrEmpty(returnUrl)) return false;
+
+            //check if the returnUrl is valid and is in the allowed origin list
+            return AllowedOrigin.Any(origin => returnUrl.StartsWith(origin));
         }
     }
 
