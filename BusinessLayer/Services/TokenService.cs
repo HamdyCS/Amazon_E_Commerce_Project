@@ -4,10 +4,12 @@ using BusinessLayer.Options;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -69,10 +71,14 @@ namespace BusinessLayer.Servicese
 
                 var NewRefreshTokenString = _GenerateRefreshToken();
 
+                //get the refresh token life time in days from configuration
+                double days = double.TryParse(_configuration["JwtRefreshToken:LifeTimeDays"], out double result) ? result : 0;
+
+
                 var refreshToken = new RefreshToken
                 {
                     CreatedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.UtcNow.AddDays(double.Parse(_configuration["JwtRefreshToken:LifeTimeDays"])),
+                    ExpiresAt = DateTime.UtcNow.AddDays(days),
                     UserId = UserId,
                     Token = NewRefreshTokenString
                 };
@@ -166,12 +172,12 @@ namespace BusinessLayer.Servicese
         public async Task<bool> RemoveAllUserRefrechTokensByUserIdAsync(string userId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
-          
+
 
             //remove all user refreshTokens
             await _unitOfWork.refreshTokenRepository.DeleteAllUserRefreshTokensByUserId(userId);
             var isRefreshTokensDeleted = await _CompleteAsync();
-            
+
             return isRefreshTokensDeleted;
         }
 
@@ -188,6 +194,30 @@ namespace BusinessLayer.Servicese
             }
 
             return false;
+        }
+
+        public void AddAuthInfoToCookie(HttpResponse httpResponse, string token, string? refreshToken = null)
+        {
+            //get the refresh token life time in days from configuration
+            double days = double.TryParse(_configuration["JwtRefreshToken:LifeTimeDays"], out double result) ? result : 0;
+
+            var cookie = new Cookie();
+            var cookieOptions = new CookieOptions()
+            {
+                Secure = true,
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(days),
+                SameSite = SameSiteMode.None,//ليس مسار الفرونت يساوي مسار الباك
+                Path = "/"
+                
+            };
+
+            //append to cookie
+            httpResponse.Cookies.Append("access_token", token, cookieOptions);
+            if (refreshToken != null)
+            {
+                httpResponse.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+            }
         }
     }
 }

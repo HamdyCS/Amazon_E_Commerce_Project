@@ -36,11 +36,11 @@ namespace BusinessLayer.Contracks
 
         public Task<bool> AddToRolesByIdAsync(string UserID, IEnumerable<RoleDto> rolesDtos);
 
-        public Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto, string Email, string code);
+        public Task<UserDto> AddNewUserByEmailAndOtp(UserDto userDto, string Email, string code);
 
         public Task<bool> IsEmailExistAsync(string Email);
 
-        public Task<bool> ResetPasswordByEmailAsync(string Email, string Password, string Code);
+        public Task<bool> ResetPasswordByEmailAsync(ResetPasswordDto resetPasswordDto);
 
         Task<bool> IsUserDeletedByIdAsync(string Id);
 

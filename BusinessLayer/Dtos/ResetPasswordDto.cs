@@ -7,14 +7,16 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class OtpDto
+    public class ResetPasswordDto
     {
-        public long Id { get; set; }
-
         [Required]
-        public string Otp { get; set; }
+        public string Password { get; set; }
 
         [Required,EmailAddress]
         public string Email { get; set; }
+
+        [Required]
+        public string Otp { get; set; }
     }
+    
 }

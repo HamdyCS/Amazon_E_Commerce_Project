@@ -5,7 +5,6 @@ namespace ApiLayer.Help
 {
     public static class Helper
     {
-
         public static string[] AllowedOrigin = [
             "http://localhost:5173/"
             ];
@@ -40,22 +39,7 @@ namespace ApiLayer.Help
 
         }
 
-        public static void AddAuthInfoToCookie(HttpResponse httpResponse, string token, string? refreshToken = null)
-        {
-            var cookie = new Cookie();
-            var cookieOptions = new CookieOptions()
-            {
-                Secure = true,
-                HttpOnly = true,
-            };
-
-            //append to cookie
-            httpResponse.Cookies.Append("access_token", token, cookieOptions);
-            if (refreshToken != null)
-            {
-                httpResponse.Cookies.Append("refresh_token", refreshToken, cookieOptions);
-            }
-        }
+      
 
         public static bool IsValidReturnUrl(string returnUrl)
         {

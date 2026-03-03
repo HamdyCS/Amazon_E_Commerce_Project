@@ -175,7 +175,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var otpDto = new OtpDto { Code = Code, Email = NewEmail };
+                var otpDto = new OtpDto { Otp = Code, Email = NewEmail };
 
                 var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return false;
@@ -357,7 +357,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<UserDto> AddNewUserByEmailAndCodeAsync(UserDto userDto, string Email, string code)
+        public async Task<UserDto> AddNewUserByEmailAndOtp(UserDto userDto, string Email, string code)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
@@ -367,7 +367,7 @@ namespace BusinessLayer.Servicese
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                var otpDto = new OtpDto { Email = Email, Code = code };
+                var otpDto = new OtpDto { Email = Email, Otp = code };
 
                 var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return null;
@@ -425,26 +425,25 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> ResetPasswordByEmailAsync(string Email, string Password, string Code)
+        public async Task<bool> ResetPasswordByEmailAsync(ResetPasswordDto resetPasswordDto)
         {
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(Password, nameof(Password));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(Code, nameof(Code));
+            ParamaterException.CheckIfObjectIfNotNull(resetPasswordDto, nameof(resetPasswordDto));
+          
 
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                var otpDto = new OtpDto { Email = Email, Code = Code };
+                var otpDto = new OtpDto { Email = resetPasswordDto.Email, Otp = resetPasswordDto.Otp };
 
-                var user = await _unitOfWork.userRepository.GetByEmailAsync(Email);
+                var user = await _unitOfWork.userRepository.GetByEmailAsync(resetPasswordDto.Email);
                 if (user is null) return false;
 
                 var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return false;
 
 
-                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(Email, Password);
+                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(resetPasswordDto.Email, resetPasswordDto.Password);
                 if (!IsPasswordUpdate) return false;
 
                 var IsotpUpdated = await _otpService.MakeOtpUsedAsync(otpDto);

@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class OtpDto
+    public class RegisterDto
     {
-        public long Id { get; set; }
-
         [Required]
         public string Otp { get; set; }
 
-        [Required,EmailAddress]
-        public string Email { get; set; }
+        [Required]
+        public UserDto userDto { get; set; }
     }
 }

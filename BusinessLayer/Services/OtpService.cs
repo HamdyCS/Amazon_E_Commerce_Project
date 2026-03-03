@@ -55,7 +55,7 @@ namespace BusinessLayer.Servicese
                     Email =  otpDto.Email,
                     CreatedAt = DateTime.UtcNow,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Otp:LifeTimeMin"])),
-                    Code = otpDto.Code,
+                    Code = otpDto.Otp,
                     IsUsed = false,
 
                 };
@@ -82,7 +82,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email,otpDto.Code);
+                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email,otpDto.Otp);
 
                 if (otp is null) return false;
 
@@ -122,7 +122,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Code);
+                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Otp);
 
                 if (otp is null) return false;
 
