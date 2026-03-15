@@ -232,6 +232,41 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public  void Update(T entity)
+        {
+            ParamaterException.CheckIfObjectIfNotNull(entity, nameof(entity));
+            try
+            {
+               _context.Set<T>().Update(entity);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+
+            }
+        }
+
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(entities, nameof(entities));
+            try
+            {
+                _context.Set<T>().UpdateRange(entities);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task UpdateRangeAsync(IEnumerable<long> ids, IEnumerable<T> entities)
+        {
+            for(int i = 0; i < ids.Count(); i++)
+            {
+                await UpdateAsync(ids.ElementAt(i), entities.ElementAt(i));
+            }
+        }
+
         public async Task<bool> IsExistByIdAsync(long Id)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
@@ -255,6 +290,8 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
         }
+
+       
     }
 
 }

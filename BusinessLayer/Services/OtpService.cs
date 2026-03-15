@@ -96,7 +96,6 @@ namespace BusinessLayer.Servicese
         }
 
         
-
         public async Task<OtpDto> GetByIdAsync(long id)
         {
            ParamaterException.CheckIfLongIsBiggerThanZero(id,nameof(id));

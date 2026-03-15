@@ -103,7 +103,7 @@ namespace ApiLayer.Controllers
                 var NewOptDto = await _otpService.AddNewOtpAsync(otpDto);
                 if (NewOptDto is null) return BadRequest("Cannot add new opt");
 
-                await _mailService.SendEmailAsync(otpDto.Email, "Confirmation code", otpDto.Otp);
+                await _mailService.SendOtpEmailAsync(otpDto.Email,otpDto.Otp);
 
                 return Ok("Send otp to email successfuly");
 
@@ -124,7 +124,7 @@ namespace ApiLayer.Controllers
 
         public async Task<ActionResult<TokenDto>> RegisterAdminUser([FromBody] RegisterDto registerDto)
         {
-       
+
 
             try
             {
@@ -134,12 +134,10 @@ namespace ApiLayer.Controllers
                 var IsAddedToRole = await _userService.AddToRoleByIdAsync(NewUserDto.Id, new RoleDto { Name = Role.Admin });
                 if (!IsAddedToRole) return BadRequest("Cannot add to admin role");
 
-                var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(NewUserDto.Id);
-                var token = _tokenService.GenerateJwtToken(NewUserDto.Id, NewUserDto.Email, new List<string> { Role.Admin });
+                //add roles
+                NewUserDto.Roles = new List<string> { Role.Admin };
 
-                var tokenDto = new TokenDto { Token = token, RefreshToken = refreshToken };
-
-                return Ok(tokenDto);
+                return Ok(NewUserDto);
 
             }
             catch (Exception ex)
@@ -154,9 +152,9 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> RegisterCustomerUser([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> RegisterCustomerUser([FromBody] RegisterDto registerDto)
         {
-        
+
             try
             {
                 var NewUserDto = await _userService.AddNewUserByEmailAndOtp(registerDto.userDto, registerDto.userDto.Email, registerDto.Otp);
@@ -168,13 +166,12 @@ namespace ApiLayer.Controllers
                 var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(NewUserDto.Id);
                 var token = _tokenService.GenerateJwtToken(NewUserDto.Id, NewUserDto.Email, new List<string> { Role.Customer });
 
-                _tokenService.AddAuthInfoToCookie(Response,token, refreshToken);
+                _tokenService.AddAuthInfoToCookie(Response, token, refreshToken);
 
+                //add roles
+                NewUserDto.Roles = new List<string> { Role.Customer };
 
-                return Ok(new
-                {
-                    message = "Register successfuly",
-                });
+                return Ok(NewUserDto);
 
             }
             catch (Exception ex)
@@ -190,9 +187,9 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterSellerUser([FromBody] RegisterDto  registerDto)
+        public async Task<ActionResult<UserDto>> RegisterSellerUser([FromBody] RegisterDto registerDto)
         {
-       
+
             try
             {
                 var NewUserDto = await _userService.AddNewUserByEmailAndOtp(registerDto.userDto, registerDto.userDto.Email, registerDto.Otp);
@@ -202,10 +199,10 @@ namespace ApiLayer.Controllers
                 var IsAddedToRole = await _userService.AddToRoleByIdAsync(NewUserDto.Id, new RoleDto { Name = Role.Seller });
                 if (!IsAddedToRole) return BadRequest("Cannot add to admin role");
 
-                return Ok(new
-                {
-                    message = "Register successfuly",
-                });
+
+                //add roles
+                NewUserDto.Roles = new List<string> { Role.Seller };
+                return Ok(NewUserDto);
             }
             catch (Exception ex)
             {
@@ -219,9 +216,9 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> RegisterDeliveryAgentUser([FromBody] RegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> RegisterDeliveryAgentUser([FromBody] RegisterDto registerDto)
         {
-         
+
 
             try
             {
@@ -231,12 +228,10 @@ namespace ApiLayer.Controllers
                 var IsAddedToRole = await _userService.AddToRoleByIdAsync(NewUserDto.Id, new RoleDto { Name = Role.DeliveryAgent });
                 if (!IsAddedToRole) return BadRequest("Cannot add to admin role");
 
+                //add roles
+                NewUserDto.Roles = new List<string> { Role.DeliveryAgent };
 
-
-                return Ok(new
-                {
-                    message = "Register successfuly",
-                });
+                return Ok(NewUserDto);
             }
             catch (Exception ex)
             {
@@ -250,7 +245,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenDto>> Login([FromBody] LoginDto loginDto)
+        public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -260,24 +255,15 @@ namespace ApiLayer.Controllers
                 if (userDto is null) return Unauthorized("Invaild email or password");
 
 
-                var userRoles = await _userService.GetAllUserRolesByIdAsync(userDto.Id);
-                if (userRoles is null) return BadRequest("Invaild get user roles");
 
-                var userRolesString = new List<string>();
-                foreach (var role in userRoles) userRolesString.Add(role.Name);
-
-
-                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, userRolesString);
+                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, userDto.Roles);
                 var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(userDto.Id);
 
 
                 _tokenService.AddAuthInfoToCookie(Response, token, refreshToken);
 
 
-                return Ok(new
-                {
-                    message = "Login successfuly",
-                });
+                return Ok(userDto);
             }
             catch (Exception ex)
             {
@@ -289,20 +275,24 @@ namespace ApiLayer.Controllers
 
 
         [HttpPut("reset-password", Name = "ResetPassword")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult<TokenDto>> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto )
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
-           //if(!ModelState.IsValid) return BadRequest(ModelState);// موجود تلقائي في [ApiController] مش محتاج يكتب
+            //if(!ModelState.IsValid) return BadRequest(ModelState);// موجود تلقائي في [ApiController] مش محتاج يكتب
             try
             {
                 var IsResetedPassword = await _userService.ResetPasswordByEmailAsync(resetPasswordDto);
                 if (!IsResetedPassword) return BadRequest("Cannot reseted password");
 
-                return Ok("Changed password successfuly");
+                return Ok(new
+                {
+                    message = "Reseted password successfuly"
+                });
 
             }
             catch (Exception ex)
@@ -319,11 +309,9 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult<TokenDto>> UpdatePassword([FromBody] string NewPassword)
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto updatePasswordDto)
         {
-            if (string.IsNullOrEmpty(NewPassword))
-                return BadRequest("Newpassword cannot be null or empty");
-
+         
             try
             {
                 if (User is null) return StatusCode(StatusCodes.Status403Forbidden);
@@ -331,10 +319,14 @@ namespace ApiLayer.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
                 if (userId == null) return Unauthorized();
 
-                var IsUpdatedPassword = await _userService.UpdatePasswordAsync(userId, NewPassword);
+                var IsUpdatedPassword = await _userService.UpdatePasswordAsync(userId, updatePasswordDto);
                 if (!IsUpdatedPassword) return BadRequest("Cannot updated password");
 
-                return Ok("Changed password successfuly");
+                return Ok(new
+                {
+                    message = "Changed password successfuly"
+                });
+
 
             }
             catch (Exception ex)
@@ -395,7 +387,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult> DeleteAccount()
+        public async Task<IActionResult> DeleteAccount()
         {
 
             try
@@ -405,9 +397,16 @@ namespace ApiLayer.Controllers
 
                 var IsUserDeleted = await _userService.DeleteByIdAsync(userId);
 
-                if (IsUserDeleted) return Ok("Deleted accont successfuly");
-                else
+                if (!IsUserDeleted)
                     return BadRequest("Cannot delete user");
+
+
+                return Ok(new
+                {
+                    message = "Deleted accont successfuly"
+                });
+
+
             }
             catch (Exception ex)
             {
@@ -432,9 +431,13 @@ namespace ApiLayer.Controllers
 
                 var IsUserDeleted = await _userService.DeleteByIdAsync(Id);
 
-                if (IsUserDeleted) return Ok("Deleted accont successfuly");
-                else
+                if (!IsUserDeleted)
                     return BadRequest("Cannot delete user or user not found");
+
+                return Ok(new
+                {
+                    message = "Deleted accont successfuly"
+                });
             }
             catch (Exception ex)
             {
@@ -450,20 +453,24 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult> UpdateEmail([FromBody] string NewEmail, [FromQuery] string Code)
+        public async Task<ActionResult> UpdateEmail([FromBody] UpdateEmailDto updateEmailDto)
         {
-            if (string.IsNullOrEmpty(NewEmail)) return BadRequest("New Email Cannot be null or empty");
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userId is null) return BadRequest("User id is null");
 
-                bool IsEmailUpdated = await _userService.UpdateEmailAsync(userId, NewEmail, Code);
+                bool IsEmailUpdated = await _userService.UpdateEmailAsync(userId, updateEmailDto);
 
                 if
-                    (IsEmailUpdated) return Ok("Updated email successfuly");
-                else
+                    (!IsEmailUpdated)
                     return BadRequest("Cannot update email");
+
+                return Ok(new
+                {
+                    message = "Updated email successfuly"
+                });
+
             }
             catch (Exception ex)
             {
@@ -480,20 +487,19 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 
-        public async Task<ActionResult> UpdateUserInfo([FromBody] UserDto userDto)
+        public async Task<ActionResult<UserDto>> UpdateUserInfo([FromBody] UpdateUserDto updateUserDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (userId is null) return Unauthorized("UserId not found");
 
-                bool IsUserUpdated = await _userService.UpdateUserByIdAsync(userId, userDto);
+                var userDto = await _userService.UpdateUserByIdAsync(userId, updateUserDto);
 
-                if
-                    (IsUserUpdated) return Ok("Updated user info successfuly");
-                else
-                    return BadRequest("Cannot update user info");
+                if (userDto == null) return BadRequest("Cannot update user info");
+
+                return Ok(userDto);
+
             }
             catch (Exception ex)
             {
@@ -547,10 +553,10 @@ namespace ApiLayer.Controllers
                 if (refreshToken == null) return Unauthorized();
 
                 //check if refresh token is valid
-                 var IsValidRefreshToken = await _tokenService.CheckIfRefreshTokenIsValidAsync(refreshToken);
+                var IsValidRefreshToken = await _tokenService.CheckIfRefreshTokenIsValidAsync(refreshToken);
 
                 //get user from refresh token
-                var userDto = await _userService.GetUserByRefreshTokenAsync(refreshToken);       
+                var userDto = await _userService.GetUserByRefreshTokenAsync(refreshToken);
                 if (userDto == null) return Unauthorized();
 
                 var userId = userDto.Id;
@@ -559,13 +565,10 @@ namespace ApiLayer.Controllers
                 var IsRefreshTokenActive = await _tokenService.CheckIfRefreshTokenIsActiveByUserIdAsync(userId, refreshToken);
                 if (!IsRefreshTokenActive) return Unauthorized();
 
-                var userRolesDto = await _userService.GetAllUserRolesByIdAsync(userId);
-                if (userRolesDto is null) return Unauthorized();
 
-                var userRoles = userRolesDto.Select(r => r.Name).ToArray();
-                var token = _tokenService.GenerateJwtToken(userId, Email, userRoles);
+                var token = _tokenService.GenerateJwtToken(userId, Email, userDto.Roles);
 
-                if(token == null)
+                if (token == null)
                     return Unauthorized();
 
                 //append to cookie
@@ -646,20 +649,13 @@ namespace ApiLayer.Controllers
                 if (userDto == null)
                     return Unauthorized("Cannot login by provider");
 
-                //get user roles
-                var userRoles = await _userService.GetAllUserRolesByIdAsync(userDto.Id);
-                if (userRoles is null) return BadRequest("Invaild get user roles");
-
-                //convert userRoles to string of user roles
-                var userRolesString = new List<string>();
-                foreach (var role in userRoles) userRolesString.Add(role.Name);
 
                 //jwt
-                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, userRolesString);
+                var token = _tokenService.GenerateJwtToken(userDto.Id, userDto.Email, userDto.Roles);
                 var refreshToken = await _tokenService.AddNewRefreshTokenByUserIdAsync(userDto.Id);
 
                 var tokenDto = new TokenDto { Token = token, RefreshToken = refreshToken };
-               
+
                 _tokenService.AddAuthInfoToCookie(Response, token, refreshToken);
 
                 return Redirect(returnUrl);

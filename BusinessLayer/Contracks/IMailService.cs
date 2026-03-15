@@ -8,6 +8,8 @@ namespace BusinessLayer.Contracks
 {
     public interface IMailService
     {
+        public Task SendOtpEmailAsync(string email, string otp);
+
         public Task SendEmailAsync(string email, string subject, string body);
     }
 }

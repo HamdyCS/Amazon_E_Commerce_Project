@@ -68,6 +68,8 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentStatus> PaymentStatuses { get; set; }
 
+    public virtual DbSet<Banner> Banners { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
@@ -440,6 +442,16 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
             entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
             entity.Property(e => e.Name).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Banner>(entity =>
+        {
+            entity.ToTable("Banners").HasKey(e => e.Id);
+            entity.HasIndex(e => e.DisplayOrder);
+            entity.Property(e=>e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+
+            entity.HasQueryFilter(b=> !b.IsDeleted);
         });
 
         //to enable Login with providers

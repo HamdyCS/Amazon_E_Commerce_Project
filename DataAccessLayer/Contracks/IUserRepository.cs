@@ -25,7 +25,6 @@ namespace DataAccessLayer.Contracks
 
         public Task<User> GetByEmailAsync(string Email);
 
-
         public Task<long> GetCountAsync();
 
         public Task<User> GetUserByEmailAndPasswordAsync(string email, string password);

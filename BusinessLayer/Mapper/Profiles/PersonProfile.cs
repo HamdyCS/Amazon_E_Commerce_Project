@@ -19,6 +19,9 @@ namespace BusinessLayer.Mapper.Profiles
             CreateMap<Person, UserDto>().ForMember(u => u.Id, opt => opt.Ignore());
             CreateMap<UserDto, Person>().ForMember(p=>p.Id, opt => opt.Ignore());
 
+            CreateMap<Person, UpdateUserDto>().ReverseMap();
+            CreateMap<PersonDto, UpdateUserDto>().ReverseMap();
+
         }
     }
 }

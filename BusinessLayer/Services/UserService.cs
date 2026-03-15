@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using System.Net.Mail;
 
-namespace BusinessLayer.Servicese
+namespace BusinessLayer.Servicesep
 {
     public class UserService : IUserService
     {
@@ -41,7 +41,15 @@ namespace BusinessLayer.Servicese
 
                 if (user is null) return null;
 
+                var personDto = await _personService.FindByIdAsync(user.PersonId);
                 var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+
+                _genericMapper.MapSingle(personDto, userDto);
+
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
 
                 return userDto;
             }
@@ -85,6 +93,11 @@ namespace BusinessLayer.Servicese
 
                 _genericMapper.MapSingle(person, userDto);
 
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
+
                 return userDto;
             }
             catch (Exception ex)
@@ -105,12 +118,15 @@ namespace BusinessLayer.Servicese
                 foreach (var user in users)
                 {
                     var userDto = _genericMapper.MapSingle<User, UserDto>(user);
-                    if (userDto is null) return null;
 
-                    var person = await _personService.FindByIdAsync(user.PersonId);
-                    if (person is null) return null;
-
+                    //person
+                    var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(user.PersonId);
                     _genericMapper.MapSingle(person, userDto);
+
+                    //roles
+                    var roles = await GetAllUserRolesByIdAsync(user.Id);
+                    if (roles is not null)
+                        userDto.Roles = roles.Select(r => r.Name);
 
                     usersDtos.Add(userDto);
                 }
@@ -149,13 +165,17 @@ namespace BusinessLayer.Servicese
                 List<UserDto> usersDtos = new();
                 foreach (var user in users)
                 {
+
                     var userDto = _genericMapper.MapSingle<User, UserDto>(user);
-                    if (userDto is null) return null;
 
-                    var person = await _personService.FindByIdAsync(user.PersonId);
-                    if (person is null) return null;
-
+                    //person
+                    var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(user.PersonId);
                     _genericMapper.MapSingle(person, userDto);
+
+                    //roles
+                    var roles = await GetAllUserRolesByIdAsync(user.Id);
+                    if (roles is not null)
+                        userDto.Roles = roles.Select(r => r.Name);
 
                     usersDtos.Add(userDto);
                 }
@@ -167,39 +187,37 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateEmailAsync(string Id, string NewEmail, string Code)
+        public async Task<bool> UpdateEmailAsync(string Id, UpdateEmailDto updateEmailDto)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewEmail, nameof(NewEmail));
+            ParamaterException.CheckIfObjectIfNotNull(updateEmailDto, nameof(updateEmailDto));
 
 
-            try
-            {
-                var otpDto = new OtpDto { Otp = Code, Email = NewEmail };
+            var otpDto = new OtpDto { Otp = updateEmailDto.Otp, Email = updateEmailDto.Email };
 
-                var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
-                if (!IsOtpValid) return false;
+            var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
+            if (!IsOtpValid) throw new Exception("Otp not valid");
 
-                var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
+            //check if email exist in system
+            var CheckIsEmailInSystem = await IsEmailExistAsync(updateEmailDto.Email);
+            if (CheckIsEmailInSystem) throw new Exception("Email is already exist");
 
-                if (user is null) return false;
 
-                var NewUserName = new MailAddress(NewEmail).User;
+            var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
+            if (user is null) throw new KeyNotFoundException("User not found");
 
-                var result = await _unitOfWork.userRepository.UpdateEmailByIdAsync(Id, NewEmail, NewUserName);
+            //get userName from email
+            var NewUserName = new MailAddress(updateEmailDto.Email).User;
+            var result = await _unitOfWork.userRepository.UpdateEmailByIdAsync(Id, updateEmailDto.Email, NewUserName);
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            return result;
+
         }
 
-        public async Task<bool> UpdatePasswordAsync(string Id, string NewPassword)
+        public async Task<bool> UpdatePasswordAsync(string Id, UpdatePasswordDto updatePasswordDto)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(NewPassword, nameof(NewPassword));
+            ParamaterException.CheckIfObjectIfNotNull(updatePasswordDto, nameof(updatePasswordDto));
 
             try
             {
@@ -207,7 +225,7 @@ namespace BusinessLayer.Servicese
                 if (user is null) return false;
 
 
-                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByEmailAsync(user.Email, NewPassword);
+                var IsPasswordUpdate = await _unitOfWork.userRepository.UpdatePasswordByIdAsync(user.Id, updatePasswordDto.OldPassword, updatePasswordDto.NewPassword);
                 return IsPasswordUpdate;
             }
             catch (Exception ex)
@@ -357,17 +375,17 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<UserDto> AddNewUserByEmailAndOtp(UserDto userDto, string Email, string code)
+        public async Task<UserDto> AddNewUserByEmailAndOtp(UserDto userDto, string Email, string otp)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(code, nameof(code));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(otp, nameof(otp));
             ParamaterException.CheckIfObjectIfNotNull(userDto, nameof(userDto));
 
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                var otpDto = new OtpDto { Email = Email, Otp = code };
+                var otpDto = new OtpDto { Email = Email, Otp = otp };
 
                 var IsOtpValid = await _otpService.CheckIsOtpValidAsync(otpDto);
                 if (!IsOtpValid) return null;
@@ -384,6 +402,8 @@ namespace BusinessLayer.Servicese
 
                 var user = _genericMapper.MapSingle<UserDto, User>(userDto);
                 if (user is null) return null;
+
+                _genericMapper.MapSingle(personDto, user);
 
                 user.CreatedAt = DateTime.UtcNow;
                 user.PersonId = personDto.Id;
@@ -428,7 +448,7 @@ namespace BusinessLayer.Servicese
         public async Task<bool> ResetPasswordByEmailAsync(ResetPasswordDto resetPasswordDto)
         {
             ParamaterException.CheckIfObjectIfNotNull(resetPasswordDto, nameof(resetPasswordDto));
-          
+
 
             try
             {
@@ -474,23 +494,35 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateUserByIdAsync(string Id, UserDto userDto)
+        public async Task<UserDto> UpdateUserByIdAsync(string Id, UpdateUserDto updateUserDto)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Id, nameof(Id));
-            ParamaterException.CheckIfObjectIfNotNull(userDto, nameof(userDto));
+            ParamaterException.CheckIfObjectIfNotNull(updateUserDto, nameof(updateUserDto));
 
             try
             {
                 var user = await _unitOfWork.userRepository.GetByIdAsync(Id);
-                if (user is null) return false;
+                if (user is null) return null;
 
-                var personDto = _genericMapper.MapSingle<UserDto, PersonDto>(userDto);
-                if (personDto is null) return false;
+                var personDto = _genericMapper.MapSingle<UpdateUserDto, PersonDto>(updateUserDto);
+                if (personDto is null) return null;
 
                 var IsPersonUpdated = await _personService.UpdateByIdAsync(user.PersonId, personDto);
 
+                if (!IsPersonUpdated) return null;
 
-                return IsPersonUpdated;
+                //get updated user info
+                user = await _unitOfWork.userRepository.GetByIdAsync(Id);
+
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+                _genericMapper.MapSingle(updateUserDto, userDto);
+
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
+
+                return userDto;
             }
             catch (Exception ex)
             {
@@ -515,6 +547,11 @@ namespace BusinessLayer.Servicese
                 if (user is null) return null;
 
                 _genericMapper.MapSingle(person, userDto);
+
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
 
                 return userDto;
             }
@@ -541,9 +578,9 @@ namespace BusinessLayer.Servicese
         /// </summary>
         /// <param name="role">using it when create new user</param>
         /// <returns></returns>
-        public async Task<UserDto> LoginByProviderAsync(string role)    
+        public async Task<UserDto> LoginByProviderAsync(string role)
         {
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(role ,nameof(role));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(role, nameof(role));
 
             try
             {
@@ -552,6 +589,15 @@ namespace BusinessLayer.Servicese
                 if (user is null) return null;
 
                 var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+                var personDto = await _personService.FindByIdAsync(user.PersonId);
+
+                _genericMapper.MapSingle(personDto, userDto);
+
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
+
                 return userDto;
             }
             catch (Exception ex)
@@ -569,8 +615,19 @@ namespace BusinessLayer.Servicese
                 var user = await _unitOfWork.userRepository.GetUserByRefreshTokenAsync(refreshToken);
                 if (user == null) return null;
 
-                //create userDto
-                var userDto = _genericMapper.MapSingle<User,UserDto>(user);
+                var userDto = _genericMapper.MapSingle<User, UserDto>(user);
+
+                var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(user.PersonId);
+
+                if (user is null) return null;
+
+                _genericMapper.MapSingle(person, userDto);
+
+                //roles
+                var roles = await GetAllUserRolesByIdAsync(user.Id);
+                if (roles is not null)
+                    userDto.Roles = roles.Select(r => r.Name);
+
                 return userDto;
             }
             catch (Exception ex)

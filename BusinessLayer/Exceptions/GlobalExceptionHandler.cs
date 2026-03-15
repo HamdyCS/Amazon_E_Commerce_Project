@@ -32,9 +32,14 @@ namespace BusinessLayer.Exceptions
             if (exception is ArgumentNullException)
                 statusCode = StatusCodes.Status400BadRequest;
 
+            if (exception is ArgumentOutOfRangeException)
+                statusCode = StatusCodes.Status400BadRequest;
 
             if (exception is KeyNotFoundException)
                 statusCode = StatusCodes.Status404NotFound;
+
+            if (exception is InvalidOperationException)
+                statusCode = StatusCodes.Status400BadRequest;
 
             //update response
             httpContext.Response.StatusCode = statusCode;

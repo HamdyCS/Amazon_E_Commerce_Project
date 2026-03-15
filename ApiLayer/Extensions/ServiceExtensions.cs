@@ -2,7 +2,9 @@
 using BusinessLayer.Mapper;
 using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Options;
+using BusinessLayer.Services;
 using BusinessLayer.Servicese;
+using BusinessLayer.Servicesep;
 using DataAccessLayer.Contracks;
 using DataAccessLayer.Repositories;
 using DataAccessLayer.UnitOfWork;
@@ -82,6 +84,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IOrderApplicationSummaryService, OrderApplicationSummaryService>();
 
+            services.AddScoped<IBannerService, BannerService>();
+
             return services;
 
         }
@@ -139,6 +143,8 @@ namespace BusinessLayer.Extensions
             services.AddScoped<IPaymentRepository, PaymentRepository>();
 
             services.AddScoped<IDeliveryOrderRepository, DeliveryOrderRepository>();
+
+            services.AddScoped<IBannerRepository, BannerRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

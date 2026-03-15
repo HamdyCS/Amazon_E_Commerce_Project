@@ -4,10 +4,14 @@ using BusinessLayer.Exceptions;
 using BusinessLayer.Extensions;
 using BusinessLayer.Mapper.Profiles;
 using BusinessLayer.Options;
+using BusinessLayer.Validations;
 using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
+using FluentValidation;
+using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using Stripe;
 
 
@@ -28,7 +32,18 @@ builder.Services.AddDbContext<AppDbContext>
     (o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString"))/*.AddInterceptors(new SoftDeleteInterceptor())*/);
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
 
+//auto mapper
 builder.Services.AddAutoMapper(typeof(PersonProfile));
+
+//fluent validation
+//includeInternalTypes (include public and internal classes)
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateBannerDtoValidition>();
+builder.Services.AddFluentValidationAutoValidation(opt =>
+{
+    //enable automatic validation for body and form binding sources [FromBody] and [FromForm]
+    opt.EnableBodyBindingSourceAutomaticValidation = true;
+    opt.EnableFormBindingSourceAutomaticValidation = true;
+});
 
 //cors/allowing origin to access the api
 builder.Services.AddCors(options =>

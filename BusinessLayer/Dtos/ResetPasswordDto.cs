@@ -12,11 +12,12 @@ namespace BusinessLayer.Dtos
         [Required]
         public string Password { get; set; }
 
-        [Required,EmailAddress]
+        [Required, EmailAddress]
         public string Email { get; set; }
 
         [Required]
         public string Otp { get; set; }
     }
-    
+
+
 }

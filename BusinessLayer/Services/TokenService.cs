@@ -129,6 +129,7 @@ namespace BusinessLayer.Servicese
             if (!string.IsNullOrEmpty(Email)) claims.Add(new Claim(ClaimTypes.Email, Email));
 
 
+            //add roles claims
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
 

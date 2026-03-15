@@ -8,11 +8,8 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class UserDto
+    public class UpdateUserDto
     {
-        
-        public string? Id { get; set; }
-
         [Required]
         public string FirstName { get; set; }
 
@@ -23,15 +20,7 @@ namespace BusinessLayer.Dtos
         [Required, CustomValidation(typeof(PersonValidtion), "DateOfBirthValidtion")]
         public DateTime DateOfBirth { get; set; }
 
-        [Required,Phone]
+        [Required, Phone]
         public string PhoneNumber { get; set; }
-
-        [Required]
-        public string Email { get; set; }
-
-        [Required,MinLength(6),MaxLength(10)]
-        public string Password { get; set; }
-
-        public IEnumerable<string> Roles { get; set; }
     }
 }

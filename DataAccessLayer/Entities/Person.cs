@@ -1,4 +1,4 @@
-﻿using DataAccessLayer.Validitions;
+﻿using DataAccessLayer.Validations;
 using System.ComponentModel.DataAnnotations;
 
 namespace DataAccessLayer.Entities;

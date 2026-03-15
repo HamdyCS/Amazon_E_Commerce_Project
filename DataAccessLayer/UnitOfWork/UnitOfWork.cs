@@ -9,7 +9,7 @@ namespace DataAccessLayer.UnitOfWork
     {
         private readonly AppDbContext _context;
         private readonly ILogger<UnitOfWork> _logger;
-
+        private readonly IBannerRepository _bannerRepository;
 
         public ICityRepository cityRepository { get; private set; }
         public IPersonRepository personRepository { get; private set; }
@@ -57,6 +57,8 @@ namespace DataAccessLayer.UnitOfWork
 
         public IDeliveryOrderRepository deliveryOrderRepository { get; private set; }
 
+        public IBannerRepository bannerRepository { get; private set; }
+
         public UnitOfWork(AppDbContext context, ILogger<UnitOfWork> logger,
             ICityRepository cityRepository, IPersonRepository personRepository,
             IRefreshTokenRepository refreshTokenRepository, IRoleManagerRepository roleManagerRepository,
@@ -72,7 +74,7 @@ namespace DataAccessLayer.UnitOfWork
             IPaymentTypeRepository paymentTypeRepository,
             IApplicationRepository applicationRepository, IApplicationOrderTypeRepository applicationOrderTypeRepository,
             IApplicationOrderRepository applicationOrderRepository, IPaymentRepository paymentRepository,
-            IDeliveryOrderRepository deliveryOrderRepository)
+            IDeliveryOrderRepository deliveryOrderRepository,IBannerRepository bannerRepository)
         {
             this._context = context;
             this._logger = logger;
@@ -103,6 +105,7 @@ namespace DataAccessLayer.UnitOfWork
             this.applicationOrderRepository = applicationOrderRepository;
             this.paymentRepository = paymentRepository;
             this.deliveryOrderRepository = deliveryOrderRepository;
+            this.bannerRepository = bannerRepository;
         }
 
         public async Task BeginTransactionAsync()

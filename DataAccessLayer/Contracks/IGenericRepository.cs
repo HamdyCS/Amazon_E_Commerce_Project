@@ -18,6 +18,8 @@
 
         public Task UpdateAsync(long Id, T entity);
 
+        public Task UpdateRangeAsync(IEnumerable<long> ids,IEnumerable<T> entities);
+
         public Task DeleteAsync(long id);
 
         public Task DeleteRangeAsync(IEnumerable<long> Ids);
@@ -29,6 +31,10 @@
         Task<bool> IsExistByIdAsync(long Id);
 
         Task<IEnumerable<T>> FilterAsync(Predicate<T> predicate);
+
+        public void Update(T entity);
+
+        public void UpdateRange(IEnumerable<T> entities);
 
     }
 
