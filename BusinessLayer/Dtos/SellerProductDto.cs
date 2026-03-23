@@ -21,5 +21,8 @@ namespace BusinessLayer.Dtos
         [Required]
 
         public long ProductId { get; set; }
+
+        public ProductDto? Product { get; set; }
+       
     }
 }

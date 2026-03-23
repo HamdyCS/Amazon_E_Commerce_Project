@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Exceptions;
+using DataAccessLayer.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -157,6 +158,25 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public virtual async Task<PaginationResult<T>> GetPaginatedDataAsync(int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            try
+            {
+                var TotalCount = await _context.Set<T>().CountAsync();
+                var data = await _context.Set<T>().AsNoTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+
+                return new PaginationResult<T> (data, TotalCount, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+
+            }
+        }
+
         public async Task<IEnumerable<T>> GetAllAsTrackingAsync()
         {
             try
@@ -169,7 +189,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<T> GetByIdAsTrackingAsync(long id)
+        public virtual async Task<T> GetByIdAsTrackingAsync(long id)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
 
@@ -185,7 +205,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<T> GetByIdAsNoTrackingAsync(long id)
+        public virtual async Task<T> GetByIdAsNoTrackingAsync(long id)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
 
@@ -291,7 +311,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-       
+      
     }
 
 }

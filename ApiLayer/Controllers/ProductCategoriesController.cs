@@ -10,7 +10,6 @@ namespace ApiLayer.Controllers
 {
     [Route("api/product-categories")]
     [ApiController]
-    [Authorize(Roles = Role.Admin)]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
 
     public class ProductCategoriesController : ControllerBase
@@ -27,6 +26,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
+
         public async Task<ActionResult<ProductCategoryDto>> GetById(long Id)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero");
@@ -162,7 +162,6 @@ namespace ApiLayer.Controllers
 
 
         [HttpPost("", Name = "AddProductCategory")]
-        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(201)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -190,7 +189,6 @@ namespace ApiLayer.Controllers
 
 
         [HttpPost("range", Name = "AddRangeOfProductCategories")]
-        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -218,7 +216,6 @@ namespace ApiLayer.Controllers
 
 
         [HttpPut("{Id}", Name = "UpdateProductCategoryById")]
-        [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

@@ -1,4 +1,6 @@
-﻿namespace DataAccessLayer.Contracks
+﻿using DataAccessLayer.Pagination;
+
+namespace DataAccessLayer.Contracks
 {
     public interface IGenericRepository<T> where T : class
     {
@@ -26,6 +28,8 @@
 
         public Task<IEnumerable<T>> GetPagedDataAsNoTractingAsync(int pageNumber, int pageSize);
 
+        public Task<PaginationResult<T>> GetPaginatedDataAsync(int pageNumber, int pageSize);
+
         public Task<IEnumerable<T>> GetPagedDataAsTractingAsync(int pageNumber, int pageSize);
 
         Task<bool> IsExistByIdAsync(long Id);
@@ -35,6 +39,7 @@
         public void Update(T entity);
 
         public void UpdateRange(IEnumerable<T> entities);
+
 
     }
 

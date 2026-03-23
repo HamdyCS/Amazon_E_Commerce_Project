@@ -25,7 +25,7 @@ namespace DataAccessLayer.UnitOfWork.Contracks
 
         public ISellerProductRepository sellerProductRepository { get; }
 
-        public ISellerProductReviewRepository sellerProductReviewRepository { get; }
+        public IProductReviewRepository productReviewRepository { get; }
 
         public ICityWhereDeliveyWorkRepository CitiyWhereDeliveyWorkRepository { get; }
 

@@ -33,7 +33,7 @@ namespace DataAccessLayer.UnitOfWork
 
         public ISellerProductRepository sellerProductRepository { get; private set; }
 
-        public ISellerProductReviewRepository sellerProductReviewRepository { get; private set; }
+        public IProductReviewRepository productReviewRepository { get; private set; }
 
         public ICityWhereDeliveyWorkRepository CitiyWhereDeliveyWorkRepository { get; private set; }
 
@@ -68,7 +68,7 @@ namespace DataAccessLayer.UnitOfWork
             IProductCategoryRepository productCategoryRepository, IBrandRepository brandRepository,
             IProductSubCategoryRepository productSubCategoryRepository, IProductImageRepository productImageRepository
             , IProductRepository productRepository, ISellerProductRepository sellerProductRepository,
-            ISellerProductReviewRepository sellerProductReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
+            IProductReviewRepository productReviewRepository, ICityWhereDeliveyWorkRepository citiyWhereDeliveyWorkRepository,
             IShoppingCartRepository shoppingCartRepository, ISellerProductInShoppingCartRepository productsInShoppingCartRepository,
             IApplicationTypeRepository applicationTypeRepository, IShippingCostRepository shippingCostRepository,
             IPaymentTypeRepository paymentTypeRepository,
@@ -92,7 +92,7 @@ namespace DataAccessLayer.UnitOfWork
             this.productImageRepository = productImageRepository;
             this.productRepository = productRepository;
             this.sellerProductRepository = sellerProductRepository;
-            this.sellerProductReviewRepository = sellerProductReviewRepository;
+            this.productReviewRepository = productReviewRepository;
             this.CitiyWhereDeliveyWorkRepository = citiyWhereDeliveyWorkRepository;
             this.shoppingCartRepository = shoppingCartRepository;
             this.SellerProductsInShoppingCartRepository = productsInShoppingCartRepository;

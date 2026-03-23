@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace DataAccessLayer.Entities;
 
-public partial class SellerProductReview
+public partial class ProductReview
 {
     public long Id { get; set; }
 
@@ -26,7 +26,7 @@ public partial class SellerProductReview
 
     public DateTime? DateOfDeletion { get; set; }
 
-    public long SellerProductId { get; set; }
+    public long ProductId { get; set; }
 
-    public virtual SellerProduct? SellerProduct { get; set; }
+    public virtual Product? Product { get; set; }
 }

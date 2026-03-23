@@ -17,6 +17,8 @@ namespace BusinessLayer.Contracks
 
         public Task<IEnumerable<SellerProductDto>> GetAllSellerProductsBySellerIdAsync(string sellerId);
 
+        public Task<PaginationResultDto<SellerProductDto>> GetAllPagedAsync(int pageNumber, int pageSize);
+
         public Task<SellerProductDto> AddAsync(SellerProductDto sellerProductDto, string UserId);
 
         public Task<IEnumerable<SellerProductDto>> AddRangeAsync(IEnumerable<SellerProductDto> sellerProductDtosList, string UserId);

@@ -3,6 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Pagination;
 using DataAccessLayer.UnitOfWork.Contracks;
 using System;
 using System.Collections.Generic;
@@ -127,7 +128,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            var sellerProduct = await _unitOfWork.sellerProductRepository.GetSellerProductByIdAndSellerIdAsync(Id,UserId);
+            var sellerProduct = await _unitOfWork.sellerProductRepository.GetSellerProductByIdAndSellerIdAsync(Id, UserId);
             if (sellerProduct is null) return false;
 
             await _unitOfWork.sellerProductRepository.DeleteAsync(Id);
@@ -136,7 +137,7 @@ namespace BusinessLayer.Servicese
 
             return IsSellerProductDeleted;
         }
-        
+
         public async Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids)
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(Ids, nameof(Ids));
@@ -158,11 +159,11 @@ namespace BusinessLayer.Servicese
         public async Task<SellerProductDto> FindByIdAsync(long id)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
-           
+
             var sellerProduct = await _unitOfWork.sellerProductRepository.GetByIdAsTrackingAsync(id);
             if (sellerProduct is null) return null;
 
-            var sellerProductDto = _genericMapper.MapSingle<SellerProduct,SellerProductDto>(sellerProduct);
+            var sellerProductDto = _genericMapper.MapSingle<SellerProduct, SellerProductDto>(sellerProduct);
             return sellerProductDto;
 
         }
@@ -192,7 +193,7 @@ namespace BusinessLayer.Servicese
 
             var sellerProductsList = await _unitOfWork.sellerProductRepository.GetAllSellerProductsBySellerIdAsync(sellerId);
 
-            if (sellerProductsList is null ||!sellerProductsList.Any())
+            if (sellerProductsList is null || !sellerProductsList.Any())
                 return null;
 
             var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,
@@ -211,9 +212,9 @@ namespace BusinessLayer.Servicese
             if (productDto == null) return null;
 
             var sellerProductsList = await _unitOfWork.sellerProductRepository.
-                GetPagedDataAsNoTrackingByProductIdAsync(pageNumber,pageSize,productId);
+                GetPagedDataAsNoTrackingByProductIdAsync(pageNumber, pageSize, productId);
 
-            if (sellerProductsList == null|| !sellerProductsList.Any())
+            if (sellerProductsList == null || !sellerProductsList.Any())
                 return null;
 
             var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,
@@ -222,19 +223,19 @@ namespace BusinessLayer.Servicese
             return sellerProductsDtosList;
         }
 
-        public async Task<bool> UpdateByIdAndUserIdAsync(long Id,string sellerId, SellerProductDto sellerProductDto)
+        public async Task<bool> UpdateByIdAndUserIdAsync(long Id, string sellerId, SellerProductDto sellerProductDto)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(sellerId, nameof(sellerId));
             ParamaterException.CheckIfObjectIfNotNull(sellerProductDto, nameof(sellerProductDto));
 
-            var sellerProduct = await _unitOfWork.sellerProductRepository.GetSellerProductByIdAndSellerIdAsync(Id,sellerId);
-            if(sellerProduct == null) return false;
+            var sellerProduct = await _unitOfWork.sellerProductRepository.GetSellerProductByIdAndSellerIdAsync(Id, sellerId);
+            if (sellerProduct == null) return false;
 
             var productDto = await _productService.FindByIdAsync(sellerProductDto.ProductId);
             if (productDto == null) return false;
 
-            _genericMapper.MapSingle(sellerProductDto,sellerProduct);
+            _genericMapper.MapSingle(sellerProductDto, sellerProduct);
 
             await _unitOfWork.sellerProductRepository.UpdateAsync(Id, sellerProduct);
 
@@ -243,6 +244,51 @@ namespace BusinessLayer.Servicese
             return IsSellerProductUpdate;
         }
 
-        
+        public async Task<PaginationResultDto<SellerProductDto>> GetAllPagedAsync(int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            // Get paginated data from the repository
+            var pagedSellerProducts = await _unitOfWork.sellerProductRepository.GetPaginatedDataAsync(pageNumber, pageSize);
+
+            if (pagedSellerProducts == null || !pagedSellerProducts.Data.Any())
+                return null;
+
+
+            // Map the paginated data to DTOs
+            var sellerProductsDtosList = _genericMapper.MapCollection<SellerProduct,
+                SellerProductDto>(pagedSellerProducts.Data);
+
+            // Map the product images for each seller product DTO
+            sellerProductsDtosList.Select((s, i) =>
+            {
+                // Map the product images to ImageDto
+                var productImages = pagedSellerProducts.Data.ElementAt(i)?.Product?.ProductImages;
+                if (productImages == null || !productImages.Any() || s.Product == null)
+                {
+                    return s;
+                }
+                var productImageDtos = _genericMapper.MapCollection<ProductImage, ProductImageDto>(productImages);
+                var imageDtos = _genericMapper.MapCollection<ProductImageDto, ImageDto>(productImageDtos);
+
+                if (imageDtos != null)
+                { 
+                    s.Product.Images = imageDtos.ToList(); 
+                }
+
+                return s;
+            });
+
+            //add the mapped data to pagination result DTO
+            var paginationResultDto = new PaginationResultDto<SellerProductDto>
+            {
+                Data = sellerProductsDtosList,
+            };
+
+            // Map the pagination metadata
+            _genericMapper.MapSingle(pagedSellerProducts, paginationResultDto);
+            return paginationResultDto;
+        }
     }
 }

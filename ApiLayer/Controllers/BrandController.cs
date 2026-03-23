@@ -10,7 +10,6 @@ namespace ApiLayer.Controllers
 {
     [Route("api/brands")]
     [ApiController]
-    [Authorize(Roles = Role.Admin)]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
 
     public class BrandsController : ControllerBase

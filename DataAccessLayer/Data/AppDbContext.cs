@@ -50,7 +50,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<ProductImage> ProductImages { get; set; }
 
-    public virtual DbSet<SellerProductReview> SellerProductReviews { get; set; }
+    public virtual DbSet<ProductReview> ProductReview { get; set; }
 
     public virtual DbSet<SellerProductInShoppingCart> SellerProductsInShoppingCarts { get; set; }
 
@@ -332,19 +332,19 @@ public class AppDbContext : IdentityDbContext<User>
 
         });
 
-        modelBuilder.Entity<SellerProductReview>(entity =>
+        modelBuilder.Entity<ProductReview>(entity =>
         {
+            entity.ToTable("ProductReviews");
             entity.HasKey(e => e.Id).HasName("PK__ProductR__3214EC07ADEC10FB");
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.Message).HasMaxLength(1000);
 
-            entity.HasOne(d => d.SellerProduct).WithMany(p => p.SellerProductReviews)
-                .HasForeignKey(d => d.SellerProductId)
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductReviews)
+                .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_ProductReviews_SellerProductId");
 
             entity.HasQueryFilter(e => !e.IsDeleted);
-
 
         });
 

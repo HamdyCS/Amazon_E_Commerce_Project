@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class SellerProductReviewDto
+    public class ProductReviewDto
     {
         public long Id { get; set; }
 
@@ -24,6 +24,6 @@ namespace BusinessLayer.Dtos
         public string Name { get; set; }
 
         [Required,Range(1,5,ErrorMessage = "SellerProductId must be bigger than zero")]
-        public long SellerProductId { get; set; }
+        public long ProductId { get; set; }
     }
 }

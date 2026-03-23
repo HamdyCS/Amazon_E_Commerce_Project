@@ -11,33 +11,33 @@ using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/seller-product-review")]
+    [Route("api/products/{productId}/reviews")]
     [ApiController]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
 
-    public class SellerProductReviewsController : ControllerBase
+    public class ProductReviewsController : ControllerBase
     {
-        private readonly ISellerProductReviewService _sellerProductReviewService;
+        private readonly IProductReviewService _productReviewService;
 
-        public SellerProductReviewsController(ISellerProductReviewService sellerProductReviewService)
+        public ProductReviewsController(IProductReviewService productReviewService)
         {
-            _sellerProductReviewService = sellerProductReviewService;
+            _productReviewService = productReviewService;
         }
 
-        [HttpGet("average-of-stars/seller-product-id/{SellerProductId}", Name = "GetAverageOfStarsBySellerProductIdAsync")]
+        [HttpGet("avg", Name = "GetAverageOfStarsByProductIdAsync")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<double>> GetAverageOfStarsBySellerProductIdAsync(long SellerProductId)
+        public async Task<ActionResult<double>> GetAverageOfStarsByProductIdAsync(long productId)
         {
-            if (SellerProductId < 1) return BadRequest("Id must be bigger than zero.");
+            if (productId < 1) return BadRequest("Id must be bigger than zero.");
 
             try
             {
-               var AvgOfStars = await _sellerProductReviewService.GetAverageOfStarsBySellerProductIdAsync(SellerProductId);
+               var AvgOfStars = await _productReviewService.GetAverageOfStarsByProductIdAsync(productId);
 
-                if (AvgOfStars < 0) return NotFound("Not found any seller product review.");
+                if (AvgOfStars < 0) return NotFound("Not found any product review.");
 
                 return Ok(AvgOfStars);
             }
@@ -48,22 +48,22 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("{Id}", Name = "GetSellerProductReviewById")]
+        [HttpGet("{Id}", Name = "GetProductReviewById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<SellerProductReviewDto>> GetById(long Id)
+        public async Task<ActionResult<ProductReviewDto>> GetById(long Id)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
             try
             {
-                var sellerProductReview = await _sellerProductReviewService.FindByIdAsync(Id);
+                var productReview = await _productReviewService.FindByIdAsync(Id);
 
-                if (sellerProductReview == null) return NotFound($"Not found seller product review. Id = {Id}");
+                if (productReview == null) return NotFound($"Not found product review. Id = {Id}");
 
-                return Ok(sellerProductReview);
+                return Ok(productReview);
             }
             catch (Exception ex)
             {
@@ -72,22 +72,22 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("all-seller-product-reviews/seller-product-id/{SellerProductId}", Name = "GetAllSellerProductReviewsBySellerProductId")]
+        [HttpGet("all", Name = "GetAllProductReviewsByProductId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<SellerProductReviewDto>> GetAllSellerProductReviewsBySellerProductId(long SellerProductId)
+        public async Task<ActionResult<ProductReviewDto>> GetAllProductReviewsBySellerProductId(long productId)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(SellerProductId, nameof(SellerProductId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
             try
             {
-                var sellerProductReviewsDtosList = await _sellerProductReviewService.GetAllSellerProductReviewsBySellerProductIdAsync(SellerProductId);
+                var productReviewsDtosList = await _productReviewService.GetAllProductReviewsByProductIdAsync(productId);
 
-                if (sellerProductReviewsDtosList == null || !sellerProductReviewsDtosList.Any())
-                    return NotFound($"Didnot find any seller product review.");
+                if (productReviewsDtosList == null || !productReviewsDtosList.Any())
+                    return NotFound($"Didnot find any product review.");
 
-                return Ok(sellerProductReviewsDtosList);
+                return Ok(productReviewsDtosList);
             }
             catch (Exception ex)
             {
@@ -96,23 +96,23 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("paged/seller-product-id/{SellerProductId}", Name = "GetPagedSellerProductReviewsBySellerProductId")]
+        [HttpGet("all-paged", Name = "GetPagedProductReviewsBySellerProductId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<SellerProductReviewDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize,long SellerProductId)
+        public async Task<ActionResult<IEnumerable<ProductReviewDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize,long productId)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
 
             try
             {
-                var sellerProductReviewsDtosList = await _sellerProductReviewService.GetPagedSellerProductReviewsBySellerProductIdAsync(pageNumber, pageSize, SellerProductId);
+                var productReviewsDtosList = await _productReviewService.GetPagedProductReviewsByProductIdAsync(pageNumber, pageSize, productId);
 
-                if (sellerProductReviewsDtosList == null || !sellerProductReviewsDtosList.Any())
-                    return NotFound($"Didnot find any seller product review.");
+                if (productReviewsDtosList == null || !productReviewsDtosList.Any())
+                    return NotFound($"Didnot find any product review.");
 
-                return Ok(sellerProductReviewsDtosList);
+                return Ok(productReviewsDtosList);
             }
             catch (Exception ex)
             {
@@ -122,13 +122,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("", Name = "AddNewSellerProductReview")]
+        [HttpPost("", Name = "AddNewProductReview")]
         [Authorize]
         [ProducesResponseType(201)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<SellerProductReviewDto>> AddNew(SellerProductReviewDto sellerProductReviewDto)
+        public async Task<ActionResult<ProductReviewDto>> AddNew(ProductReviewDto productReviewDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -137,11 +137,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var NewSellerProductReviewDto = await _sellerProductReviewService.AddAsync(sellerProductReviewDto, UserId);
+                var NewProductReviewDto = await _productReviewService.AddAsync(productReviewDto, UserId);
 
-                if (NewSellerProductReviewDto == null) return BadRequest("Cannot add new seller product review.");
+                if (NewProductReviewDto == null) return BadRequest("Cannot add new product review.");
 
-                return CreatedAtRoute("GetSellerProductReviewById", new { Id = NewSellerProductReviewDto.Id }, NewSellerProductReviewDto);
+                return CreatedAtRoute("GetProductReviewById", new { Id = NewProductReviewDto.Id }, NewProductReviewDto);
             }
             catch (Exception ex)
             {
@@ -150,12 +150,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPut("{Id}", Name = "UpdateSellerProductReviewById")]
+        [HttpPut("{Id}", Name = "UpdateProductReviewById")]
         [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateById([FromRoute] long Id, [FromBody] SellerProductReviewDto sellerProductReviewDto)
+        public async Task<ActionResult<string>> UpdateById([FromRoute] long Id, [FromBody] ProductReviewDto productReviewDto)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
@@ -167,11 +167,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var IsSellerProductReviewUpdated = await _sellerProductReviewService.UpdateByIdAndUserIdAsync(Id, UserId, sellerProductReviewDto);
+                var IsProductReviewUpdated = await _productReviewService.UpdateByIdAndUserIdAsync(Id, UserId, productReviewDto);
 
-                if (!IsSellerProductReviewUpdated) return BadRequest("Cannot Update seller product review.");
+                if (!IsProductReviewUpdated) return BadRequest("Cannot Update product review.");
 
-                return Ok("Updated seller product review successfully.");
+                return Ok("Updated product review successfully.");
             }
             catch (Exception ex)
             {
@@ -180,7 +180,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpDelete("admin/{Id}", Name = "DeleteSellerProductReviewById")]
+        [HttpDelete("{Id}/admin", Name = "DeleteProductReviewById")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -191,11 +191,11 @@ namespace ApiLayer.Controllers
 
             try
             {
-                var IsSellerProductReviewDeleted = await _sellerProductReviewService.DeleteByIdAsync(Id);
+                var IsProductReviewDeleted = await _productReviewService.DeleteByIdAsync(Id);
 
-                if (!IsSellerProductReviewDeleted) return BadRequest("Cannot Delete seller product review.");
+                if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
 
-                return Ok("Deleted seller product review successfully.");
+                return Ok("Deleted product review successfully.");
             }
             catch (Exception ex)
             {
@@ -218,11 +218,11 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var IsSellerReviewProductDeleted = await _sellerProductReviewService.DeleteByIdAndUserIdAsync(Id, UserId);
+                var IsProductReviewDeleted = await _productReviewService.DeleteByIdAndUserIdAsync(Id, UserId);
 
-                if (!IsSellerReviewProductDeleted) return BadRequest("Cannot Delete seller product review.");
+                if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
 
-                return Ok("Deleted seller product review successfully.");
+                return Ok("Deleted product review successfully.");
             }
             catch (Exception ex)
             {

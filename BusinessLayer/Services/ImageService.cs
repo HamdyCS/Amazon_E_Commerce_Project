@@ -123,7 +123,7 @@ namespace BusinessLayer.Servicese
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while deleting image. {ex.Message}");
-                throw;
+                return false;
             }
         }
 

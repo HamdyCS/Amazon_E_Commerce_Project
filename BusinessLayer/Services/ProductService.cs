@@ -149,9 +149,23 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
 
             var IsProductExist = await _unitOfWork.productRepository.IsExistByIdAsync(Id);
-            if (!IsProductExist) return false;
+            if (!IsProductExist) throw new KeyNotFoundException($"There is no product with this ID: {Id}");
 
             await _unitOfWork.productRepository.DeleteAsync(Id);
+
+
+            //delete product images from image server
+            var productImagesDtos = await _productImageService.FindAllProductImagesByProductIdAsync(Id);
+
+            if (productImagesDtos is not null || productImagesDtos.Any())
+            {
+                var ImageDtos = _genericMapper.MapCollection<ProductImageDto, ImageDto>(productImagesDtos);
+                var isImagesDeletedFromServer = await _imageService.DeleteImagesAsync(ImageDtos);
+            }
+
+            //delete product images
+            await _productImageService.DeleteAllProductImagesByProductIdAsync(Id);
+
 
             var IsDeleted = await _CompleteAsync();
 
@@ -162,16 +176,30 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(Ids, nameof(Ids));
 
+
             foreach (var id in Ids)
             {
-                var IsExist = await _unitOfWork.productCategoryRepository.IsExistByIdAsync(id);
-
-                if (!IsExist) return false;
+                var IsProductExist = await _unitOfWork.productCategoryRepository.IsExistByIdAsync(id);
+                if (!IsProductExist) throw new KeyNotFoundException($"There is no product with this ID: {id}");
             }
 
             await _unitOfWork.productRepository.DeleteRangeAsync(Ids);
-
             var IsDeleted = await _CompleteAsync();
+
+
+
+            //delete product images from image server
+            foreach (var id in Ids)
+            {
+                //delete product images from image server
+                var productImagesDtos = await _productImageService.FindAllProductImagesByProductIdAsync(id);
+
+                if (productImagesDtos is not null || productImagesDtos.Any())
+                {
+                    var ImageDtos = _genericMapper.MapCollection<ProductImageDto, ImageDto>(productImagesDtos);
+                    var isImagesDeletedFromServer = await _imageService.DeleteImagesAsync(ImageDtos);
+                }
+            }
 
             return IsDeleted;
         }

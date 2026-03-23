@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Mapper.Profiles
 {
-    public class SellerProductReviewProfile : Profile
+    public class ProductReviewProfile : Profile
     {
-        public SellerProductReviewProfile()
+        public ProductReviewProfile()
         {
-            CreateMap<SellerProductReviewDto, SellerProductReview>().ForMember(e=>e.Id,
+            CreateMap<ProductReviewDto, ProductReview>().ForMember(e=>e.Id,
                 opt=>opt.Ignore());
 
-            CreateMap<SellerProductReview, SellerProductReviewDto>();
+            CreateMap<ProductReview, ProductReviewDto>();
         }
     }
 }

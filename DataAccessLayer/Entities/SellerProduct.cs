@@ -26,7 +26,6 @@ public partial class SellerProduct
 
     public virtual User? Seller {  get; set; }
 
-    public virtual ICollection<SellerProductReview> SellerProductReviews { get; set; } = new List<SellerProductReview>();
 
     public virtual ICollection<SellerProductInShoppingCart> ProductsInShoppingCarts { get; set; } = new List<SellerProductInShoppingCart>();
 }

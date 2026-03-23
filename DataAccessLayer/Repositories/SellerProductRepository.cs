@@ -2,6 +2,7 @@
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
+using DataAccessLayer.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -59,8 +60,8 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
             try
             {
-                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Where(e=>e.ProductId == productId)
-                    .Skip(pageSize*(pageNumber-1)).Take(pageSize).ToListAsync();
+                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Where(e => e.ProductId == productId)
+                    .Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToListAsync();
                 return sellerProductsList;
 
             }
@@ -78,7 +79,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var sellerProduct = await _context.SellerProducts.FirstOrDefaultAsync(e=>e.Id == sellerProductId
+                var sellerProduct = await _context.SellerProducts.FirstOrDefaultAsync(e => e.Id == sellerProductId
                 && e.SellerId == sellerId);
 
                 return sellerProduct;
@@ -107,7 +108,46 @@ namespace DataAccessLayer.Repositories
             }
         }
 
+        public override async Task<PaginationResult<SellerProduct>> GetPaginatedDataAsync(int pageNumber, int pageSize)
+        {
 
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            try
+            {
+                var TotalCount = await _context.SellerProducts.CountAsync();
+                var data = await _context.SellerProducts.Include(s => s.Product).
+                    ThenInclude(p => p.ProductImages).Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).ToListAsync();
+
+                return new PaginationResult<SellerProduct>(data, TotalCount, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+
+            }
+
+        }
+
+        public override async Task<SellerProduct> GetByIdAsTrackingAsync(long id)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
+            try
+            {
+                var sellerProduct = await _context.SellerProducts.Include(s=>s.Product).
+                    ThenInclude(p=>p.ProductImages).
+                    FirstOrDefaultAsync(e => e.Id == id);
+
+                return sellerProduct;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+
+        }
 
         //public async Task<IEnumerable<SellerProductReview>> GetSellerProductReviewsBySellerProductIdAsync(long SellerProductId)
         //{

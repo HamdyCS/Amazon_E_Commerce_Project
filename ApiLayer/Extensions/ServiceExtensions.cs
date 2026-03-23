@@ -56,7 +56,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ISellerProductService, SellerProductService>();
 
-            services.AddScoped<ISellerProductReviewService, SellerProductReviewService>();
+            services.AddScoped<IProductReviewService, ProductReviewService>();
 
             services.AddScoped<ICityWhereDeliveyWorkService, CityWhereDeliveyWorkService>();
 
@@ -120,7 +120,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<ISellerProductRepository, SellerProductRepository>();
 
-            services.AddScoped<ISellerProductReviewRepository, SellerProductReviewRepository>();
+            services.AddScoped<IProductReviewRepository, ProductReviewRepository>();
 
             services.AddScoped<ICityWhereDeliveyWorkRepository, CityWhereDeliveyWorkRepository>();
 

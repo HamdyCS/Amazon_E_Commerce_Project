@@ -46,7 +46,23 @@ namespace ApiLayer.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-       
+
+        [HttpGet("all", Name = "GetAllPaged")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PaginationResultDto<SellerProductDto>>> GetAllPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            if (pageNumber < 1) return BadRequest("pageNumber must be bigger than zero.");
+            if (pageSize < 1) return BadRequest("pageSize must be bigger than zero.");
+
+            var sellerProductsDtosList = await _SellerProductService.GetAllPagedAsync(pageNumber, pageSize);
+            if (sellerProductsDtosList == null || !sellerProductsDtosList.Data.Any())
+                return NotFound($"Didnot find any seller product.");
+
+            return Ok(sellerProductsDtosList);
+        }
+
         [HttpGet("all-seller-product/product-id/{ProductId}", Name = "GetAllSellerProductsByProductId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -54,7 +70,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(500)]
         public async Task<ActionResult<SellerProductDto>> GetAllSellerProductsByProductId(long ProductId)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(ProductId,nameof(ProductId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
             try
             {
                 var sellerProductsDtosList = await _SellerProductService.GetAllByProductIdOrderByPriceAscAsync(ProductId);
@@ -111,7 +127,7 @@ namespace ApiLayer.Controllers
 
             try
             {
-              
+
                 var sellerProductsDtosList = await _SellerProductService.GetAllSellerProductsBySellerIdAsync(UserId);
 
                 if (sellerProductsDtosList == null || !sellerProductsDtosList.Any())
@@ -125,7 +141,7 @@ namespace ApiLayer.Controllers
             }
 
         }
-        
+
 
         [HttpPost("", Name = "AddNewSellerProduct")]
         [Authorize(Roles = Role.Seller)]
@@ -200,7 +216,7 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var IsSellerProductUpdated = await _SellerProductService.UpdateByIdAndUserIdAsync(Id,UserId,sellerProductDto);
+                var IsSellerProductUpdated = await _SellerProductService.UpdateByIdAndUserIdAsync(Id, UserId, sellerProductDto);
 
                 if (!IsSellerProductUpdated) return BadRequest("Cannot Update seller product.");
 
@@ -251,7 +267,7 @@ namespace ApiLayer.Controllers
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
                 if (UserId == null) return Unauthorized();
 
-                var IsSellerProductDeleted = await _SellerProductService.DeleteByIdAndUserIdAsync(Id,UserId);
+                var IsSellerProductDeleted = await _SellerProductService.DeleteByIdAndUserIdAsync(Id, UserId);
 
                 if (!IsSellerProductDeleted) return BadRequest("Cannot Delete seller product.");
 
