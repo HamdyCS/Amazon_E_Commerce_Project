@@ -2,9 +2,10 @@
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
+using DataAccessLayer.Pagination;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Drawing.Printing;
 
 namespace DataAccessLayer.Repositories
@@ -140,7 +141,7 @@ namespace DataAccessLayer.Repositories
                     if (commend == null) return null;
                     await _context.Database.GetDbConnection().OpenAsync();
 
-                    var sql = "select CountOfDeliveryApplicationOrder = \r\n(\r\nSELECT  count = Count(ApplicationOrders.Id)  \r\nFROM            Products INNER JOIN\r\n                         SellerProducts ON Products.Id = SellerProducts.ProductId INNER JOIN\r\n                         ProductsInShoppingCarts ON SellerProducts.Id = ProductsInShoppingCarts.SellerProductId\r\n\t\t\t\t\t\t INNER JOIN\r\n                         ShoppingCarts ON ProductsInShoppingCarts.ShoppingCartId = ShoppingCarts.Id INNER JOIN\r\n                         ApplicationOrders ON ShoppingCarts.Id = ApplicationOrders.ShoppingCartId\r\n\t\t\t\t\t\t where ApplicationOrders.ApplicationOrderTypeId = 3 and Products.Id = P.Id \r\n),p.* from Products as p\r\nwhere p.IsDeleted = 0\r\norder by CountOfDeliveryApplicationOrder desc\r\n\r\noffset (@PageNumber-1)*@PageSize rows \r\nfetch next @PageSize rows only ";
+                    var sql = "select CountOfDeliveryApplicationOrder = SELECT  count = Count(ApplicationOrders.Id)  \r\nFROM            Products INNER JOIN\r\n                         SellerProducts ON Products.Id = SellerProducts.ProductId INNER JOIN\r\n                         ProductsInShoppingCarts ON SellerProducts.Id = ProductsInShoppingCarts.SellerProductId\r\n\t\t\t\t\t\t INNER JOIN\r\n                         ShoppingCarts ON ProductsInShoppingCarts.ShoppingCartId = ShoppingCarts.Id INNER JOIN\r\n                         ApplicationOrders ON ShoppingCarts.Id = ApplicationOrders.ShoppingCartId\r\n\t\t\t\t\t\t where ApplicationOrders.ApplicationOrderTypeId = 3 and Products.Id = P.Id \r\n),p.* from Products as p\r\nwhere p.IsDeleted = 0\r\norder by CountOfDeliveryApplicationOrder desc\r\n\r\noffset (@PageNumber-1)*@PageSize rows \r\nfetch next @PageSize rows only ";
 
                     commend.CommandText = sql;
 

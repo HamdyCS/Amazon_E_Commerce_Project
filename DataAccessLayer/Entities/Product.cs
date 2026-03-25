@@ -36,6 +36,10 @@ public partial class Product
 
     public virtual User user { get; set; }
 
+    public long RatingCount { get; set; }
+
+    public decimal AvgRating { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DateOfDeletion { get; set; }

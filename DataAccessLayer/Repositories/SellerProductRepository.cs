@@ -118,8 +118,8 @@ namespace DataAccessLayer.Repositories
             {
                 var TotalCount = await _context.SellerProducts.CountAsync();
                 var data = await _context.SellerProducts.Include(s => s.Product).
-                    ThenInclude(p => p.ProductImages).Skip((pageNumber - 1) * pageSize).
-                    Take(pageSize).ToListAsync();
+                    ThenInclude(p => p.ProductImages).OrderBy(s => s.Id).Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).AsSplitQuery().ToListAsync();
 
                 return new PaginationResult<SellerProduct>(data, TotalCount, pageNumber, pageSize);
             }
@@ -148,6 +148,101 @@ namespace DataAccessLayer.Repositories
             }
 
         }
+
+        public async Task<PaginationResult<SellerProduct>> GetPagedByProductSubCategoryIdAsync(long productSubCategoryId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productSubCategoryId, nameof(productSubCategoryId));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            try
+            {
+                var query = _context.SellerProducts.
+                    Where(s => s.Product.ProductSubCategoryId == productSubCategoryId);
+
+                var totalCount = await query.CountAsync();
+
+                if (totalCount == 0)
+                    return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
+
+                var data = await query.Include(s=>s.Product).
+                    ThenInclude(p=>p.ProductImages).OrderBy(s => s.Id)
+                    .Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).AsSplitQuery().ToListAsync();
+
+
+                return new PaginationResult<SellerProduct>(data, totalCount, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+
+        }
+
+        public async Task<PaginationResult<SellerProduct>> GetPagedByProductCategoryIdAsync(long productCategoryId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productCategoryId, nameof(productCategoryId));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            try
+            {
+                var query = _context.SellerProducts.
+                    Where(s => s.Product.ProductSubCategory.ProductCategoryId == productCategoryId);
+
+                var totalCount = await query.CountAsync();
+
+                if (totalCount == 0)
+                    return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
+
+                var data = await query.Include(s => s.Product).ThenInclude(p => p.ProductImages).
+                    OrderBy(s=>s.Id)
+                    .Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).AsSplitQuery().ToListAsync();
+
+
+                return new PaginationResult<SellerProduct>(data, totalCount, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+
+        }
+
+        public async Task<PaginationResult<SellerProduct>> GetPagedByBrandIdAsync(long brandId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(brandId, nameof(brandId));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            try
+            {
+                var query = _context.SellerProducts.
+                    Where(s => s.Product.BrandId == brandId);
+
+                var totalCount = await query.CountAsync();
+
+                if (totalCount == 0)
+                    return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
+
+                var data = await query.Include(s => s.Product).ThenInclude(p => p.ProductImages).
+                    OrderBy(s => s.Id)
+                    .Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).AsSplitQuery().ToListAsync();
+
+
+                return new PaginationResult<SellerProduct>(data, totalCount, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+
+        }
+
+
 
         //public async Task<IEnumerable<SellerProductReview>> GetSellerProductReviewsBySellerProductIdAsync(long SellerProductId)
         //{

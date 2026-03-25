@@ -283,6 +283,9 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.HasIndex(e => e.NameEn);
             entity.HasIndex(e => e.NameAr);
+
+            entity.Property(p=>p.RatingCount).HasDefaultValue(0);
+            entity.Property(p => p.AvgRating).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<ProductCategory>(entity =>

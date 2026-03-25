@@ -15,7 +15,6 @@ namespace DataAccessLayer.Contracks
 
         Task<ProductReview> GetProductReviewByIdAndUserIdAsync(long Id, string UserId);
 
-        Task<IEnumerable<ProductReview>> GetAllSellerProductReviewsWithUserInfoByProductIdAsync(long productId);
 
         Task<IEnumerable<ProductReview>> GetPagedProductReviewsWithUserInfoByProductIdAsync(int PageNumber, int PageSize, long ProductId);
 

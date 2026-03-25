@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260324120229_Add RatingCount and AvgRating to Products")]
+    partial class AddRatingCountandAvgRatingtoProducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -499,10 +502,8 @@ namespace DataAccessLayer.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal>("AvgRating")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18,2)")
-                        .HasDefaultValue(0m);
+                    b.Property<long?>("AvgRating")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("BrandId")
                         .HasColumnType("bigint");
@@ -551,10 +552,8 @@ namespace DataAccessLayer.Migrations
                     b.Property<long>("ProductSubCategoryId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("RatingCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L);
+                    b.Property<long?>("RatingCount")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Size")
                         .IsRequired()

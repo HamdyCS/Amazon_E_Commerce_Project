@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,12 @@ namespace DataAccessLayer.Contracks
         public Task<IEnumerable<SellerProduct>> GetPagedDataAsNoTrackingByProductIdAsync(int pageNumber, int pageSize, long productId);
 
         public Task<SellerProduct> GetSellerProductByIdAndSellerIdAsync(long sellerProductId,string  sellerId);
+
+        Task<PaginationResult<SellerProduct>> GetPagedByProductSubCategoryIdAsync(long productSubCategoryId, int pageNumber, int pageSize);
+
+        Task<PaginationResult<SellerProduct>> GetPagedByProductCategoryIdAsync(long productCategoryId, int pageNumber, int pageSize);
+
+        Task<PaginationResult<SellerProduct>> GetPagedByBrandIdAsync(long brandId, int pageNumber, int pageSize);
+
     }
 }

@@ -24,12 +24,12 @@ namespace ApiLayer.Controllers
             _SellerProductService = sellerProductService;
         }
 
-        [HttpGet("{Id}", Name = "GetSellerProductById")]
+        [HttpGet("{Id}", Name = "GetSellerProduct")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<SellerProductDto>> GetById(long Id)
+        public async Task<ActionResult<SellerProductDto>> GetSellerProduct(long Id)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
@@ -47,28 +47,28 @@ namespace ApiLayer.Controllers
             }
         }
 
-        [HttpGet("all", Name = "GetAllPaged")]
+        [HttpGet("", Name = "GetAllSellerProducts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PaginationResultDto<SellerProductDto>>> GetAllPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PaginationResultDto<SellerProductDto>>> GetAllSellerProducts([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             if (pageNumber < 1) return BadRequest("pageNumber must be bigger than zero.");
             if (pageSize < 1) return BadRequest("pageSize must be bigger than zero.");
 
             var sellerProductsDtosList = await _SellerProductService.GetAllPagedAsync(pageNumber, pageSize);
-            if (sellerProductsDtosList == null || !sellerProductsDtosList.Data.Any())
-                return NotFound($"Didnot find any seller product.");
+            
 
             return Ok(sellerProductsDtosList);
         }
 
-        [HttpGet("all-seller-product/product-id/{ProductId}", Name = "GetAllSellerProductsByProductId")]
+
+        [HttpGet("products/{ProductId}", Name = "GetSellerProductsByProduct")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<SellerProductDto>> GetAllSellerProductsByProductId(long ProductId)
+        public async Task<ActionResult<SellerProductDto>> GetSellerProductsByProduct(long ProductId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
             try
@@ -87,13 +87,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("all-seller-product-of-seller", Name = "GetAllSellerProductsOfSeller")]
+        [HttpGet("seller", Name = "GetSellerProductsOfSeller")]
         [Authorize(Roles = Role.Seller)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<SellerProductDto>>> GetAllSellerProductsOfSeller()
+        public async Task<ActionResult<IEnumerable<SellerProductDto>>> GetSellerProductsOfSeller()
         {
 
             try
@@ -116,19 +116,19 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("admin/all-seller-products-of-seller/{UserId}", Name = "GetAllSellerProductsOfSellerBySellerId")]
+        [HttpGet("admin/seller/{sellerId}", Name = "GetSellerProductsOfSellerBySellerId")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<IEnumerable<SellerProductDto>>> GetAllSellerProductsOfSellerBySellerId(string UserId)
+        public async Task<ActionResult<IEnumerable<SellerProductDto>>> GetSellerProductsOfSellerBySellerId(string sellerId)
         {
 
             try
             {
 
-                var sellerProductsDtosList = await _SellerProductService.GetAllSellerProductsBySellerIdAsync(UserId);
+                var sellerProductsDtosList = await _SellerProductService.GetAllSellerProductsBySellerIdAsync(sellerId);
 
                 if (sellerProductsDtosList == null || !sellerProductsDtosList.Any())
                     return NotFound($"Didnot find any seller product.");
@@ -149,7 +149,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<SellerProductDto>> AddNew(SellerProductDto sellerProductDto)
+        public async Task<ActionResult<SellerProductDto>> AddNewSellerProduct(SellerProductDto sellerProductDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -162,7 +162,7 @@ namespace ApiLayer.Controllers
 
                 if (NewSellerProductDto == null) return BadRequest("Cannot add new seller product.");
 
-                return CreatedAtRoute("GetSellerProductById", new { Id = NewSellerProductDto.Id }, NewSellerProductDto);
+                return CreatedAtRoute("GetSellerProduct", new { Id = NewSellerProductDto.Id }, NewSellerProductDto);
             }
             catch (Exception ex)
             {
@@ -171,7 +171,7 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPost("range", Name = "AddRangeOfSellerProducts")]
+        [HttpPost("range", Name = "AddRangeSellerProducts")]
         [Authorize(Roles = Role.Seller)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -199,12 +199,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpPut("{Id}", Name = "UpdateSellerProductById")]
+        [HttpPut("{Id}", Name = "UpdateSellerProduct")]
         [Authorize(Roles = Role.Seller)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateById([FromRoute] long Id, [FromBody] SellerProductDto sellerProductDto)
+        public async Task<ActionResult<string>> UpdateSellerProduct([FromRoute] long Id, [FromBody] SellerProductDto sellerProductDto)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
@@ -229,12 +229,12 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpDelete("admin/{Id}", Name = "DeleteSellerProductById")]
+        [HttpDelete("admin/{Id}", Name = "DeleteSellerProduct")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> DeleteById([FromRoute] long Id)
+        public async Task<ActionResult<string>> DeleteSellerProduct([FromRoute] long Id)
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
@@ -280,6 +280,52 @@ namespace ApiLayer.Controllers
         }
 
 
+        [HttpGet("sub-categories/{productSubCategoryId}", Name = "GeByProductSubCategory")]
+        [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PaginationResultDto<ProductDto>>> GeByProductSubCategory(long productSubCategoryId, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+        {
+            if (productSubCategoryId < 1) return BadRequest("productSubCategoryId must be bigger than zero.");
+            if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
+
+            var pagedProductsDtos = await _SellerProductService.GetPagedByProductSubCategoryAsync(productSubCategoryId, pageNumber, pageSize);
+
+            return Ok(pagedProductsDtos);
+        }
+
+
+        [HttpGet("categories/{productCategoryId}", Name = "GeByProductCategory")]
+        [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PaginationResultDto<ProductDto>>> GeByProductCategory(long productCategoryId, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+        {
+            if (productCategoryId < 1) return BadRequest("productCategoryId must be bigger than zero.");
+            if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
+
+            var pagedProductsDtos = await _SellerProductService.GetPagedByProductCategoryAsync(productCategoryId, pageNumber, pageSize);
+
+            return Ok(pagedProductsDtos);
+        }
+
+
+        [HttpGet("brands/{brnadId}", Name = "GeByBrand")]
+        [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PaginationResultDto<ProductDto>>> GeByBrand(long brnadId, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+        {
+            if (brnadId < 1) return BadRequest("brnadId must be bigger than zero.");
+            if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
+
+            var pagedProductsDtos = await _SellerProductService.GetPagedByBrandAsync(brnadId, pageNumber, pageSize);
+
+            return Ok(pagedProductsDtos);
+        }
     }
 
 }

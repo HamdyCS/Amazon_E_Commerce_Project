@@ -10,7 +10,6 @@ namespace BusinessLayer.Contracks
 {
     public interface ISellerProductService
     {
-       
         public Task<SellerProductDto> FindByIdAsync(long id);
 
         public Task<IEnumerable<SellerProductDto>> GetAllByProductIdOrderByPriceAscAsync(long productId);
@@ -32,5 +31,12 @@ namespace BusinessLayer.Contracks
         public Task<bool> DeleteRangeByIdAsync(IEnumerable<long> Ids);
 
         public Task<IEnumerable<SellerProductDto>> GetPagedByProductIdAsync(int pageNumber, int pageSize,long productId);
+
+        Task<PaginationResultDto<SellerProductDto>> GetPagedByProductSubCategoryAsync(long productSubCategoryId, int pageNumber, int pageSize);
+
+        Task<PaginationResultDto<SellerProductDto>> GetPagedByProductCategoryAsync(long productCategoryId, int pageNumber, int pageSize);
+
+        Task<PaginationResultDto<SellerProductDto>> GetPagedByBrandAsync(long brandId, int pageNumber, int pageSize);
+
     }
 }

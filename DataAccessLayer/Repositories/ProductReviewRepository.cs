@@ -76,11 +76,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public Task<IEnumerable<ProductReview>> GetAllSellerProductReviewsWithUserInfoByProductIdAsync(long productId)
-        {
-            throw new NotImplementedException();
-        }
-
+     
         public async Task<double> GetAveragedOfStarsByProductIdAsync(long productId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));

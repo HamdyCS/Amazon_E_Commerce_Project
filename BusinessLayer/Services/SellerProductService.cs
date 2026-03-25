@@ -261,24 +261,20 @@ namespace BusinessLayer.Servicese
                 SellerProductDto>(pagedSellerProducts.Data);
 
             // Map the product images for each seller product DTO
-            sellerProductsDtosList.Select((s, i) =>
+            for (int i = 0; i < pagedSellerProducts.Data.Count(); i++)
             {
-                // Map the product images to ImageDto
-                var productImages = pagedSellerProducts.Data.ElementAt(i)?.Product?.ProductImages;
-                if (productImages == null || !productImages.Any() || s.Product == null)
-                {
-                    return s;
-                }
-                var productImageDtos = _genericMapper.MapCollection<ProductImage, ProductImageDto>(productImages);
-                var imageDtos = _genericMapper.MapCollection<ProductImageDto, ImageDto>(productImageDtos);
+                var s = pagedSellerProducts.Data.ElementAt(i);
 
-                if (imageDtos != null)
-                { 
-                    s.Product.Images = imageDtos.ToList(); 
-                }
+                if (s.Product == null || s.Product.ProductImages == null || !s.Product.ProductImages.Any())
+                    continue;
 
-                return s;
-            });
+                //images
+                var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
+
+                if (sellerProductsDtosList.ElementAt(i)?.Product != null)
+                    sellerProductsDtosList.ElementAt(i).Product.Images = imageDtos.ToList();
+
+            }
 
             //add the mapped data to pagination result DTO
             var paginationResultDto = new PaginationResultDto<SellerProductDto>
@@ -290,5 +286,105 @@ namespace BusinessLayer.Servicese
             _genericMapper.MapSingle(pagedSellerProducts, paginationResultDto);
             return paginationResultDto;
         }
+
+        public async Task<PaginationResultDto<SellerProductDto>> GetPagedByProductSubCategoryAsync(long productSubCategoryId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productSubCategoryId, nameof(productSubCategoryId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            var pagedSellerProducts = await _unitOfWork.sellerProductRepository.GetPagedByProductSubCategoryIdAsync(productSubCategoryId, pageNumber, pageSize);
+
+            var sellerProductDtos = _genericMapper.MapCollection<SellerProduct, SellerProductDto>(pagedSellerProducts.Data);
+
+
+            for (int i = 0; i < pagedSellerProducts.Data.Count(); i++)
+            {
+                var s = pagedSellerProducts.Data.ElementAt(i);
+
+                if (s.Product == null || s.Product.ProductImages == null || !s.Product.ProductImages.Any())
+                    continue;
+
+                //images
+                var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
+
+                if (sellerProductDtos.ElementAt(i)?.Product!= null)
+                    sellerProductDtos.ElementAt(i).Product.Images = imageDtos.ToList();
+
+            }
+
+
+            var pagedSellerProductsDto = _genericMapper.MapSingle<PaginationResult<SellerProduct>, PaginationResultDto<SellerProductDto>>(pagedSellerProducts);
+            pagedSellerProductsDto.Data = sellerProductDtos;
+
+            return pagedSellerProductsDto;
+        }
+
+        public async Task<PaginationResultDto<SellerProductDto>> GetPagedByProductCategoryAsync(long productCategoryId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productCategoryId, nameof(productCategoryId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            var pagedSellerProducts = await _unitOfWork.sellerProductRepository.GetPagedByProductCategoryIdAsync(productCategoryId, pageNumber, pageSize);
+
+            var sellerProductDtos = _genericMapper.MapCollection<SellerProduct, SellerProductDto>(pagedSellerProducts.Data);
+
+
+            for (int i = 0; i < pagedSellerProducts.Data.Count(); i++)
+            {
+                var s = pagedSellerProducts.Data.ElementAt(i);
+
+                if (s.Product == null || s.Product.ProductImages == null || !s.Product.ProductImages.Any())
+                    continue;
+
+                //images
+                var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
+
+                if (sellerProductDtos.ElementAt(i)?.Product != null)
+                    sellerProductDtos.ElementAt(i).Product.Images = imageDtos.ToList();
+
+            }
+
+
+            var pagedSellerProductsDto = _genericMapper.MapSingle<PaginationResult<SellerProduct>, PaginationResultDto<SellerProductDto>>(pagedSellerProducts);
+            pagedSellerProductsDto.Data = sellerProductDtos;
+
+            return pagedSellerProductsDto;
+        }
+
+        public async Task<PaginationResultDto<SellerProductDto>> GetPagedByBrandAsync(long brandId, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(brandId, nameof(brandId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            var pagedSellerProducts = await _unitOfWork.sellerProductRepository.GetPagedByBrandIdAsync(brandId, pageNumber, pageSize);
+
+            var sellerProductDtos = _genericMapper.MapCollection<SellerProduct, SellerProductDto>(pagedSellerProducts.Data);
+
+
+            for (int i = 0; i < pagedSellerProducts.Data.Count(); i++)
+            {
+                var s = pagedSellerProducts.Data.ElementAt(i);
+
+                if (s.Product == null || s.Product.ProductImages == null || !s.Product.ProductImages.Any())
+                    continue;
+
+                //images
+                var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
+
+                if (sellerProductDtos.ElementAt(i)?.Product != null)
+                    sellerProductDtos.ElementAt(i).Product.Images = imageDtos.ToList();
+
+            }
+
+
+            var pagedSellerProductsDto = _genericMapper.MapSingle<PaginationResult<SellerProduct>, PaginationResultDto<SellerProductDto>>(pagedSellerProducts);
+            pagedSellerProductsDto.Data = sellerProductDtos;
+
+            return pagedSellerProductsDto;
+        }
+
     }
 }

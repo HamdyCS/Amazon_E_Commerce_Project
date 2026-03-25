@@ -45,5 +45,9 @@ namespace BusinessLayer.Dtos
 
         public List<ImageDto> Images { get; set; }
 
+        public long RatingCount { get; set; }
+
+        public decimal AvgRating { get; set; }
+
     }
 }

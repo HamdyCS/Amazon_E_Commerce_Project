@@ -14,6 +14,9 @@ namespace BusinessLayer.Mapper.Profiles
 
             CreateMap<ImageDto, ProductImageDto>().ForMember(x => x.ImageUrl, opt => opt.MapFrom(x => x.Url));
             CreateMap<ProductImageDto, ImageDto>().ForMember(x => x.Url, opt => opt.MapFrom(x => x.ImageUrl));
+
+            CreateMap<ImageDto, ProductImage>().ForMember(x => x.ImageUrl, opt => opt.MapFrom(x => x.Url));
+            CreateMap<ProductImage, ImageDto>().ForMember(x => x.Url, opt => opt.MapFrom(x => x.ImageUrl));
         }
     }
 }

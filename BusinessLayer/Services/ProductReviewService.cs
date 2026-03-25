@@ -3,13 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
-using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
@@ -39,14 +33,13 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfObjectIfNotNull(productReivewDto, nameof(productReivewDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
-            var sellerProductDto = await _ProductService.FindByIdAsync(productReivewDto.ProductId);
-            if (sellerProductDto == null) return null;
+            var productDto = await _ProductService.FindByIdAsync(productReivewDto.ProductId);
+            if (productDto == null) throw new KeyNotFoundException($"Not Found Product With This Id: {productReivewDto.ProductId}");
 
             var userDto = await _userService.FindByIdAsync(UserId);
-            if (userDto is null) return null;
+            if (userDto is null) throw new KeyNotFoundException($"Not Found User With This Id: {UserId}");
 
             var productReview = _genericMapper.MapSingle<ProductReviewDto, ProductReview>(productReivewDto);
-            if (productReview is null) return null;
 
             productReview.UserId = UserId;
             productReview.CreatedAt = DateTime.UtcNow;
@@ -54,9 +47,11 @@ namespace BusinessLayer.Servicese
             await _unitOfWork.productReviewRepository.AddAsync(productReview);
 
             var IsProductReviewAdded = await _completeAsync();
-            if (!IsProductReviewAdded) return null;
+            if (!IsProductReviewAdded) throw new Exception("Product Review Not Added To Database");
 
-            _genericMapper.MapSingle(productReview, productReivewDto);
+            //update product rating
+            var newProductReviewDto = await _ProductService.UpdateProductRatingAsync(productReview.ProductId, productReivewDto.NumberOfStars);
+            if(newProductReviewDto is null) throw new Exception("Failed To Update Product Rating");
 
             return productReivewDto;
         }
@@ -130,7 +125,7 @@ namespace BusinessLayer.Servicese
 
             return avg;
         }
-   
+
         public async Task<IEnumerable<ProductReviewDto>> GetPagedProductReviewsByProductIdAsync(int pageNumber, int pageSize, long ProductId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
@@ -138,7 +133,7 @@ namespace BusinessLayer.Servicese
             var sellerProductDto = await _ProductService.FindByIdAsync(ProductId);
             if (sellerProductDto == null) return null;
 
-            var ProductReviewsList = await _unitOfWork.productReviewRepository.GetPagedProductReviewsWithUserInfoByProductIdAsync(pageNumber,pageSize,ProductId);
+            var ProductReviewsList = await _unitOfWork.productReviewRepository.GetPagedProductReviewsWithUserInfoByProductIdAsync(pageNumber, pageSize, ProductId);
 
             if (!ProductReviewsList.Any())
                 return null;
@@ -170,6 +165,5 @@ namespace BusinessLayer.Servicese
             return ProductReviewUpdate;
         }
 
-       
     }
 }

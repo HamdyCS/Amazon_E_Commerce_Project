@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Pagination;
 
 namespace DataAccessLayer.Contracks
 {
@@ -12,5 +13,6 @@ namespace DataAccessLayer.Contracks
 
         Task<IEnumerable<Product>> GetAllOrderByBestSellerDescAsync();
         Task<IEnumerable<Product>> GetPagedOrderByBestSellerDescAsync(int pageNumber,int pageSize);
+
     }
 }

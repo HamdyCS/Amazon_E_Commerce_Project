@@ -135,7 +135,10 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                return await _context.Set<T>().AsNoTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+                return await _context.Set<T>().AsNoTracking()
+                    .OrderBy(e => EF.Property<long>(e, "Id")).
+                    Skip((pageNumber - 1) * pageSize).Take(pageSize)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -150,7 +153,10 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                return await _context.Set<T>().AsTracking().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+                return await _context.Set<T>().AsTracking()
+                  .OrderBy(e => EF.Property<long>(e, "Id")).
+                  Skip((pageNumber - 1) * pageSize).Take(pageSize)
+                  .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -310,8 +316,7 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
         }
-
-      
+   
     }
 
 }

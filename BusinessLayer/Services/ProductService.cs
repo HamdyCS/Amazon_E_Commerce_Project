@@ -3,6 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Pagination;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -544,5 +545,35 @@ namespace BusinessLayer.Servicese
             //set in redis cash
             await _redisCashService.SetValueByKeyAsync("Products", cacheProductDtosList, TimeSpan.FromHours(hours));
         }
+
+        public async Task<ProductDto> UpdateProductRatingAsync(long ProductId, int Rating)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
+            ParamaterException.CheckIfIntIsBiggerThanZero(Rating, nameof(Rating));
+
+
+            var product = await _unitOfWork.productRepository.GetByIdAsNoTrackingAsync(ProductId);
+            if (product == null) throw new KeyNotFoundException($"There is no product with this ID: {ProductId}");
+
+
+            //calculate new rating
+            var newRatingCount = product.RatingCount + 1;
+            var newAvgRating = (product.AvgRating * product.RatingCount + Rating) / newRatingCount;
+
+
+            product.RatingCount = newRatingCount;
+            product.AvgRating = (int)newAvgRating;
+
+            await _unitOfWork.productRepository.UpdateAsync(product.Id, product);
+            var isUpdated = await _CompleteAsync();
+
+            if (!isUpdated) throw new Exception("Failed to update product rating.");
+
+
+            var productDto = _genericMapper.MapSingle<Product, ProductDto>(product);
+            return productDto;
+        }
+
+    
     }
 }
