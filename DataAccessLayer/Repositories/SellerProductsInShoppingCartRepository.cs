@@ -24,10 +24,10 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var shoppingCart = await _context.ShoppingCarts.Include(e => e.SellerProductsInShoppingCart).ThenInclude(x => x.SellerProduct).ThenInclude(x => x.Product)
+                var shoppingCart = await _context.ShoppingCarts.Include(e => e.SellerProducts).ThenInclude(x => x.SellerProduct).ThenInclude(x => x.Product)
                     .FirstOrDefaultAsync(e => e.Id == shoppingCartId);
 
-                return shoppingCart is null ? null : shoppingCart.SellerProductsInShoppingCart;
+                return shoppingCart is null ? null : shoppingCart.SellerProducts;
             }
             catch (Exception ex)
             {

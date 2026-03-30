@@ -50,7 +50,7 @@ namespace BusinessLayer.Servicese
                                 Name = item.SellerProduct.Product.NameEn,
                             },
                         },
-                        Quantity = item.Number,
+                        Quantity = item.Quantity,
                     };
                     LineItems.Add(lineItem);
                 }

@@ -62,7 +62,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IShoppingCartService, ShoppingCartService>();
 
-            services.AddScoped<IProductInShoppingCartService, ProductInShoppingCartService>();
+            services.AddScoped<ISellerProductInShoppingCartService, SellerProductInShoppingCartService>();
 
             services.AddScoped<IApplicationTypeService, ApplicationTypeService>();
 

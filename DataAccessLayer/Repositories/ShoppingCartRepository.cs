@@ -2,6 +2,7 @@
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
+using DataAccessLayer.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -23,6 +24,28 @@ namespace DataAccessLayer.Repositories
             this._logger = logger;
         }
 
+        public override async Task<ShoppingCart> GetByIdAsNoTrackingAsync(long id)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(id,nameof(id));
+
+            try
+            {
+
+                var shoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders)
+                    .Include(e => e.SellerProducts).
+                    ThenInclude(e => e.SellerProduct)
+                    .ThenInclude(SellerProduct => SellerProduct.Product).
+                    ThenInclude(Product => Product.ProductImages).AsSplitQuery()
+                    .FirstOrDefaultAsync(s=>s.Id ==  id);
+
+                return shoppingCart;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
         public async Task<ShoppingCart> GetActiveShoppingCartByUserIdAsync(string userId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
@@ -30,7 +53,11 @@ namespace DataAccessLayer.Repositories
             try
             {
                
-                var ActiveShoppingCart = await _context.ShoppingCarts.Include(e => e.ApplicationOrders).Include(e=>e.SellerProductsInShoppingCart)
+                var ActiveShoppingCart = await _context.ShoppingCarts.AsNoTracking().Include(e => e.ApplicationOrders)
+                    .Include(e=>e.SellerProducts).
+                    ThenInclude(e=>e.SellerProduct)
+                    .ThenInclude(SellerProduct=> SellerProduct.Product).
+                    ThenInclude(Product=> Product.ProductImages).AsSplitQuery()
                     .FirstOrDefaultAsync(e => !e.ApplicationOrders.Any());
 
                 return ActiveShoppingCart;
@@ -47,7 +74,12 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var shoppingCartsList = await _context.ShoppingCarts.Where(e => e.UserId == userId)
+                var shoppingCartsList = await 
+                    _context.ShoppingCarts.Where(e => e.UserId == userId).Include(e => e.ApplicationOrders)
+                    .Include(e => e.SellerProducts).
+                    ThenInclude(e => e.SellerProduct)
+                    .ThenInclude(SellerProduct => SellerProduct.Product).
+                    ThenInclude(Product => Product.ProductImages).AsSplitQuery()
                     .ToListAsync();
 
                 return shoppingCartsList;
@@ -57,8 +89,7 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
         }
-
-        
+    
         public async Task<decimal?> GetTotalPriceInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));

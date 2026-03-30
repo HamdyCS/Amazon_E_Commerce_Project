@@ -14,8 +14,6 @@ using Microsoft.EntityFrameworkCore;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using Stripe;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

@@ -212,7 +212,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.PaymentTypeId)
                 .HasConstraintName("FK_Payments_PaymentTypeId");
 
-            entity.HasOne(e => e.shoppingCart).WithOne(e => e.payment).HasForeignKey<Payment>(e => e.ShoppingCartId);
+            entity.HasOne(e => e.shoppingCart).WithOne(e => e.Payment).HasForeignKey<Payment>(e => e.ShoppingCartId);
 
             entity.HasOne(e => e.shippingCost).WithMany(e => e.Payments).HasForeignKey(e => e.shippingCostId);
 
@@ -362,7 +362,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasForeignKey(d => d.SellerProductId)
                 .HasConstraintName("FK_ProductsInShoppingCarts_SellerProductId");
 
-            entity.HasOne(d => d.ShoppingCart).WithMany(p => p.SellerProductsInShoppingCart)
+            entity.HasOne(d => d.ShoppingCart).WithMany(p => p.SellerProducts)
                 .HasForeignKey(d => d.ShoppingCartId)
                 .HasConstraintName("FK_ProductsInShoppingCarts_ShoppingCartId");
         });

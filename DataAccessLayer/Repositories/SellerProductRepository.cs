@@ -28,8 +28,8 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
             try
             {
-                var sellerProductsList = await _context.SellerProducts.AsNoTracking()
-                    .Where(e => e.ProductId == ProductId).OrderBy(e => e.Price).ToListAsync();
+                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Include(s => s.Product).ThenInclude(p => p.ProductImages)
+                    .Where(e => e.ProductId == ProductId).OrderBy(e => e.Price).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
             }
             catch (Exception ex)
@@ -44,7 +44,8 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var sellerProductsList = await _context.SellerProducts.Where(e => e.SellerId == sellerId).ToListAsync();
+                var sellerProductsList = await _context.SellerProducts
+                    .Where(e => e.SellerId == sellerId).Include(s => s.Product).ThenInclude(p => p.ProductImages).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
             }
             catch (Exception ex)
@@ -60,8 +61,8 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
             try
             {
-                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Where(e => e.ProductId == productId)
-                    .Skip(pageSize * (pageNumber - 1)).Take(pageSize).ToListAsync();
+                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Include(s => s.Product).ThenInclude(p => p.ProductImages).Where(e => e.ProductId == productId)
+                    .Skip(pageSize * (pageNumber - 1)).Take(pageSize).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
 
             }
@@ -241,7 +242,6 @@ namespace DataAccessLayer.Repositories
             }
 
         }
-
 
 
         //public async Task<IEnumerable<SellerProductReview>> GetSellerProductReviewsBySellerProductIdAsync(long SellerProductId)

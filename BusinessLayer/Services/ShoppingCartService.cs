@@ -7,6 +7,7 @@ using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,16 +18,14 @@ namespace BusinessLayer.Servicese
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserService _userService;
-        private readonly IProductInShoppingCartService _productInShoppingCartService;
         private readonly IGenericMapper _genericMapper;
         private readonly ISellerProductService _sellerProductService;
 
-        public ShoppingCartService(IUnitOfWork unitOfWork, IUserService userService,IProductInShoppingCartService productInShoppingCartService,
+        public ShoppingCartService(IUnitOfWork unitOfWork, IUserService userService,
             IGenericMapper genericMapper, ISellerProductService sellerProductService)
         {
             this._unitOfWork = unitOfWork;
             this._userService = userService;
-            this._productInShoppingCartService = productInShoppingCartService;
             this._genericMapper = genericMapper;
             this._sellerProductService = sellerProductService;
         }
@@ -45,8 +44,14 @@ namespace BusinessLayer.Servicese
             if (UserDto == null) return null;
 
 
-            var ActiveShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(UserId);
-            if (ActiveShoppingCart is not null) return null;
+            var activeShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(UserId);
+            if (activeShoppingCart is not null)
+            {
+                var activeShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(activeShoppingCart);
+              
+                return activeShoppingCartDto;
+            }
+
 
             var shoppingCart = new ShoppingCart()
             {
@@ -61,7 +66,7 @@ namespace BusinessLayer.Servicese
             if (!IsShoppingCartAdded) return null;
 
 
-            var shoppingCartDto = _genericMapper.MapSingle<ShoppingCart,ShoppingCartDto>(shoppingCart);
+            var shoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(shoppingCart);
 
             return shoppingCartDto;
 
@@ -71,23 +76,23 @@ namespace BusinessLayer.Servicese
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
 
-            var UserDto = await _userService.FindByIdAsync(userId);
-            if (UserDto == null) return null;
+            var userDto = await _userService.FindByIdAsync(userId);
+            if (userDto == null) return null;
 
 
-            var ActiveShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(userId);
-            if (ActiveShoppingCart is null) return null;
+            var activeShoppingCart = await _unitOfWork.shoppingCartRepository.GetActiveShoppingCartByUserIdAsync(userId);
 
-            var ActiveShoppingCartDto = _genericMapper.MapSingle<ShoppingCart,ShoppingCartDto>(ActiveShoppingCart);
+            //check if not found active shopping cart create new
+            if (activeShoppingCart is null)
+            {
+               var addNewResult = await AddNewShoppingCart(userId);
+               return addNewResult;
+            }
+            
 
-            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(ActiveShoppingCart.Id);
+            var activeShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(activeShoppingCart);
 
-            if (productsinShoppingCartDtosList is null)
-                return ActiveShoppingCartDto;
-
-            ActiveShoppingCartDto.ProductsInShoppingCartsDtosList = productsinShoppingCartDtosList.ToList();
-
-            return ActiveShoppingCartDto;
+            return activeShoppingCartDto;
         }
 
         public async Task<IEnumerable<ShoppingCartDto>> GetAllUserShoppingCartsByUserIdAsync(string userId)
@@ -98,22 +103,11 @@ namespace BusinessLayer.Servicese
             if (UserDto == null) return null;
 
             var UserShoppingCartsList = await _unitOfWork.shoppingCartRepository.GetAllUserShoppingCartByUserIdAsync(userId);
-            if (UserShoppingCartsList == null || !UserShoppingCartsList.Any()) return null;
+            if (UserShoppingCartsList == null || !UserShoppingCartsList.Any()) return [];
 
-            var UserShoppingCartsDtosList = _genericMapper.MapCollection<ShoppingCart,ShoppingCartDto>(UserShoppingCartsList);
-            if (UserShoppingCartsDtosList == null || !UserShoppingCartsDtosList.Any()) return null;
-
-
-            foreach (var userShoppingCartDto in UserShoppingCartsDtosList)
-            {
-                var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(userShoppingCartDto.Id);
-
-                if (productsinShoppingCartDtosList is null)
-                    continue;
-
-                userShoppingCartDto.ProductsInShoppingCartsDtosList = productsinShoppingCartDtosList.ToList();
-            }
-
+            var UserShoppingCartsDtosList = _genericMapper.MapCollection<ShoppingCart, ShoppingCartDto>(UserShoppingCartsList);
+           
+        
             return UserShoppingCartsDtosList;
         }
 
@@ -123,28 +117,21 @@ namespace BusinessLayer.Servicese
 
             var TotalPrice = await _unitOfWork.shoppingCartRepository.GetTotalPriceInShoppingCartByShoppingCartIdAsync(shoppingCartId);
 
-            return TotalPrice is null? -1 : (decimal)TotalPrice;
+            return TotalPrice is null ? -1 : (decimal)TotalPrice;
 
         }
 
         public async Task<ShoppingCartDto> FindByIdAsync(long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
-           
 
-            var shoopingCart = await _unitOfWork.shoppingCartRepository.GetByIdAsNoTrackingAsync(shoppingCartId);
-            if (shoopingCart is null) return null;
 
-            var ShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(shoopingCart);
+            var shoppingCart = await _unitOfWork.shoppingCartRepository.GetByIdAsNoTrackingAsync(shoppingCartId);
+            if (shoppingCart is null) return null;
 
-            var productsinShoppingCartDtosList = await _productInShoppingCartService.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(shoopingCart.Id);
+            var shoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(shoppingCart);
 
-            if (productsinShoppingCartDtosList is null)
-                return ShoppingCartDto;
-
-            ShoppingCartDto.ProductsInShoppingCartsDtosList = productsinShoppingCartDtosList.ToList();
-
-            return ShoppingCartDto;
+            return shoppingCartDto;
         }
 
 

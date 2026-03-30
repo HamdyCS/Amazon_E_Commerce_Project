@@ -13,9 +13,10 @@ public partial class ShoppingCart
     public DateTime CreatedAt { get; set; }
 
     public virtual User? user { get; set; }
-    public virtual Payment? payment { get; set; }
+
+    public virtual Payment Payment { get; set; }
 
     public virtual ICollection<ApplicationOrder> ApplicationOrders { get; set; } = new List<ApplicationOrder>();
 
-    public virtual ICollection<SellerProductInShoppingCart> SellerProductsInShoppingCart { get; set; } = new List<SellerProductInShoppingCart>();
+    public virtual ICollection<SellerProductInShoppingCart> SellerProducts { get; set; } = new List<SellerProductInShoppingCart>();
 }

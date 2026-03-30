@@ -16,9 +16,9 @@ namespace ApiLayer.Controllers
 
     public class SellerProductsInShoppingCartsController : ControllerBase
     {
-        private readonly IProductInShoppingCartService _productInShoppingCartService;
+        private readonly ISellerProductInShoppingCartService _productInShoppingCartService;
 
-        public SellerProductsInShoppingCartsController(IProductInShoppingCartService productInShoppingCartService)
+        public SellerProductsInShoppingCartsController(ISellerProductInShoppingCartService productInShoppingCartService)
         {
             this._productInShoppingCartService = productInShoppingCartService;
         }
@@ -33,80 +33,66 @@ namespace ApiLayer.Controllers
             if (ShoppingCartId < 1) return BadRequest("ShoppingCartId must be bigger than zero.");
             if (SellerProductInShoppingCartId < 1) return BadRequest("SellerProductInShoppingCartId must be bigger than zero.");
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
 
-                var sellerProductInShoppingCartDto = await _productInShoppingCartService.
-                    FindByIdAndShoppingCartIdAndUserIdAsync(SellerProductInShoppingCartId, ShoppingCartId, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (sellerProductInShoppingCartDto == null) return NotFound($"Not found seller product in shopping cart. Id = {SellerProductInShoppingCartId}");
 
-                return Ok(sellerProductInShoppingCartDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var sellerProductInShoppingCartDto = await _productInShoppingCartService.
+                FindByIdAndShoppingCartIdAndUserIdAsync(SellerProductInShoppingCartId, ShoppingCartId, UserId);
+
+            if (sellerProductInShoppingCartDto == null) return NotFound($"Not found seller product in shopping cart. Id = {SellerProductInShoppingCartId}");
+
+            return Ok(sellerProductInShoppingCartDto);
+
         }
 
 
         [HttpPost("", Name = "AddNewSellerProductInShoppingCart")]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<SellerProductInShoppingCartDto>> AddNewSellerProductInShoppingCart(long ShoppingCartId, SellerProductInShoppingCartDto productInShoppingCartDto)
+        public async Task<ActionResult<ShoppingCartDto>> AddNewSellerProductInShoppingCart(long ShoppingCartId, AddSellerProductToShoppingCartDto productInShoppingCartDto)
         {
             if (ShoppingCartId < 1) return BadRequest("ShoppingCartId must be bigger than zero.");
             if (productInShoppingCartDto is null) return BadRequest("SellerProductInShoppingCartDto cannot be null.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
-                var NewSellerProductInShoppingCartDto = await _productInShoppingCartService.AddAsync(productInShoppingCartDto, ShoppingCartId, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (NewSellerProductInShoppingCartDto == null) return BadRequest("Cannot add new seller product to shopping cart.");
+            var shoppingCartDto = await _productInShoppingCartService.AddAsync(productInShoppingCartDto, ShoppingCartId, UserId);
 
-                return CreatedAtRoute("GetSellerProductInShoppingCartById", new { ShoppingCartId = ShoppingCartId, SellerProductInShoppingCartId = NewSellerProductInShoppingCartDto.Id }, NewSellerProductInShoppingCartDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (shoppingCartDto == null) return BadRequest(error: "Cannot add new seller product to shopping cart.");
+
+            return Ok(shoppingCartDto);
+
         }
 
 
-        [HttpPost("range", Name = "AddRangeOfNewSellerProductInShoppingCart")]
+        [HttpPost("bulk", Name = "AddRangeOfNewSellerProductInShoppingCart")]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<IEnumerable<SellerProductInShoppingCartDto>>> AddRangeOfNewSellerProductInShoppingCart(long ShoppingCartId, IEnumerable<SellerProductInShoppingCartDto> ProductsInShoppingCartDtosList)
+        public async Task<ActionResult<ShoppingCartDto>> AddRangeOfNewSellerProductInShoppingCart(long ShoppingCartId, IEnumerable<AddSellerProductToShoppingCartDto> ProductsInShoppingCartDtosList)
         {
             if (ShoppingCartId < 1) return BadRequest("ShoppingCartId must be bigger than zero.");
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
-                var NewSellerProductsInShoppingCartDtosList = await _productInShoppingCartService.AddRangeAsync(ProductsInShoppingCartDtosList, ShoppingCartId, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (NewSellerProductsInShoppingCartDtosList == null || !NewSellerProductsInShoppingCartDtosList.Any()) return BadRequest("Cannot add new seller products to shopping cart.");
+            var shoppingCartDto = await _productInShoppingCartService.AddRangeAsync(ProductsInShoppingCartDtosList, ShoppingCartId, UserId);
 
-                return Ok(NewSellerProductsInShoppingCartDtosList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (shoppingCartDto == null) return BadRequest("Cannot add new seller products to shopping cart.");
+
+            return Ok(shoppingCartDto);
+
         }
 
 
@@ -114,56 +100,47 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> UpdateSellerProductInShoppingCart([FromRoute] long SellerProductInShoppingCartId, long ShoppingCartId, [FromBody] SellerProductInShoppingCartDto productInShoppingCartDto)
+        public async Task<ActionResult<ShoppingCartDto>> UpdateSellerProductInShoppingCart([FromRoute] long SellerProductInShoppingCartId, [FromBody] AddSellerProductToShoppingCartDto productInShoppingCartDto)
         {
-            if (ShoppingCartId < 1) return BadRequest("ShoppingCartId must be bigger than zero.");
             if (SellerProductInShoppingCartId < 1) return BadRequest("SellerProductInShoppingCartId must be bigger than zero.");
 
-            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
-                var IsSellerProductInShoppingCartUpdated = await _productInShoppingCartService.UpdateAsync(SellerProductInShoppingCartId, productInShoppingCartDto, ShoppingCartId, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (!IsSellerProductInShoppingCartUpdated) return BadRequest("Cannot Update seller product in shopping cart.");
+            var shoppingCartDto = await _productInShoppingCartService.UpdateAsync(SellerProductInShoppingCartId, productInShoppingCartDto, UserId);
 
-                return Ok("Updated seller product in shopping cart successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (shoppingCartDto == null) return BadRequest("Cannot Update seller product in shopping cart.");
+
+            return Ok(shoppingCartDto);
+
         }
 
 
-        [HttpDelete("{SellerProductInShoppingCartId}", Name = "DeleteProductFromShoppingCart")]
+        [HttpDelete("{id}", Name = "DeleteProductFromShoppingCart")]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> DeleteProductFromShoppingCart([FromRoute] long SellerProductInShoppingCartId, long ShoppingCartId)
+        public async Task<ActionResult<string>> DeleteProductFromShoppingCart([FromRoute]long ShoppingCartId, [FromRoute] long id)
         {
-            if (ShoppingCartId < 1) return BadRequest("ShoppingCartId must be bigger than zero.");
 
-            if (SellerProductInShoppingCartId < 1) return BadRequest("SellerProductInShoppingCartId must be bigger than zero.");
 
-            try
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
+
+            //create deleteProductFromShoppingCartDto 
+            var deleteProductFromShoppingCartDto = new DeleteProductFromShoppingCartDto
             {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
+                SellerProductInShoppingCartId = id,
+                ShoppingCartId = ShoppingCartId
+            };
+            var shoppingCartDto = await _productInShoppingCartService.DeleteAsync(deleteProductFromShoppingCartDto, UserId);
 
-                var IsSellerProductInShoppingCartDeleted = await _productInShoppingCartService.DeleteAsync(SellerProductInShoppingCartId, ShoppingCartId, UserId);
+            if (shoppingCartDto == null) return BadRequest("Cannot Delete seller product in shopping cart.");
 
-                if (!IsSellerProductInShoppingCartDeleted) return BadRequest("Cannot Delete seller product in shopping cart.");
+            return Ok(shoppingCartDto);
 
-                return Ok("Deleted seller product in shopping successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
     }
 }

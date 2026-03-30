@@ -9,8 +9,12 @@ namespace BusinessLayer.Dtos
 {
     public class ShoppingCartDto 
     {
-        [Required]
         public long Id { get; set; }
-        public List<SellerProductInShoppingCartDto> ProductsInShoppingCartsDtosList { get; set; }
+
+        public string UserId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public List<SellerProductInShoppingCartDto> SellerProducts { get; set; }
     }
 }

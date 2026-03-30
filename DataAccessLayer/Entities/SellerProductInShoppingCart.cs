@@ -7,7 +7,7 @@ public partial class SellerProductInShoppingCart
 {
     public long Id { get; set; }
 
-    public int Number { get; set; }
+    public int Quantity { get; set; }
 
     public decimal? TotalPrice { get; set; }
 
