@@ -27,7 +27,7 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfStringIsNotNullOrEmpty(Email, nameof(Email));
             try
             {
-                var result = await _context.UsersAddresses.AsNoTracking().Where(u => u.user.Email == Email).ToListAsync();
+                var result = await _context.UserAddresses.AsNoTracking().Where(u => u.user.Email == Email).ToListAsync();
                 return result;
             }
             catch(Exception ex) 
@@ -43,7 +43,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var result = await _context.UsersAddresses.AsNoTracking().Where(u => u.UserId == UserId).ToListAsync();
+                var result = await _context.UserAddresses.AsNoTracking().Where(u => u.UserId == UserId).ToListAsync();
                 return result;
             }
             catch (Exception ex)
@@ -59,7 +59,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var result = await _context.UsersAddresses.AsTracking().Where(u => u.user.Email == Email).ToListAsync();
+                var result = await _context.UserAddresses.AsTracking().Where(u => u.user.Email == Email).ToListAsync();
                 return result;
             }
             catch (Exception ex)
@@ -74,7 +74,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var result = await _context.UsersAddresses.AsTracking().Where(u => u.UserId == UserId).ToListAsync();
+                var result = await _context.UserAddresses.AsTracking().Where(u => u.UserId == UserId).ToListAsync();
                 return result;
             }
             catch (Exception ex)
@@ -83,47 +83,12 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task DeleteAsync(long id)
-        {
-            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
-
-            try
-            {
-                var userAddress = await _context.UsersAddresses.FirstOrDefaultAsync(p=>p.Id == id);
-                if (userAddress is null) return;
-
-                userAddress.IsDeleted = true;
-                userAddress.DateOfDeleted = DateTime.UtcNow;
-
-                return;
-            }
-            catch (Exception ex)
-            {
-                throw HandleDatabaseException(ex);
-            }
-        }
-
-        public async Task DeleteRangeAsync(IEnumerable<long> Ids)
-        {
-            try
-            {
-                foreach(var id  in Ids)
-                {
-                    await DeleteAsync(id);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
-
         public async Task<int> GetCountOfUserAddressesByUserIdAsync(string userId)
         {
            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
             try
             {
-                var count = await _context.UsersAddresses.Where(e=>e.UserId == userId).CountAsync();
+                var count = await _context.UserAddresses.Where(e=>e.UserId == userId).CountAsync();
                 return count;
             }
             catch (Exception ex)
@@ -139,7 +104,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var userAddress = await  _context.UsersAddresses.FirstOrDefaultAsync(e=>e.Id == Id
+                var userAddress = await  _context.UserAddresses.AsNoTracking().FirstOrDefaultAsync(e=>e.Id == Id
                     && e.UserId == userId);
 
                 return userAddress;
@@ -148,6 +113,35 @@ namespace DataAccessLayer.Repositories
             {
                 throw HandleDatabaseException(ex);
             }
+        }
+
+        public async Task<bool> UpdateIsDefaultToFalseForAllUserAddressesByUserIdAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            try
+            {
+                // Update all user addresses of the user to set IsDefault to false
+                var rowsEffected = await _context.UserAddresses.Where(x => x.UserId == userId && x.IsDefault)
+                   .ExecuteUpdateAsync(x => x.SetProperty(x => x.IsDefault, false));
+
+
+                return rowsEffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<UserAddress> GetOldestUserAddressByUserIdAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            var userAddress =await _context.UserAddresses.Where(e=>e.UserId == userId)
+                .OrderBy(e=>e.CreatedAt).FirstOrDefaultAsync();
+
+            return userAddress;
         }
     }
 }

@@ -33,7 +33,7 @@ namespace ApiLayer.Controllers
                 return BadRequest("Page or pageSize must be bigger than 0");
             try
             {
-                var citiesDtos = await _cityService.GetPagedDataAsync(page, pageSize);
+                var citiesDtos = await _cityService.GetPagedAsync(page, pageSize);
 
                 if(!citiesDtos.Any()) return NotFound("Not found any city");
                 return Ok(citiesDtos);

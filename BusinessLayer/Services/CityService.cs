@@ -20,14 +20,52 @@ namespace BusinessLayer.Servicese
         private readonly IGenericMapper _genericMapper;
         private readonly ILogger<CityService> _logger;
         private readonly IUserService _userService;
+        private readonly IRedisCashService _redisCashService;
 
         public CityService(IUnitOfWork unitOfWork, IGenericMapper genericMapper, ILogger<CityService> logger,
-            IUserService userService)
+            IUserService userService, IRedisCashService redisCashService)
         {
             _unitOfWork = unitOfWork;
             _genericMapper = genericMapper;
             _logger = logger;
             this._userService = userService;
+            _redisCashService = redisCashService;
+        }
+
+        private async Task<CityDto[]> _GetAllFromRedisAsync()
+        {
+            var cityDtos = await _redisCashService.GetValueByKeyAsync<CityDto[]>("cities:all");
+            if (cityDtos == null || !cityDtos.Any())
+            {
+                return null;
+            }
+            return cityDtos;
+        }
+
+        private async Task<CityDto[]> _GetPagedFromRedisAsync(int pageNumber, int pageSize)
+        {
+            var cityDtos = await _redisCashService.GetValueByKeyAsync<CityDto[]>("cities:all");
+
+            if (cityDtos == null || !cityDtos.Any())
+            {
+                return null;
+            }
+            return cityDtos.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToArray();
+        }
+
+        private async Task _SetAllToRedisAsync()
+        {
+            var citites = await _unitOfWork.cityRepository.GetAllAsNoTrackingAsync();
+
+            if (citites == null || !citites.Any())
+            {
+                return;
+            }
+
+            // Map the cities to CityDto array
+            var cityDtos = _genericMapper.MapCollection<City, CityDto>(citites).ToArray();
+
+            await _redisCashService.SetValueByKeyAsync("cities:all", cityDtos);
         }
 
         private async Task<bool> _completeAsync()
@@ -45,6 +83,7 @@ namespace BusinessLayer.Servicese
 
 
         }
+
         public async Task<CityDto> AddAsync(CityDto cityDto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(cityDto, nameof(cityDto));
@@ -69,7 +108,10 @@ namespace BusinessLayer.Servicese
                     return null;
                 }
 
-                 _genericMapper.MapSingle(city,cityDto);
+                //update redis cash
+                await _SetAllToRedisAsync();
+
+                _genericMapper.MapSingle(city, cityDto);
 
                 return cityDto;
             }
@@ -93,6 +135,12 @@ namespace BusinessLayer.Servicese
 
                 var IsDeleted = await _completeAsync();
 
+                if (IsDeleted)
+                {
+                    //update redis cash
+                    await _SetAllToRedisAsync();
+                }
+
                 return IsDeleted;
             }
             catch (Exception ex)
@@ -113,9 +161,15 @@ namespace BusinessLayer.Servicese
 
                 await _unitOfWork.cityRepository.DeleteAsync(city.Id);
 
-                var IsComoleted = await _completeAsync();
+                var isDeleted = await _completeAsync();
 
-                return IsComoleted;
+                if (isDeleted)
+                {
+                    //update redis cash
+                    await _SetAllToRedisAsync();
+                }
+
+                return isDeleted;
             }
             catch (Exception ex)
             {
@@ -135,9 +189,15 @@ namespace BusinessLayer.Servicese
 
                 await _unitOfWork.cityRepository.DeleteAsync(city.Id);
 
-                var IsDeleted = await _completeAsync();
+                var isDeleted = await _completeAsync();
 
-                return IsDeleted;
+                if (isDeleted)
+                {
+                    //update redis cash
+                    await _SetAllToRedisAsync();
+                }
+
+                return isDeleted;
             }
             catch (Exception ex)
             {
@@ -208,9 +268,18 @@ namespace BusinessLayer.Servicese
         {
             try
             {
+                //get from redis cash
+                var cityDtosFromRedis = await _GetAllFromRedisAsync();
+                if (cityDtosFromRedis != null)
+                {
+                    return cityDtosFromRedis;
+                }
                 var cites = await _unitOfWork.cityRepository.GetAllAsNoTrackingAsync();
 
                 var citiesDtos = _genericMapper.MapCollection<City, CityDto>(cites);
+
+                //update redis cash
+                await _SetAllToRedisAsync();
 
                 return citiesDtos;
             }
@@ -224,7 +293,7 @@ namespace BusinessLayer.Servicese
         {
             try
             {
-               var count = await _unitOfWork.cityRepository.GetCountAsync();
+                var count = await _unitOfWork.cityRepository.GetCountAsync();
 
                 return count;
             }
@@ -234,15 +303,22 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<IEnumerable<CityDto>> GetPagedDataAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<CityDto>> GetPagedAsync(int pageNumber, int pageSize)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
             ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
             try
             {
+                //get from redis cash
+                var cityDtosFromRedis = await _GetPagedFromRedisAsync(pageNumber, pageSize);
+                if (cityDtosFromRedis != null)
+                {
+                    return cityDtosFromRedis;
+                }
+
                 var cities = await _unitOfWork.cityRepository.GetPagedDataAsNoTractingAsync(pageNumber, pageSize);
 
-                var citiesDtos = _genericMapper.MapCollection<City,CityDto>(cities);
+                var citiesDtos = _genericMapper.MapCollection<City, CityDto>(cities);
 
                 return citiesDtos;
             }
@@ -252,7 +328,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdateByIdAsync(long Id,CityDto dto)
+        public async Task<bool> UpdateByIdAsync(long Id, CityDto dto)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
             ParamaterException.CheckIfObjectIfNotNull(dto, nameof(dto));
@@ -262,11 +338,18 @@ namespace BusinessLayer.Servicese
             {
                 var city = await _unitOfWork.cityRepository.GetByIdAsTrackingAsync(Id);
 
-                if(city == null) return false;
+                if (city == null) return false;
 
-               _genericMapper.MapSingle(dto,city);
+                _genericMapper.MapSingle(dto, city);
 
                 var IsUpdated = await _completeAsync();
+
+                if (IsUpdated)
+                {
+
+                    //update redis cash
+                    await _SetAllToRedisAsync();
+                }
 
                 return IsUpdated;
             }
@@ -276,6 +359,5 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        
     }
 }

@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401121549_RenameUsersAddressToUserAddress")]
+    partial class RenameUsersAddressToUserAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -956,18 +959,8 @@ namespace DataAccessLayer.Migrations
                     b.Property<long>("CityId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<DateTime?>("DateOfDeletion")
+                    b.Property<DateTime?>("DateOfDeleted")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDefault")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -982,10 +975,7 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("Ix_User_Default_Address")
-                        .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0");
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserAddresses", (string)null);
                 });

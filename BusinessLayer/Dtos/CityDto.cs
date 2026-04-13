@@ -11,6 +11,7 @@ namespace BusinessLayer.Dtos
     {
         
         public int Id { get; set; }
+
         [Required]
         public string NameEn { get; set; }
 

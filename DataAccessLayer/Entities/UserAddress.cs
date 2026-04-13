@@ -15,13 +15,17 @@ public partial class UserAddress
 
     public string UserId { get; set; }
 
+    public bool IsDefault { get; set; }
+
     public virtual User? user { get; set; }
 
     public virtual City? City { get; set; }
 
     public bool IsDeleted { get; set; }
 
-    public DateTime? DateOfDeleted { get; set; }
+    public DateTime? DateOfDeletion { get; set; }
+
+    public DateTime CreatedAt { get;}
 
     public virtual IEnumerable<Payment> Payments { get; set; } = new List<Payment>();
 

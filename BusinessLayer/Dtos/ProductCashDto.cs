@@ -1,6 +1,6 @@
 ﻿namespace BusinessLayer.Dtos
 {
-    public class CacheProductDto
+    public class ProductCashDto
     {
         public long Id { get; set; }
 

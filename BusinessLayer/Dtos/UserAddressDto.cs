@@ -16,5 +16,8 @@ namespace BusinessLayer.Dtos
 
         [Required]
         public long CityId { get; set; }
+
+        [Required]
+        public bool IsDefault { get; set; }
     }
 }

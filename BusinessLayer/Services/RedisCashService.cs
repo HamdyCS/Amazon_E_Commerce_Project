@@ -47,7 +47,7 @@ namespace BusinessLayer.Servicese
                 var stringValue = JsonSerializer.Serialize(value);
                 var options = new DistributedCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = expiry
+                    AbsoluteExpirationRelativeToNow = expiry ?? TimeSpan.FromHours(24)// Default expiration time of 24 hours
                 };
 
                 await _distributedCache.SetStringAsync(key, stringValue, options);

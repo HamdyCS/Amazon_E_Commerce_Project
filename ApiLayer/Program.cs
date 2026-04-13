@@ -25,7 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 //builder.Services.AddOpenApi();
 
-
+//database connection (ef core)
 builder.Services.AddDbContext<AppDbContext>
     (o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlServerConnectionString"))/*.AddInterceptors(new SoftDeleteInterceptor())*/);
 builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<AppDbContext>();
@@ -160,7 +160,7 @@ builder.Services.AddHostedService<ProductsCacheUpdateBackgroundService>();
 //add global exception handler 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-//proplem details
+//problem details
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();

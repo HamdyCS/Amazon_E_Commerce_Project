@@ -16,7 +16,7 @@ public class AppDbContext : IdentityDbContext<User>
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
-
+        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
 
@@ -38,7 +38,7 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentsType> PaymentsTypes { get; set; }
 
-    public virtual DbSet<UserAddress> UsersAddresses { get; set; }
+    public virtual DbSet<UserAddress> UserAddresses { get; set; }
 
     public virtual DbSet<Person> People { get; set; }
 
@@ -233,7 +233,7 @@ public class AppDbContext : IdentityDbContext<User>
 
         modelBuilder.Entity<UserAddress>(entity =>
         {
-            entity.ToTable("UsersAddresses");
+            entity.ToTable("UserAddresses");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
@@ -245,6 +245,15 @@ public class AppDbContext : IdentityDbContext<User>
 
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.HasQueryFilter(e => !e.IsDeleted);
+
+            entity.Property(x => x.IsDefault).HasDefaultValue(false);
+
+            entity.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+            //importanat business rule: each user can have only one default address
+            entity.HasIndex(x=>x.UserId).HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
+            .IsUnique().HasDatabaseName("Ix_User_Default_Address");
+           
         });
 
         modelBuilder.Entity<Person>(entity =>

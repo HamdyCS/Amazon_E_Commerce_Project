@@ -430,7 +430,7 @@ namespace BusinessLayer.Servicese
             //using cacheing
 
             var productCacheDtos = await
-                _redisCashService.GetValueByKeyAsync<IEnumerable<CacheProductDto>>($"Products");
+                _redisCashService.GetValueByKeyAsync<IEnumerable<ProductCashDto>>($"products:all");
 
             if (productCacheDtos is null) return [];
 
@@ -451,7 +451,7 @@ namespace BusinessLayer.Servicese
             //using cacheing
 
             var productCacheDtos = await
-                _redisCashService.GetValueByKeyAsync<IEnumerable<CacheProductDto>>($"Products");
+                _redisCashService.GetValueByKeyAsync<IEnumerable<ProductCashDto>>($"products:all");
 
             if (productCacheDtos is null) return null;
 
@@ -534,16 +534,16 @@ namespace BusinessLayer.Servicese
                 return;
 
             //map to cache dto
-            var cacheProductDtosList = _genericMapper.MapCollection<Product, CacheProductDto>(products);
+            var productCashDtoList = _genericMapper.MapCollection<Product, ProductCashDto>(products);
 
-            if (cacheProductDtosList is null || !cacheProductDtosList.Any())
+            if (productCashDtoList is null || !productCashDtoList.Any())
                 return;
 
             //number of houers
             int hours = _configuration.GetValue<int>("Redis:ProductsDurationInHoues");
 
             //set in redis cash
-            await _redisCashService.SetValueByKeyAsync("Products", cacheProductDtosList, TimeSpan.FromHours(hours));
+            await _redisCashService.SetValueByKeyAsync("products:all", productCashDtoList, TimeSpan.FromHours(hours));
         }
 
         public async Task<ProductDto> UpdateProductRatingAsync(long ProductId, int Rating)

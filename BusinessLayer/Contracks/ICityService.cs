@@ -35,7 +35,7 @@ namespace BusinessLayer.Contracks
         public Task<long> GetCountAsync();
 
 
-        public Task<IEnumerable<CityDto>> GetPagedDataAsync(int pageNumber, int pageSize);
+        public Task<IEnumerable<CityDto>> GetPagedAsync(int pageNumber, int pageSize);
 
 
         public Task<bool> UpdateByIdAsync(long Id, CityDto dto);

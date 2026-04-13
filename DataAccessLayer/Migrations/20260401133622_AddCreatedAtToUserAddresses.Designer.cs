@@ -4,6 +4,7 @@ using DataAccessLayer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260401133622_AddCreatedAtToUserAddresses")]
+    partial class AddCreatedAtToUserAddresses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -961,7 +964,7 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<DateTime?>("DateOfDeletion")
+                    b.Property<DateTime?>("DateOfDeleted")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDefault")
@@ -982,10 +985,7 @@ namespace DataAccessLayer.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique()
-                        .HasDatabaseName("Ix_User_Default_Address")
-                        .HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0");
+                    b.HasIndex("UserId");
 
                     b.ToTable("UserAddresses", (string)null);
                 });

@@ -25,7 +25,7 @@ namespace BusinessLayer.Mapper.Profiles
 
             CreateMap<Product, CreateProductDto>();
 
-            CreateMap<Product, CacheProductDto>().ReverseMap();
+            CreateMap<Product, ProductCashDto>().ReverseMap();
         }
 
     }

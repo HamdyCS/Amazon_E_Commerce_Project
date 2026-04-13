@@ -41,7 +41,7 @@ namespace ApiLayer.Filters
                     return;
                 }
 
-                //check if user is authenticated
+                //check if user isnot authenticated
                 if (httpContext.User is null || !httpContext.User.Identity.IsAuthenticated)
                 {
                     httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;

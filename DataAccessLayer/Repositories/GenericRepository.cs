@@ -55,7 +55,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task DeleteAsync(long Id)
+        public virtual async Task DeleteAsync(long Id)
         {
 
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
@@ -91,6 +91,8 @@ namespace DataAccessLayer.Repositories
                     if (DateOfDeletionProperty is not null)
                         DateOfDeletionProperty.CurrentValue = DateTime.UtcNow;
 
+                    _context.Set<T>().Update(entity);
+
                 }
             }
             catch (Exception ex)
@@ -99,7 +101,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task DeleteRangeAsync(IEnumerable<long> Ids)
+        public virtual async Task DeleteRangeAsync(IEnumerable<long> Ids)
         {
             ParamaterException.CheckIfIEnumerableIsNotNullOrEmpty(Ids, nameof(Ids));
 

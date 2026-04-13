@@ -17,5 +17,9 @@ namespace DataAccessLayer.Contracks
         Task<int> GetCountOfUserAddressesByUserIdAsync(string  userId);  
 
         Task<UserAddress> GetByIdAndUserIdAsync(long Id,string userId);
+
+        Task<bool> UpdateIsDefaultToFalseForAllUserAddressesByUserIdAsync(string userId);
+
+        Task<UserAddress> GetOldestUserAddressByUserIdAsync(string userId);
     }
 }
