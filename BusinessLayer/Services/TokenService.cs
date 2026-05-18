@@ -2,7 +2,6 @@
 using BusinessLayer.Exceptions;
 using BusinessLayer.Options;
 using DataAccessLayer.Entities;
-using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +22,9 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<TokenService> _logger;
         private readonly JwtOptions _jwtOptions;
+
+        private const string AccessTokenCookieName = "access_token";
+        private const string RefreshTokenCookieName = "refresh_token";
 
         public TokenService(IUserService userService, IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<TokenService> logger, JwtOptions jwtOptions)
         {
@@ -128,7 +130,7 @@ namespace BusinessLayer.Servicese
 
             if (!string.IsNullOrEmpty(Email)) claims.Add(new Claim(ClaimTypes.Email, Email));
 
-
+         
             //add roles claims
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -149,8 +151,8 @@ namespace BusinessLayer.Servicese
 
                 EncryptingCredentials = new EncryptingCredentials
                     (
-                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0, 16))),
-                        SecurityAlgorithms.Aes128KW,
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.EncryptionKey.Substring(0, 32))),
+                        SecurityAlgorithms.Aes256KW,
                         SecurityAlgorithms.Aes128CbcHmacSha256
 
                     ),
@@ -214,11 +216,31 @@ namespace BusinessLayer.Servicese
             };
 
             //append to cookie
-            httpResponse.Cookies.Append("access_token", token, cookieOptions);
+            httpResponse.Cookies.Append(AccessTokenCookieName, token, cookieOptions);
             if (refreshToken != null)
             {
-                httpResponse.Cookies.Append("refresh_token", refreshToken, cookieOptions);
+                httpResponse.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
             }
+        }
+
+        public void RemoveAuthInfoFromCookie(HttpResponse response)
+        {
+            //with the same options as the cookie to be deleted
+            response.Cookies.Delete(AccessTokenCookieName, new CookieOptions
+            {
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,//ليس مسار الفرونت يساوي مسار الباك
+                Path = "/"
+            });
+
+            response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+            {
+                Secure = true,
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,//ليس مسار الفرونت يساوي مسار الباك
+                Path = "/"
+            });
         }
     }
 }

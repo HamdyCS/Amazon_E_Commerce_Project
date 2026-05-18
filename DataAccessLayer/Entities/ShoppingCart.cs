@@ -12,6 +12,8 @@ public partial class ShoppingCart
 
     public DateTime CreatedAt { get; set; }
 
+    public bool IsActive { get; set; }
+
     public virtual User? user { get; set; }
 
     public virtual Payment Payment { get; set; }

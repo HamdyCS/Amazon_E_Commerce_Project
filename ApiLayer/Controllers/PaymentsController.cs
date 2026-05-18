@@ -50,6 +50,23 @@ namespace ApiLayer.Controllers
         }
 
 
+        [HttpGet("application-orders/{applicationOrderId:min(1)}", Name = "GetPaymentByApplicationOrderId")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<PaymentDto>> GetPaymentByApplicationOrderId(long applicationOrderId)
+        {
+
+            var userId = Helper.GetIdFromClaimsPrincipal(User);
+            if (userId is null) return Unauthorized();
+
+            var payment = await _paymentService.GetPaymentByApplicationOrderIdAndUserIdAsync(applicationOrderId, userId);
+            if (payment == null) return NotFound($"Not found any payment for application order id = {applicationOrderId}");
+
+            return Ok(payment);
+
+        }
+
+
         [HttpPost("pre-paid", Name = "PaymentPrePaid")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -59,22 +76,17 @@ namespace ApiLayer.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var userId = Helper.GetIdFromClaimsPrincipal(User);
-                if (userId is null) return Unauthorized();
 
-                var SessionUrl = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto, userId);
+            var userId = Helper.GetIdFromClaimsPrincipal(User);
+            if (userId is null) return Unauthorized();
 
-                if (string.IsNullOrEmpty(SessionUrl))
-                    return BadRequest("Payment didnot complet Successfully.");
+            var SessionUrl = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto, userId);
 
-                return Ok(SessionUrl);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (string.IsNullOrEmpty(SessionUrl))
+                return BadRequest("Payment didnot complet Successfully.");
+
+            return Ok(SessionUrl);
+
 
         }
 
@@ -84,29 +96,21 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(400)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<string>> PaymentCashOnDelivery(PaymentDto paymentDto)
+        public async Task<ActionResult<string>> PaymentCashOnDelivery(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var userId = Helper.GetIdFromClaimsPrincipal(User);
-                if (userId is null) return Unauthorized();
 
-                var IsPaymentCompletedSuccessfuly = await _paymentService.PaymentCashOnDeliveryAsync(paymentDto, userId);
+            var userId = Helper.GetIdFromClaimsPrincipal(User);
+            if (userId is null) return Unauthorized();
 
-                if (!IsPaymentCompletedSuccessfuly)
-                    return BadRequest("Payment didnot complet Successfully.");
+            var IsPaymentCompletedSuccessfuly = await _paymentService.PaymentCashOnDeliveryAsync(paymentCashOnDeliveryDto, userId);
 
-                return Ok("Payment completed Successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (!IsPaymentCompletedSuccessfuly)
+                return BadRequest("Payment didnot complet Successfully.");
+
+            return Ok("Payment completed Successfully.");
 
         }
-
 
     }
 }

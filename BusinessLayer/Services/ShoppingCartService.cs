@@ -48,7 +48,7 @@ namespace BusinessLayer.Servicese
             if (activeShoppingCart is not null)
             {
                 var activeShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(activeShoppingCart);
-              
+
                 return activeShoppingCartDto;
             }
 
@@ -85,10 +85,10 @@ namespace BusinessLayer.Servicese
             //check if not found active shopping cart create new
             if (activeShoppingCart is null)
             {
-               var addNewResult = await AddNewShoppingCart(userId);
-               return addNewResult;
+                var addNewResult = await AddNewShoppingCart(userId);
+                return addNewResult;
             }
-            
+
 
             var activeShoppingCartDto = _genericMapper.MapSingle<ShoppingCart, ShoppingCartDto>(activeShoppingCart);
 
@@ -106,12 +106,12 @@ namespace BusinessLayer.Servicese
             if (UserShoppingCartsList == null || !UserShoppingCartsList.Any()) return [];
 
             var UserShoppingCartsDtosList = _genericMapper.MapCollection<ShoppingCart, ShoppingCartDto>(UserShoppingCartsList);
-           
-        
+
+
             return UserShoppingCartsDtosList;
         }
 
-        public async Task<decimal> GetTotalPriceInShoppingCartByShoppingCartIdAsync(long shoppingCartId)
+        public async Task<decimal> GetTotalPriceInShoppingCartAsync(long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
@@ -134,6 +134,16 @@ namespace BusinessLayer.Servicese
             return shoppingCartDto;
         }
 
+        public async Task<bool> DeactiveShoppingCartAsync(long shoppingCartId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
+            //deactive shopping cart
+            await _unitOfWork.shoppingCartRepository.DeactiveShoppingCartByShoppingCartIdAsync(shoppingCartId);
+
+            //update db
+            var deactiveResult = await _completeAsync();
+            return deactiveResult;
+        }
     }
 }

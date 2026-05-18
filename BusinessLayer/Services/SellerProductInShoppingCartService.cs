@@ -245,6 +245,8 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfObjectIfNotNull(addProductToShoppingCartDto, nameof(addProductToShoppingCartDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
 
+
+
             var UserDto = await _userService.FindByIdAsync(UserId);
             if (UserDto == null) throw new KeyNotFoundException($"Not found User. Id = {UserId}");
 
@@ -270,9 +272,11 @@ namespace BusinessLayer.Servicese
 
             productInShoppingCart.TotalPrice = addProductToShoppingCartDto.Quantity * sellerProductDto.Price;
 
-            await _unitOfWork.SellerProductsInShoppingCartRepository.UpdateAsync(addProductToShoppingCartDto.ShoppingCartId, productInShoppingCart);
+             _unitOfWork.SellerProductsInShoppingCartRepository.Update(productInShoppingCart);
 
             var IsProductInShoppingCartUpdated = await _completeAsync();
+            if(!IsProductInShoppingCartUpdated) throw new InvalidOperationException("Didnot update seller product in cart successfuly");
+
 
             //get cart
             var cart = await _shoppingCartService.FindByIdAsync(addProductToShoppingCartDto.ShoppingCartId);

@@ -44,14 +44,20 @@ namespace ApiLayer.Controllers
                     var session = StripeEvent.Data.Object as Session;
                     if (session is null) return BadRequest("Invalid session data");
 
-                    // get paymentId from metadata
-                    var paymentId = long.Parse(session.Metadata["PaymentId"]);
-
                     if (string.IsNullOrEmpty(session.PaymentIntentId))
                         return BadRequest("PaymentIntentId is null or empty");
 
+                    // get paymentId from metadata
+                    var paymentId = long.TryParse(session.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
+
+                    //get shopping cart id from metadata
+                    var shoppingCartId = long.TryParse(session.Metadata["ShoppingCartId"], out var parsedShoppingCartId) ? parsedShoppingCartId : 0;
+
+                    if (shoppingCartId <= 0 || paymentId <= 0)
+                        return BadRequest("Invalid shopping cart id or payment id");
+
                     //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Succeeded, session.PaymentIntentId);
+                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Succeeded, session.PaymentIntentId, shoppingCartId);
 
                     if (!IsPaymentUpdated)
                         throw new Exception("Failed to update payment.");
@@ -66,14 +72,22 @@ namespace ApiLayer.Controllers
                     var session = StripeEvent.Data.Object as Session;
                     if (session is null) return BadRequest("Invalid session data");
 
-                    // get paymentId from metadata
-                    var paymentId = long.Parse(session.Metadata["PaymentId"]);
-
                     if (string.IsNullOrEmpty(session.PaymentIntentId))
                         return BadRequest("PaymentIntentId is null or empty");
 
+                    // get paymentId from metadata
+                    var paymentId = long.TryParse(session.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
+
+                    if (paymentId <= 0)
+                        return BadRequest("Invalid payment id");
+
+                    //get shopping cart id from metadata
+                    var shoppingCartId = long.TryParse(session.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
+                        ? parsedShoppingCartId : 0;
+
+
                     //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, session.PaymentIntentId);
+                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, session.PaymentIntentId, shoppingCartId);
 
                     if (!IsPaymentUpdated)
                         throw new Exception("Failed to update payment.");
@@ -88,15 +102,22 @@ namespace ApiLayer.Controllers
                     var paymentIntent = StripeEvent.Data.Object as PaymentIntent;
                     if (paymentIntent is null) return BadRequest("Invalid paymentIntent data");
 
-                    // get paymentId from metadata
-                    var paymentId = long.Parse(paymentIntent.Metadata["PaymentId"]);
-
                     if (string.IsNullOrEmpty(paymentIntent.Id))
                         return BadRequest("PaymentIntentId is null or empty");
 
-                    //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, paymentIntent.Id);
+                    // get paymentId from metadata
+                    var paymentId = long.TryParse(paymentIntent.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
 
+                    if (paymentId <= 0)
+                        return BadRequest("Invalid payment id");
+
+                    //get shopping cart id from metadata
+                    var shoppingCartId = long.TryParse(paymentIntent.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
+                        ? parsedShoppingCartId : 0;
+
+
+                    //update payment status to Succeeded
+                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, paymentIntent.Id, shoppingCartId);
                     if (!IsPaymentUpdated)
                         throw new Exception("Failed to update payment.");
 

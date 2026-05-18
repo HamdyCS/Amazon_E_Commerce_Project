@@ -13,12 +13,17 @@ namespace BusinessLayer.Mapper.Profiles
     {
         public PaymentProfile()
         {
+            //payment dto to payment
             CreateMap<PaymentDto, Payment>().ForMember(x => x.Id, opt =>
             opt.Ignore()).ForMember(x=>x.TotalPrice,opt=>
             opt.Ignore());
 
-
             CreateMap<Payment, PaymentDto>();
+
+
+
+            //payment cash on delivery to payment
+            CreateMap<PaymentCashOnDeliveryDto, Payment>().ReverseMap();
         }
     }
 }

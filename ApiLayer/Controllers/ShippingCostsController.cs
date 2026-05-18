@@ -12,7 +12,8 @@ using System.Security.Claims;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/cities/shipping-costs")]
+    [Route("api/shipping-costs")]
+    [Authorize]
     [ApiController]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
 
@@ -40,6 +41,30 @@ namespace ApiLayer.Controllers
                 var shippingCostDto = await _shippingCostService.FindByIdAsync(shippingCostId);
 
                 if (shippingCostDto == null) return NotFound($"Not found shippin gCost. Id = {shippingCostId}");
+
+                return Ok(shippingCostDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        //get shipping cost by city id
+        [HttpGet("cities/{citiyId}", Name = "GetShippingCostByCityId")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<ShippingCostDto>> GetShippingCostByCityId(long citiyId)
+        {
+            if (citiyId < 1) return BadRequest("citiyId must be bigger than zero.");
+
+            try
+            {
+                var shippingCostDto = await _shippingCostService.GetPriceOfShippingCostByCityId(citiyId);
+
+                if (shippingCostDto <0) return NotFound($"Not found shippingCost. CityId = {citiyId}");
 
                 return Ok(shippingCostDto);
             }

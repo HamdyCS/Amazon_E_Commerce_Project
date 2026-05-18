@@ -8,7 +8,6 @@ using BusinessLayer.Validations;
 using DataAccessLayer.Data;
 using DataAccessLayer.Identity.Entities;
 using FluentValidation;
-using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -55,7 +54,7 @@ builder.Services.AddCors(options =>
 });
 
 //jwt options
-var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>();
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
 
 
 if (jwtOptions != null)

@@ -122,7 +122,7 @@ namespace ApiLayer.Controllers
                 var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
                 if (ActiveShoppingCartDto == null) return NotFound($"Not found active shopping cart.");
 
-                var TotalPrice = await _shoppingCartService.GetTotalPriceInShoppingCartByShoppingCartIdAsync(ActiveShoppingCartDto.Id);
+                var TotalPrice = await _shoppingCartService.GetTotalPriceInShoppingCartAsync(ActiveShoppingCartDto.Id);
 
                 if (TotalPrice < 0) return NotFound("Not found any product in shopping cart");
 

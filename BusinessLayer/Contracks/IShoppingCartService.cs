@@ -18,6 +18,8 @@ namespace BusinessLayer.Contracks
 
         Task<IEnumerable<ShoppingCartDto>> GetAllUserShoppingCartsByUserIdAsync(string userId);
 
-        Task<decimal> GetTotalPriceInShoppingCartByShoppingCartIdAsync(long shoppingCartId);
+        Task<decimal> GetTotalPriceInShoppingCartAsync(long shoppingCartId);
+
+        Task<bool> DeactiveShoppingCartAsync(long shoppingCartId);
     }
 }

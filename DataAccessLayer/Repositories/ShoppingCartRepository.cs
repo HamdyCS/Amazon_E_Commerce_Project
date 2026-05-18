@@ -52,13 +52,22 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-               
-                var ActiveShoppingCart = await _context.ShoppingCarts.AsNoTracking().Include(e => e.ApplicationOrders)
-                    .Include(e=>e.SellerProducts).
-                    ThenInclude(e=>e.SellerProduct)
-                    .ThenInclude(SellerProduct=> SellerProduct.Product).
-                    ThenInclude(Product=> Product.ProductImages).AsSplitQuery()
-                    .FirstOrDefaultAsync(e => !e.ApplicationOrders.Any());
+
+                //old solution
+                //var ActiveShoppingCart = await _context.ShoppingCarts.AsNoTracking().Include(e => e.ApplicationOrders)
+                //    .Include(e=>e.SellerProducts).
+                //    ThenInclude(e=>e.SellerProduct)
+                //    .ThenInclude(SellerProduct=> SellerProduct.Product).
+                //    ThenInclude(Product=> Product.ProductImages).AsSplitQuery()
+                //    .FirstOrDefaultAsync(e => !e.ApplicationOrders.Any());
+
+                //new solution using IsActive property
+                var ActiveShoppingCart = await _context.ShoppingCarts.AsNoTracking()
+                    .Include(e => e.SellerProducts).
+                    ThenInclude(e => e.SellerProduct)
+                    .ThenInclude(SellerProduct => SellerProduct.Product).
+                    ThenInclude(Product => Product.ProductImages).AsSplitQuery()
+                    .FirstOrDefaultAsync(e => e.UserId == userId && e.IsActive);
 
                 return ActiveShoppingCart;
             }
@@ -101,6 +110,29 @@ namespace DataAccessLayer.Repositories
                 
 
                 return TotalPrice;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task DeactiveShoppingCartByShoppingCartIdAsync(long shoppingCartId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
+            try
+            {
+                var shoppingCart = await _context.ShoppingCarts.FindAsync(shoppingCartId);
+
+                if (shoppingCart == null)
+                {
+                    throw new KeyNotFoundException($"Shopping cart with id {shoppingCartId} not found.");
+                }
+
+                shoppingCart.IsActive = false;
+                _context.ShoppingCarts.Update(shoppingCart);
+
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {

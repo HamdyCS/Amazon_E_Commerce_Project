@@ -5,7 +5,6 @@ using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
-using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;

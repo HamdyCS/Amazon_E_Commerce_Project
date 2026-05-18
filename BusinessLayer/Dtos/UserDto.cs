@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,12 +27,13 @@ namespace BusinessLayer.Dtos
         [Required,Phone]
         public string PhoneNumber { get; set; }
 
-        [Required]
+        [Required,EmailAddress]
         public string Email { get; set; }
 
-        [Required,MinLength(6),MaxLength(10)]
+        [Required,MinLength(6), MaxLength(10)]
         public string Password { get; set; }
 
-        public IEnumerable<string> Roles { get; set; }
+        
+        public IEnumerable<string>? Roles { get; set; }
     }
 }

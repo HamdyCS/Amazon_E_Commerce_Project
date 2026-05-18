@@ -9,5 +9,7 @@ namespace DataAccessLayer.Contracks
 {
     public interface IPaymentRepository : IGenericRepository<Payment>
     {
+        Task<Payment> FindByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId);
+        Task<Payment> GetByIdAndInvoiceIdAsync(long paymentId, string invoiceId);
     }
 }

@@ -14,13 +14,14 @@ namespace BusinessLayer.Contracks
         /// <param name="UserId"></param>
         /// <returns>Session url</returns>
         Task<string> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId);// عن طريق فيزا
-        Task<bool> PaymentCashOnDeliveryAsync(PaymentDto paymentDto, string UserId);// عند الاستلام
+        Task<bool> PaymentCashOnDeliveryAsync(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto, string UserId);// عند الاستلام
 
         Task<bool> UpdatePaymentStatusByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus);
 
-        Task<bool> UpdateInvoiceIdByIdAsync(long paymentId, string invoiceId);
+        Task<bool> UpdatePaymentByIdAndInvoiceIdAsync(long paymentId, string invoiceId);
 
-        Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId);
+        Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId,long shoppingCartId);
 
+        Task<PaymentDto> GetPaymentByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId);
     }
 }

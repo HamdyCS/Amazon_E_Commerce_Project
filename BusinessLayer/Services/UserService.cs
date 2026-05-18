@@ -51,6 +51,8 @@ namespace BusinessLayer.Servicesep
                 if (roles is not null)
                     userDto.Roles = roles.Select(r => r.Name);
 
+                
+
                 return userDto;
             }
             catch (Exception ex)
@@ -403,8 +405,7 @@ namespace BusinessLayer.Servicesep
                 var user = _genericMapper.MapSingle<UserDto, User>(userDto);
                 if (user is null) return null;
 
-                _genericMapper.MapSingle(personDto, user);
-
+           
                 user.CreatedAt = DateTime.UtcNow;
                 user.PersonId = personDto.Id;
                 user.UserName = new MailAddress(userDto.Email).User;

@@ -102,7 +102,9 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var ActiveUnderProcessingApplicationOrdersList = await _context.ApplicationOrders.Include(x => x.Payment).
-                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.UnderProcessing && x.Payment != null && (x.Payment.PaymentStatusId == (int)EnPaymentStatus.Succeeded || x.Payment.PaymentTypeId == (long)EnPaymentType.CashOnDelivery) && !
+                    Where(x => x.ApplicationOrderTypeId == (long)EnApplicationOrderType.UnderProcessing && x.Payment != null 
+                    && (x.Payment.PaymentStatusId == (int)EnPaymentStatus.Succeeded 
+                    || x.Payment.PaymentTypeId == (long)EnPaymentType.CashOnDelivery) && !
                     _context.ApplicationOrders.Any(y => (y.ApplicationId == x.ApplicationId &&
                     y.ApplicationOrderTypeId == (long)EnApplicationOrderType.Shipped))).ToListAsync();
 

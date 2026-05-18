@@ -360,6 +360,11 @@ public class AppDbContext : IdentityDbContext<User>
 
         });
 
+        modelBuilder.Entity<ShoppingCart>(entity =>
+        {
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+        });
+
         modelBuilder.Entity<SellerProductInShoppingCart>(entity =>
         {
             entity.ToTable("SellerProductsInShoppingCarts");

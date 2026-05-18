@@ -44,7 +44,6 @@ namespace DataAccessLayer.Repositories
             {
 
                 var IsCreated = await _userManager.CreateAsync(user, Password);
-
                 return IsCreated.Succeeded;
             }
             catch (Exception ex)

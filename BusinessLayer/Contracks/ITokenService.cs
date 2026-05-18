@@ -20,7 +20,8 @@ namespace BusinessLayer.Contracks
         Task<bool> CheckIfRefreshTokenIsValidAsync(string refreshToken);
 
         public void AddAuthInfoToCookie(HttpResponse httpResponse, string token, string? refreshToken = null);
-       
+        void RemoveAuthInfoFromCookie(HttpResponse response);
+
         //public Task<string> CheckIfRefreshTokenIsActiveByEmailAsync(string Email, string RefreshTokenString);
 
     }

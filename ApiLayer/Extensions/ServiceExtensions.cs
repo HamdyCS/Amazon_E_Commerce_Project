@@ -166,8 +166,12 @@ namespace BusinessLayer.Extensions
                         ValidateIssuer = true,
                         ValidIssuer = jwtOptions.Issuar,
 
+                        ValidateIssuerSigningKey = true,
+                        
+
                         ValidateAudience = true,
                         ValidAudience = jwtOptions.Audience,
+
 
                         ValidateLifetime = true,
 
@@ -176,7 +180,7 @@ namespace BusinessLayer.Extensions
 
                         ClockSkew = TimeSpan.Zero,
 
-                        TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey.Substring(0, 16))),
+                        TokenDecryptionKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.EncryptionKey.Substring(0, 32))),
                     };
 
                     //get token from cookie not header

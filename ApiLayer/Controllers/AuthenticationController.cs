@@ -19,6 +19,10 @@ namespace ApiLayer.Controllers
     [Authorize]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
 
+
+    //admin account
+    //Admin@email.com
+    //Admin
     public class AuthenticationController : ControllerBase
     {
         private readonly IOtpService _otpService;
@@ -671,7 +675,7 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> Logout()
+        public async Task<IActionResult> Logout()
         {
             try
             {
@@ -681,10 +685,14 @@ namespace ApiLayer.Controllers
                 var IsLogout = await _tokenService.RemoveAllUserRefrechTokensByUserIdAsync(userId);
 
                 if (!IsLogout)
-                    return NotFound("Not found any refresh token.");
+                    return NotFound("User is not logged in.");
 
+                //remove auth info from cookie
+                _tokenService.RemoveAuthInfoFromCookie(Response);
 
-                return Ok("Logout successfuly.");
+                return Ok(new {
+                     message = "Logout successfuly"
+                });
             }
             catch (Exception ex)
             {

@@ -12,6 +12,8 @@ namespace DataAccessLayer.Contracks
         Task<ShoppingCart> GetActiveShoppingCartByUserIdAsync(string userId);
 
         Task<IEnumerable<ShoppingCart>> GetAllUserShoppingCartByUserIdAsync(string userId);
+        
+        Task DeactiveShoppingCartByShoppingCartIdAsync(long shoppingCartId);
 
         /// <summary>
         /// 
