@@ -17,12 +17,13 @@ namespace BusinessLayer.Servicese
         private readonly IShippingCostService _shippingCostService;
         private readonly IShoppingCartService _shoppingCartService;
         private readonly IStripeService _stripeService;
+        private readonly IApplicationService _applicationService;
         private readonly IApplicationOrderService _applicationOrderService;
 
         public PaymentService(IGenericMapper genericMapper, IUserService userService, IUnitOfWork unitOfWork,
             IUserAddressService userAdderssService,
             IShippingCostService shippingCostService, IShoppingCartService shoppingCartService,
-            IApplicationOrderService applicationOrderService, IStripeService stripeService)
+            IApplicationOrderService applicationOrderService, IStripeService stripeService, IApplicationService applicationService)
         {
             this._genericMapper = genericMapper;
             this._userService = userService;
@@ -30,6 +31,7 @@ namespace BusinessLayer.Servicese
             this._shippingCostService = shippingCostService;
             this._shoppingCartService = shoppingCartService;
             this._stripeService = stripeService;
+            this._applicationService = applicationService;
             this._applicationOrderService = applicationOrderService;
             this._unitOfWork = unitOfWork;
         }
@@ -68,7 +70,7 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<string> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId)
+        public async Task<PrePaidResultDto> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(paymentPrePaidDto, nameof(paymentPrePaidDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
@@ -80,52 +82,66 @@ namespace BusinessLayer.Servicese
             };
 
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
-            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentDto.ShoppingCartId) return string.Empty;
+            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentDto.ShoppingCartId)
+                throw new KeyNotFoundException($"Active shopping cart not found.");
+
 
 
             var userAddressDto = await _userAdderssService.FindByIdAndUserIdAsync(paymentDto.UserAddressId, UserId);
-            if (userAddressDto == null) return string.Empty;
+            if (userAddressDto == null) throw new KeyNotFoundException($"User address not found. Id: {paymentDto.UserAddressId}");
+            ;
 
 
             var shippingCostDto = await _shippingCostService.FindByCityIdAsync(userAddressDto.CityId);
-            if (shippingCostDto == null) return string.Empty;
+            if (shippingCostDto == null) throw new KeyNotFoundException($"Shipping cost not found for city Id: {userAddressDto.CityId}");
 
 
             var ShoppingCartTotalPrice = await _shoppingCartService.GetTotalPriceInShoppingCartAsync(ActiveShoppingCartDto.Id);
-            if (ShoppingCartTotalPrice == -1) return string.Empty;
+            if (ShoppingCartTotalPrice == -1) throw new KeyNotFoundException($"Shopping cart total price not found. Id: {ActiveShoppingCartDto.Id}");
 
             var sellerProductsInCart = await _unitOfWork.SellerProductsInShoppingCartRepository.GetAllSellerProductsInShoppingCartByShoppingCartIdAsync(ActiveShoppingCartDto.Id);
-            if (sellerProductsInCart == null || !sellerProductsInCart.Any()) return string.Empty;
+            if (sellerProductsInCart == null || !sellerProductsInCart.Any())
+                throw new KeyNotFoundException($"Not found any seller products in cart. ShoppingCartId: {ActiveShoppingCartDto.Id}"); ;
 
             var TotalPrice = ShoppingCartTotalPrice + shippingCostDto.Price;
 
 
-            if (!(TotalPrice > 0)) return string.Empty;
+
 
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
 
+                //get payment from db by ShoppingCartId and UserId to check if there is any pending payment for this shopping cart and user
+                var payment = await _unitOfWork.paymentRepository.GetByShoppingCartIdAndUserIdAsync(paymentDto.ShoppingCartId, UserId);
 
-                var payment = _genericMapper.MapSingle<PaymentDto, Payment>(paymentDto);
-                if (payment == null) throw new Exception("payment is null");
+                //if null create new payment
+                if (payment == null)
+                {
+                    payment = _genericMapper.MapSingle<PaymentDto, Payment>(paymentDto);
+                    if (payment == null) throw new Exception("payment is null");
 
-                payment.TotalPrice = TotalPrice;
-                payment.CreatedAt = DateTime.UtcNow;
-                payment.PaymentTypeId = (long)EnPaymentType.PrePaid;
-                payment.shippingCostId = shippingCostDto.Id;
-                payment.PaymentStatusId = (int)EnPaymentStatus.Pending;
+                    payment.TotalPrice = TotalPrice;
+                    payment.CreatedAt = DateTime.UtcNow;
+                    payment.PaymentTypeId = (long)EnPaymentType.PrePaid;
+                    payment.shippingCostId = shippingCostDto.Id;
+                    payment.PaymentStatusId = (int)EnPaymentStatus.Pending;
 
-                await _unitOfWork.paymentRepository.AddAsync(payment);
-                var IsPaymentAdded = await _CompleteAsync();
+                    await _unitOfWork.paymentRepository.AddAsync(payment);
+                    var IsPaymentAdded = await _CompleteAsync();
 
-                if (!IsPaymentAdded) throw new Exception("Payment not added");
+                    if (!IsPaymentAdded) throw new Exception("Payment not added");
+                }
+
+                //add new application
+                var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
+                if (NewApplication is null) throw new Exception("Failed to add new application");
 
 
                 var NewApplicationOrderDto = await _applicationOrderService.
-                    AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId);
+                    AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId, NewApplication.Id);
 
-                if (NewApplicationOrderDto == null) throw new Exception("not new application order added");
+                if (NewApplicationOrderDto == null) throw new Exception("Failed to add new application order");
 
                 /*
                 var newStripeToken = await _stripeService.CreateStripeTokenAsync(paymentPrePaidDto.CardInfo);
@@ -140,7 +156,7 @@ namespace BusinessLayer.Servicese
 
                 //stripe session
 
-                //new payment dto
+                //new payment dto to create session with it
                 var NewPaymentDto = new PaymentDto
                 {
                     Id = payment.Id,
@@ -155,8 +171,8 @@ namespace BusinessLayer.Servicese
                     PaymentId = payment.Id,
                     TotalPrice = TotalPrice,
                     ShippingCost = shippingCostDto.Price,
-                    SuccessUrl = $"{paymentPrePaidDto.SuccessUrl}/application-order/{NewApplicationOrderDto.Id}",
-                    CancelUrl = $"{paymentPrePaidDto.CancelUrl}/application-order/{NewApplicationOrderDto.Id}",
+                    SuccessUrl = paymentPrePaidDto.SuccessUrl,
+                    CancelUrl = paymentPrePaidDto.CancelUrl
                 };
 
                 //create stripe session
@@ -164,13 +180,20 @@ namespace BusinessLayer.Servicese
                 if (stripeDto == null) throw new Exception("stripe dto is null");
 
                 payment.SessionId = stripeDto.SessionId;
-                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+                _unitOfWork.paymentRepository.Update(payment);
 
                 var IsPaymentUpdated = await _CompleteAsync();
-                if (!IsPaymentUpdated) throw new Exception("Payment not Updated");
+                if (!IsPaymentUpdated) throw new Exception("Failed to update payment");
 
                 await _unitOfWork.CommitTransactionAsync();
-                return stripeDto.SessionUrl;
+
+                var result = new PrePaidResultDto
+                {
+                    SessionUrl = stripeDto.SessionUrl,
+                    SessionId = stripeDto.SessionId
+                };
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -179,7 +202,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> PaymentCashOnDeliveryAsync(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto, string UserId)
+        public async Task<CashOnDeliveryResultDto> PaymentCashOnDeliveryAsync(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto, string UserId)
         {
             ParamaterException.CheckIfObjectIfNotNull(paymentCashOnDeliveryDto, nameof(paymentCashOnDeliveryDto));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
@@ -187,47 +210,78 @@ namespace BusinessLayer.Servicese
 
 
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
-            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentCashOnDeliveryDto.ShoppingCartId) return false;
-
+            if (ActiveShoppingCartDto == null || ActiveShoppingCartDto.Id != paymentCashOnDeliveryDto.ShoppingCartId)
+                throw new KeyNotFoundException($"ActiveShoppingCart not found.");
 
             var userAddressDto = await _userAdderssService.FindByIdAndUserIdAsync(paymentCashOnDeliveryDto.UserAddressId, UserId);
-            if (userAddressDto == null) return false;
+            if (userAddressDto == null) throw new KeyNotFoundException($"UserAddress not found. Id = {paymentCashOnDeliveryDto.UserAddressId}");
 
 
             var shippingCostDto = await _shippingCostService.FindByCityIdAsync(userAddressDto.CityId);
-            if (shippingCostDto == null) return false;
-
+            if (shippingCostDto == null) throw new KeyNotFoundException($"Shipping cost not found for city id = {userAddressDto.CityId}");
 
             var ShoppingCartTotalPrice = await _shoppingCartService.GetTotalPriceInShoppingCartAsync(ActiveShoppingCartDto.Id);
-            if (ShoppingCartTotalPrice == -1) return false;
+            if (ShoppingCartTotalPrice == -1) throw new KeyNotFoundException($"Shopping cart total price not found for cart id = {ActiveShoppingCartDto.Id}");
 
 
             var TotalPrice = ShoppingCartTotalPrice + shippingCostDto.Price;
 
 
-            if (!(TotalPrice > 0)) return false;
-
             try
             {
                 await _unitOfWork.BeginTransactionAsync();
 
-                var payment = _genericMapper.MapSingle<PaymentCashOnDeliveryDto, Payment>(paymentCashOnDeliveryDto);
-                if (payment == null) throw new Exception("payment is null");
+                //get payment from db by ShoppingCartId and UserId to check if there is any pending payment for this shopping cart and user
+                var payment = await _unitOfWork.paymentRepository.GetByShoppingCartIdAndUserIdAsync(paymentCashOnDeliveryDto.ShoppingCartId, UserId);
 
-                payment.TotalPrice = TotalPrice;
-                payment.CreatedAt = DateTime.UtcNow;
-                payment.PaymentTypeId = (long)EnPaymentType.CashOnDelivery;
-                payment.shippingCostId = shippingCostDto.Id;
+                //if payment is not null update UserAddressId and shippingCostId if there is any change in them to make sure that the payment is up to date with the latest user address and shipping cost
 
-                await _unitOfWork.paymentRepository.AddAsync(payment);
-                var IsPaymentAdded = await _CompleteAsync();
+                if (payment != null)
+                {
+                    if (payment.UserAddressId != paymentCashOnDeliveryDto.UserAddressId)
+                    {
+                        payment.UserAddressId = paymentCashOnDeliveryDto.UserAddressId;
+                    }
 
-                if (!IsPaymentAdded) throw new Exception("Payment not added");
+                    if (payment.shippingCostId != shippingCostDto.Id)
+                    {
+                        payment.shippingCostId = shippingCostDto.Id;
+                    }
 
+                    payment.TotalPrice = TotalPrice;
+
+                    _unitOfWork.paymentRepository.Update(payment);
+
+                    var IsPaymentUpdated = await _CompleteAsync();
+                    if (!IsPaymentUpdated) throw new Exception("Payment not updated");
+                }
+
+                //if null create new payment
+                if (payment == null)
+                {
+
+                    payment = _genericMapper.MapSingle<PaymentCashOnDeliveryDto, Payment>(paymentCashOnDeliveryDto);
+                    if (payment == null) throw new Exception("payment is null");
+
+                    payment.TotalPrice = TotalPrice;
+                    payment.CreatedAt = DateTime.UtcNow;
+                    payment.PaymentTypeId = (long)EnPaymentType.CashOnDelivery;
+                    payment.shippingCostId = shippingCostDto.Id;
+                    payment.PaymentStatusId = (int)EnPaymentStatus.Pending;
+
+                    await _unitOfWork.paymentRepository.AddAsync(payment);
+                    var IsPaymentAdded = await _CompleteAsync();
+
+                    if (!IsPaymentAdded) throw new Exception("Payment not added");
+                }
+
+
+                //add new application
+                var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
+                if (NewApplication is null) throw new Exception("New application not added");
 
                 var NewApplicationOrderDto = await _applicationOrderService.
-                    AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId);
-
+                    AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId, NewApplication.Id);
                 if (NewApplicationOrderDto == null) throw new Exception("not new application order added");
 
                 //deactive shopping cart
@@ -235,12 +289,12 @@ namespace BusinessLayer.Servicese
 
 
                 await _unitOfWork.CommitTransactionAsync();
-                return true;
+                return new CashOnDeliveryResultDto { ApplicationId = NewApplication.Id };
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return false;
+                return null;
             }
         }
 
@@ -308,14 +362,14 @@ namespace BusinessLayer.Servicese
                 payment.PaymentStatusId = (int)enPaymentStatus;
 
                 payment.InvoiceId = invoiceId;
-                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
+                 _unitOfWork.paymentRepository.Update(payment);
 
                 var IsPaymentUpdated = await _CompleteAsync();
 
-                if(!IsPaymentUpdated) throw new Exception("Payment not Updated");
+                if (!IsPaymentUpdated) throw new Exception("Payment not Updated");
 
                 //deactive shopping cart if payment is succeeded
-                if(enPaymentStatus == EnPaymentStatus.Succeeded)
+                if (enPaymentStatus == EnPaymentStatus.Succeeded)
                 {
                     await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
                 }
@@ -332,8 +386,8 @@ namespace BusinessLayer.Servicese
 
         public async Task<PaymentDto> GetPaymentByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId)
         {
-           ParamaterException.CheckIfLongIsBiggerThanZero(applicationOrderId, nameof(applicationOrderId));
-           ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(applicationOrderId, nameof(applicationOrderId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
 
             var payment = await _unitOfWork.paymentRepository.FindByApplicationOrderIdAndUserIdAsync(applicationOrderId, userId);
 
@@ -343,6 +397,17 @@ namespace BusinessLayer.Servicese
             return paymentDto;
         }
 
-       
+        public async Task<PaymentDto> GetBySessionIdAndUserIdAsync(string sessionId, string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(sessionId, nameof(sessionId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            var payment = await _unitOfWork.paymentRepository.GetBySessionIdAndUserIdAsync(sessionId, userId);
+            if (payment == null) throw new KeyNotFoundException("Payment not found");
+
+            var paymentDto = _genericMapper.MapSingle<Payment, PaymentDto>(payment);
+            return paymentDto;
+
+        }
     }
 }

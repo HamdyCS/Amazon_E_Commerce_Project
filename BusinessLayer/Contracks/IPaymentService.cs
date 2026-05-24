@@ -13,8 +13,8 @@ namespace BusinessLayer.Contracks
         /// <param name="paymentPrePaidDto"></param>
         /// <param name="UserId"></param>
         /// <returns>Session url</returns>
-        Task<string> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId);// عن طريق فيزا
-        Task<bool> PaymentCashOnDeliveryAsync(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto, string UserId);// عند الاستلام
+        Task<PrePaidResultDto> PaymentPrePaidAsync(PaymentPrePaidDto paymentPrePaidDto, string UserId);// عن طريق فيزا
+        Task<CashOnDeliveryResultDto> PaymentCashOnDeliveryAsync(PaymentCashOnDeliveryDto paymentCashOnDeliveryDto, string UserId);// عند الاستلام
 
         Task<bool> UpdatePaymentStatusByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus);
 
@@ -23,5 +23,7 @@ namespace BusinessLayer.Contracks
         Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId,long shoppingCartId);
 
         Task<PaymentDto> GetPaymentByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId);
+
+        Task<PaymentDto> GetBySessionIdAndUserIdAsync(string sessionId, string userId);
     }
 }

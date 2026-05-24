@@ -11,5 +11,7 @@ namespace DataAccessLayer.Contracks
     {
         Task<Payment> FindByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId);
         Task<Payment> GetByIdAndInvoiceIdAsync(long paymentId, string invoiceId);
+        Task<Payment> GetBySessionIdAndUserIdAsync(string sessionId, string userId);
+        Task<Payment> GetByShoppingCartIdAndUserIdAsync(long shoppingCartId, string userId);
     }
 }

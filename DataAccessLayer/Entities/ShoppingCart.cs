@@ -12,7 +12,7 @@ public partial class ShoppingCart
 
     public DateTime CreatedAt { get; set; }
 
-    public bool IsActive { get; set; }
+    public bool IsActive { get; set; } = true;
 
     public virtual User? user { get; set; }
 

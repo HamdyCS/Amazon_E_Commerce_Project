@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Dtos
 {
-    public class OrderApplicationSummaryDto
+    public class ApplicationOrderSummeryDto
     {
         public long ApplicationId { get; set; }
         public long LastApplicationOrderTypeId { get; set; }
@@ -17,6 +17,12 @@ namespace BusinessLayer.Dtos
         public decimal TotalPrice { get; set; }
         public long? ReturnApplicatonId { get; set; }
         public DateTime? ReturnApplicationCreatedAt { get; set; }
+        public ShoppingCartDto shoppingCartDto { get; set; }
+        public string PaymentType { get; set; }
+        public string ApplicationOrderType { get; set; }
 
+        public DateOnly? EstimatedDeliveryFrom { get; set; }
+
+        public DateOnly? EstimatedDeliveryTo { get; set; }
     }
 }

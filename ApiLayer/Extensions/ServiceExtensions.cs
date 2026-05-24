@@ -82,7 +82,7 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IDeliveryOrderService, DeliveryOrderService>();
 
-            services.AddScoped<IOrderApplicationSummaryService, OrderApplicationSummaryService>();
+            services.AddScoped<IApplicationOrderSummaryService, ApplicationOrderSummaryService>();
 
             services.AddScoped<IBannerService, BannerService>();
 

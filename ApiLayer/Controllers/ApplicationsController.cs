@@ -16,15 +16,15 @@ namespace ApiLayer.Controllers
     public class ApplicationsController : ControllerBase
     {
         private readonly IApplicationService _applicationService;
-        private readonly IOrderApplicationSummaryService _orderApplicationSummaryService;
+        private readonly IApplicationOrderSummaryService _orderApplicationSummaryService;
 
-        public ApplicationsController(IApplicationService applicationService,IOrderApplicationSummaryService orderApplicationSummaryService)
+        public ApplicationsController(IApplicationService applicationService, IApplicationOrderSummaryService orderApplicationSummaryService)
         {
             this._applicationService = applicationService;
             this._orderApplicationSummaryService = orderApplicationSummaryService;
         }
 
-        [HttpGet("all",Name = "ApplicationsController")]
+        [HttpGet("all", Name = "ApplicationsController")]
         [Authorize(Roles = Role.Customer)]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
@@ -34,7 +34,7 @@ namespace ApiLayer.Controllers
             try
             {
                 var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if(UserId == null) return Unauthorized();
+                if (UserId == null) return Unauthorized();
 
                 var applicationDtosList = await _applicationService.GetAllUserApplicationsByUserIdAsync(UserId);
                 if (applicationDtosList is null || !applicationDtosList.Any())
@@ -44,8 +44,8 @@ namespace ApiLayer.Controllers
             }
             catch (Exception ex)
             {
-                
-                return StatusCode(500,ex.Message);
+
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -59,7 +59,7 @@ namespace ApiLayer.Controllers
         {
             try
             {
-               
+
 
                 var applicationDtosList = await _applicationService.GetAllReturnApplicationsAsync();
                 if (applicationDtosList is null || !applicationDtosList.Any())
@@ -80,11 +80,11 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ApplicationDto>>> GetAllUserReturnApplications([FromBody]string UserId)
+        public async Task<ActionResult<IEnumerable<ApplicationDto>>> GetAllUserReturnApplications([FromBody] string UserId)
         {
             try
             {
-             
+
                 var applicationDtosList = await _applicationService.GetAllUserReturnApplicationsByUserIdAsync(UserId);
                 if (applicationDtosList is null || !applicationDtosList.Any())
                     return NotFound("Not found any return application.");
@@ -110,9 +110,9 @@ namespace ApiLayer.Controllers
             try
             {
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
-                if(userId is null) return Unauthorized();
+                if (userId is null) return Unauthorized();
 
-                var shoppingCartDto = await _applicationService.FindShoppingCartByApplicationIdAndUserIdAsync(ApplcationId,userId);
+                var shoppingCartDto = await _applicationService.FindShoppingCartByApplicationIdAndUserIdAsync(ApplcationId, userId);
                 if (shoppingCartDto is null)
                     return NotFound($"Not found any shopping cart. ApplicationId = {ApplcationId}");
 
@@ -132,13 +132,13 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ApplicationDto>>> AddNewReturnApplicationByUserId(long ApplcationId,[FromBody]string UserId)
+        public async Task<ActionResult<IEnumerable<ApplicationDto>>> AddNewReturnApplicationByUserId(long ApplcationId, [FromBody] string UserId)
         {
             if (string.IsNullOrEmpty(UserId)) return BadRequest("UserId cannot be null or empty");
             try
             {
-           
-                var ReturnApplicatonDto = await _applicationService.AddNewReturnApplicationAsync(UserId,ApplcationId);
+
+                var ReturnApplicatonDto = await _applicationService.AddNewReturnApplicationAsync(UserId, ApplcationId);
                 if (ReturnApplicatonDto is null)
                     return BadRequest("cannot add new return application.");
 
@@ -157,18 +157,18 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<OrderApplicationSummaryDto>> GetUserOrderApplicationSummaryByApplicationId(long ApplcationId)
+        public async Task<ActionResult<ApplicationOrderSummeryDto>> GetUserOrderApplicationSummaryByApplicationId(long ApplcationId)
         {
             try
             {
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
                 if (userId is null) return Unauthorized();
 
-                var orderApplicationSummaryDto = await _orderApplicationSummaryService.GetUserOrderApplicationSummaryByUserIdAndApplicationIdAsync(ApplcationId, userId);
-                if (orderApplicationSummaryDto is null)
+                ApplicationOrderSummeryDto? applicationOrderSummeryDto = await _orderApplicationSummaryService.GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(ApplcationId, userId);
+                if (applicationOrderSummeryDto is null)
                     return NotFound($"Not found order application summary. ApplicationId = {ApplcationId}");
 
-                return Ok(orderApplicationSummaryDto);
+                return Ok(applicationOrderSummeryDto);
             }
             catch (Exception ex)
             {
@@ -184,18 +184,18 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<OrderApplicationSummaryDto>>> GetAllUserOrderApplicationSummaries()
+        public async Task<ActionResult<IEnumerable<ApplicationOrderSummeryDto>>> GetAllUserOrderApplicationSummaries()
         {
             try
             {
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
                 if (userId is null) return Unauthorized();
 
-                var orderApplicationSummaryDtosList = await _orderApplicationSummaryService.GetAllUserOrderApplicationSummariesByUserIdAsync(userId);
-                if (orderApplicationSummaryDtosList is null || !orderApplicationSummaryDtosList.Any())
+                var applicationOrderSummeryDtosList = await _orderApplicationSummaryService.GetAllUserApplicationOrderSummariesAsync(userId);
+                if (applicationOrderSummeryDtosList is null || !applicationOrderSummeryDtosList.Any())
                     return NotFound($"Not found any order application summary.");
 
-                return Ok(orderApplicationSummaryDtosList);
+                return Ok(applicationOrderSummeryDtosList);
             }
             catch (Exception ex)
             {
@@ -204,6 +204,31 @@ namespace ApiLayer.Controllers
             }
         }
 
+        [HttpGet("latest-application-order-summary", Name = "GetLatestApplicationOrderSummary")]
+        [Authorize(Roles = Role.Customer)]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<ApplicationOrderSummeryDto>> GetLatestApplicationOrderSummary()
+        {
+            try
+            {
+                var userId = Helper.GetIdFromClaimsPrincipal(User);
+                if (userId is null) return Unauthorized();
+
+                ApplicationOrderSummeryDto? applicationOrderSummeryDto = await _orderApplicationSummaryService.GetLatestUserApplicationOrderSummaryAsync(userId);
+                if (applicationOrderSummeryDto is null)
+                    return NotFound($"Not found lastest user application order summary. UserId = {userId}");
+
+                return Ok(applicationOrderSummeryDto);
+            }
+            catch (Exception ex)
+            {
+
+                return StatusCode(500, ex.Message);
+            }
+        }
 
     }
 }

@@ -16,5 +16,6 @@ namespace DataAccessLayer.Contracks
         Task<IEnumerable<ApplicationOrder>> GetAllApplicationOrdersByApplicatonIdAsync(long ApplicationId);
         Task<IEnumerable<ApplicationOrder>> GetAllApplicationOrdersByApplicatonIdAndUserIdAsync(long ApplicationId, string UserId);
         Task<ApplicationOrder> GetActiveApplicationOrderByApplicationIdAsync(long applicationId);
+        Task<ApplicationOrder> GetLatestApplicationOrderByUserIdAsync(string userId);
     }
 }

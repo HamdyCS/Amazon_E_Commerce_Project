@@ -251,9 +251,9 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
 
             //importanat business rule: each user can have only one default address
-            entity.HasIndex(x=>x.UserId).HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
+            entity.HasIndex(x => x.UserId).HasFilter("[IsDefault] = 1 AND [IsDeleted] = 0")
             .IsUnique().HasDatabaseName("Ix_User_Default_Address");
-           
+
         });
 
         modelBuilder.Entity<Person>(entity =>
@@ -293,7 +293,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasIndex(e => e.NameEn);
             entity.HasIndex(e => e.NameAr);
 
-            entity.Property(p=>p.RatingCount).HasDefaultValue(0);
+            entity.Property(p => p.RatingCount).HasDefaultValue(0);
             entity.Property(p => p.AvgRating).HasDefaultValue(0);
         });
 
@@ -362,7 +362,9 @@ public class AppDbContext : IdentityDbContext<User>
 
         modelBuilder.Entity<ShoppingCart>(entity =>
         {
+
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+
         });
 
         modelBuilder.Entity<SellerProductInShoppingCart>(entity =>
@@ -379,6 +381,8 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.ShoppingCart).WithMany(p => p.SellerProducts)
                 .HasForeignKey(d => d.ShoppingCartId)
                 .HasConstraintName("FK_ProductsInShoppingCarts_ShoppingCartId");
+
+
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
@@ -465,10 +469,10 @@ public class AppDbContext : IdentityDbContext<User>
         {
             entity.ToTable("Banners").HasKey(e => e.Id);
             entity.HasIndex(e => e.DisplayOrder);
-            entity.Property(e=>e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.IsDeleted).HasDefaultValue(false);
 
-            entity.HasQueryFilter(b=> !b.IsDeleted);
+            entity.HasQueryFilter(b => !b.IsDeleted);
         });
 
         //to enable Login with providers

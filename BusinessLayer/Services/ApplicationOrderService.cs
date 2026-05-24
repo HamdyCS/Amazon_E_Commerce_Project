@@ -108,6 +108,16 @@ namespace BusinessLayer.Servicese
             var IsNewApplicationOrderAdded = await _CompleteAsync();
             if (!IsNewApplicationOrderAdded) return null;
 
+            //update payment status to completed if the payment type is cash on delivery
+            var payment = await _unitOfWork.paymentRepository.GetByIdAsNoTrackingAsync(activeApplictionOrder.PaymentId);
+            if (payment.PaymentTypeId == (long)EnPaymentType.CashOnDelivery)
+            {
+                payment.PaymentStatusId = (int)EnPaymentStatus.Succeeded;
+                _unitOfWork.paymentRepository.Update(payment);
+                var IsPaymentStatusUpdated = await _CompleteAsync();
+                if (!IsPaymentStatusUpdated) return null;
+            }
+
 
             await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.", $"Your order ({NewApplicationOrder.ApplicationId}) is Delivered.");
 
@@ -117,11 +127,12 @@ namespace BusinessLayer.Servicese
 
         }
 
-        public async Task<ApplicationOrderDto> AddNewUnderProcessingApplicationOrderAsync(long ShoppingCartId, long PaymentId, string UserId)
+        public async Task<ApplicationOrderDto> AddNewUnderProcessingApplicationOrderAsync(long ShoppingCartId, long PaymentId, string UserId, long ApplicationId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ShoppingCartId, nameof(ShoppingCartId));
             ParamaterException.CheckIfLongIsBiggerThanZero(PaymentId, nameof(PaymentId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
 
 
             var UserDto = await _userService.FindByIdAsync(UserId);
@@ -131,12 +142,11 @@ namespace BusinessLayer.Servicese
             if (ShoppingCart is null) return null;
 
 
-            var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
-            if (NewApplication is null) return null;
+
 
             var NewApplicationOrder = new ApplicationOrder()
             {
-                ApplicationId = NewApplication.Id,
+                ApplicationId = ApplicationId,
                 ApplicationOrderTypeId = (long)EnApplicationOrderType.UnderProcessing,
                 ShoppingCartId = ShoppingCartId,
                 PaymentId = PaymentId,
@@ -150,7 +160,7 @@ namespace BusinessLayer.Servicese
             if (!IsNewApplicationOrderAdded) return null;
 
 
-            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({NewApplication.Id}) is under processing", $"Your order ({NewApplication.Id}) is under processing");
+            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({ApplicationId}) is under processing", $"Your order ({ApplicationId}) is under processing");
 
             var NewApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(NewApplicationOrder);
             return NewApplicationOrderDto;

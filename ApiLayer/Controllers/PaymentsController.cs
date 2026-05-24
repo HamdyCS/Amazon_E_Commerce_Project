@@ -80,13 +80,12 @@ namespace ApiLayer.Controllers
             var userId = Helper.GetIdFromClaimsPrincipal(User);
             if (userId is null) return Unauthorized();
 
-            var SessionUrl = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto, userId);
+            var prePaidResultDto = await _paymentService.PaymentPrePaidAsync(paymentPrePaidDto, userId);
 
-            if (string.IsNullOrEmpty(SessionUrl))
-                return BadRequest("Payment didnot complet Successfully.");
+            if (prePaidResultDto == null)
+                return BadRequest("Payment did not complete successfully.");
 
-            return Ok(SessionUrl);
-
+            return Ok(prePaidResultDto);
 
         }
 
@@ -103,14 +102,30 @@ namespace ApiLayer.Controllers
             var userId = Helper.GetIdFromClaimsPrincipal(User);
             if (userId is null) return Unauthorized();
 
-            var IsPaymentCompletedSuccessfuly = await _paymentService.PaymentCashOnDeliveryAsync(paymentCashOnDeliveryDto, userId);
+            var cashOnDeliveryResultDto = await _paymentService.PaymentCashOnDeliveryAsync(paymentCashOnDeliveryDto, userId);
 
-            if (!IsPaymentCompletedSuccessfuly)
+            if (cashOnDeliveryResultDto == null)
                 return BadRequest("Payment didnot complet Successfully.");
 
-            return Ok("Payment completed Successfully.");
+            return Ok(cashOnDeliveryResultDto);
 
         }
 
+
+        [HttpGet("session/{sessionId}", Name = "GetPaymentBySessionId")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<PaymentDto>> GetPaymentBySessionId(string sessionId)
+        {
+
+            var userId = Helper.GetIdFromClaimsPrincipal(User);
+            if (userId is null) return Unauthorized();
+
+            var payment = await _paymentService.GetBySessionIdAndUserIdAsync(sessionId, userId);
+            if (payment == null) return NotFound($"Not found any payment for session id = {sessionId}");
+
+            return Ok(payment);
+
+        }
     }
 }

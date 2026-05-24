@@ -78,13 +78,26 @@ namespace BusinessLayer.Servicese
                     PaymentMethodTypes = new List<string> { "card" },
                     LineItems = LineItems,
                     Mode = "payment",
-                    SuccessUrl = createSessionDto.SuccessUrl,
-                    CancelUrl = createSessionDto.CancelUrl,
+                    SuccessUrl = $"{createSessionDto.SuccessUrl}?sessionId={{CHECKOUT_SESSION_ID}}",//stripe will replace {CHECKOUT_SESSION_ID} with the actual session id when redirecting to the success url
+                    CancelUrl = $"{createSessionDto.CancelUrl}?sessionId={{CHECKOUT_SESSION_ID}}",
+
+                    //add metadata to session
                     Metadata = new Dictionary<string, string>
                     {
                         { "PaymentId", createSessionDto.PaymentId.ToString() },
                         { "ShoppingCartId", createSessionDto.paymentDto.ShoppingCartId.ToString() }
+                    },
+
+                    //add metadata to payment intent
+                    PaymentIntentData = new SessionPaymentIntentDataOptions
+                    {
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "PaymentId", createSessionDto.PaymentId.ToString() },
+                            { "ShoppingCartId", createSessionDto.paymentDto.ShoppingCartId.ToString() }
+                        }
                     }
+
                 };
 
 

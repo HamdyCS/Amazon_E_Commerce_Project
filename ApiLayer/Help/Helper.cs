@@ -48,6 +48,23 @@ namespace ApiLayer.Help
             //check if the returnUrl is valid and is in the allowed origin list
             return AllowedOrigin.Any(origin => returnUrl.StartsWith(origin));
         }
+
+        public static long GetMetadataLong(IDictionary<string, string> metadata, string key)
+        {
+            if (metadata == null)
+                return 0;
+
+
+            if (metadata.TryGetValue(key, out var value))
+            {
+                if (long.TryParse(value, out long result))
+                {
+                    return result;
+                }
+            }
+
+            return 0;
+        }
     }
 
 }

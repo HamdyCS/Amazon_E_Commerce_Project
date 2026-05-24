@@ -18,6 +18,10 @@ public partial class Application
 
     public long? ReturnApplicationId { get; set; }
 
+    public DateOnly? EstimatedDeliveryFrom { get; set; }
+
+    public DateOnly? EstimatedDeliveryTo { get; set; }
+
     public virtual Application? ReturnApplication {  get; set; }
 
     public virtual User? user { get; set; }

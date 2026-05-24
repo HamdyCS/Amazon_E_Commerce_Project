@@ -11,17 +11,19 @@ using System.Threading.Tasks;
 
 namespace BusinessLayer.Servicese
 {
-    public class OrderApplicationSummaryService : IOrderApplicationSummaryService
+    public class ApplicationOrderSummaryService : IApplicationOrderSummaryService
     {
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IShoppingCartService _shoppingCartService;
 
-        public OrderApplicationSummaryService(IUnitOfWork unitOfWork)
+        public ApplicationOrderSummaryService(IUnitOfWork unitOfWork,IShoppingCartService shoppingCartService)
         {
             this._unitOfWork = unitOfWork;
+            this._shoppingCartService = shoppingCartService;
         }
 
-        public async Task<OrderApplicationSummaryDto> GetUserOrderApplicationSummaryByUserIdAndApplicationIdAsync(long ApplicationId, string userId)
+        public async Task<ApplicationOrderSummeryDto> GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(long ApplicationId, string userId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
@@ -41,7 +43,10 @@ namespace BusinessLayer.Servicese
             var userAddress = await _unitOfWork.userAdderssRepository.GetByIdAsNoTrackingAsync(payment.UserAddressId);
             if (userAddress is null) return null;
 
-            OrderApplicationSummaryDto orderApplicationSummaryDto = new()
+            var shoppingCartDto = await _shoppingCartService.FindByIdAsync(payment.ShoppingCartId);
+            if (shoppingCartDto is null) return null;
+
+            ApplicationOrderSummeryDto orderApplicationSummaryDto = new()
             {
                 ApplicationId = ApplicationId,
                 LastApplicationOrderTypeId = ActiveApplicationOrder.ApplicationOrderTypeId,
@@ -49,8 +54,16 @@ namespace BusinessLayer.Servicese
                 ShoppingCartId = payment.ShoppingCartId,
                 UserAddressId = userAddress.Id,
                 UserAddressName = userAddress.Address,
-                TotalPrice = payment.TotalPrice
+                TotalPrice = payment.TotalPrice,
+                shoppingCartDto = shoppingCartDto,
+                PaymentType = ((EnPaymentType)payment.PaymentTypeId).ToString(),
+                ApplicationOrderType = ((EnApplicationOrderType)ActiveApplicationOrder.ApplicationOrderTypeId).ToString(),
+                EstimatedDeliveryFrom = OrderApplication.EstimatedDeliveryFrom,
+                EstimatedDeliveryTo = OrderApplication.EstimatedDeliveryTo
+
             };
+
+
 
             if (OrderApplication.ReturnApplicationId == null)
                 return orderApplicationSummaryDto;
@@ -65,22 +78,34 @@ namespace BusinessLayer.Servicese
             return orderApplicationSummaryDto;
         }
 
-        public async Task<IEnumerable<OrderApplicationSummaryDto>> GetAllUserOrderApplicationSummariesByUserIdAsync(string userId)
+        public async Task<IEnumerable<ApplicationOrderSummeryDto>> GetAllUserApplicationOrderSummariesAsync(string userId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
 
             var userOrderApplicationsList = await _unitOfWork.applicationRepository.GetAllUserOrderApplicationsByUserIdAsync(userId);
             if (userOrderApplicationsList is null || !userOrderApplicationsList.Any()) return null;
 
-            var orderApplicationSummariesDtosList = new List<OrderApplicationSummaryDto>();
+            var orderApplicationSummariesDtosList = new List<ApplicationOrderSummeryDto>();
             foreach (var userOrderApplication in userOrderApplicationsList)
             {
-                var orderApplicationSummary = await GetUserOrderApplicationSummaryByUserIdAndApplicationIdAsync(userOrderApplication.Id, userId);
+                var orderApplicationSummary = await GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(userOrderApplication.Id, userId);
 
                 if (orderApplicationSummary != null) orderApplicationSummariesDtosList.Add(orderApplicationSummary);
             }
 
             return orderApplicationSummariesDtosList;
+        }
+
+        public async Task<ApplicationOrderSummeryDto> GetLatestUserApplicationOrderSummaryAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            var latestUserApplicationOrder = await _unitOfWork.applicationOrderRepository.GetLatestApplicationOrderByUserIdAsync(userId);
+            if (latestUserApplicationOrder is null) return null;
+
+            var applicationOrderSummary = await GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(latestUserApplicationOrder.ApplicationId, userId);
+            return applicationOrderSummary;
+
         }
     }
 }

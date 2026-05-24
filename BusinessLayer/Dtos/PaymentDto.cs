@@ -13,7 +13,6 @@ namespace BusinessLayer.Dtos
 
         public long UserAddressId { get; set; }
 
-
         public long ShoppingCartId { get; set; }
    
         public long? PaymentStatusId { get; set; }

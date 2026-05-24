@@ -154,5 +154,22 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
         }
+
+        public async Task<ApplicationOrder> GetLatestApplicationOrderByUserIdAsync(string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            try
+            {
+                var applicationOrder = await _context.ApplicationOrders.
+                    Where(x => x.CreatedBy == userId)
+                    .OrderByDescending(x => x.CreatedAt).FirstOrDefaultAsync();
+               
+                return applicationOrder;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
     }
 }

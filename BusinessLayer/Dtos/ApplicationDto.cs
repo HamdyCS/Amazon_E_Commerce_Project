@@ -16,6 +16,9 @@ namespace BusinessLayer.Dtos
 
         public long? ReturnApplicationId { get; set; }
 
-       
+        public DateOnly? EstimatedDeliveryFrom { get; set; }
+
+        public DateOnly? EstimatedDeliveryTo { get; set; }
+
     }
 }

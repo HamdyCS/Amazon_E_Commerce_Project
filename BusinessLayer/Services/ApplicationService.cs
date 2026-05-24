@@ -50,7 +50,11 @@ namespace BusinessLayer.Servicese
             {
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
-                ApplicationTypeId = (long)EnApplicationType.Order
+                ApplicationTypeId = (long)EnApplicationType.Order,
+
+                // For demonstration purposes, we are setting the estimated delivery dates to be between 2 to 5 days from now.
+                EstimatedDeliveryFrom = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(2)),
+                EstimatedDeliveryTo = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(5))
             };
 
             await _unitOfWork.applicationRepository.AddAsync(application);

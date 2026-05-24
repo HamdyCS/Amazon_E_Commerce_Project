@@ -58,5 +58,41 @@ namespace DataAccessLayer.Repositories
             }
 
         }
+
+        public async Task<Payment> GetBySessionIdAndUserIdAsync(string sessionId,string userId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(sessionId, nameof(sessionId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            try
+            {
+                var payment = await _context.Payments.
+                    FirstOrDefaultAsync(p => p.SessionId == sessionId && p.shoppingCart.UserId == userId);
+
+                return payment;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<Payment> GetByShoppingCartIdAndUserIdAsync(long shoppingCartId, string userId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+
+            try
+            {
+                var payment = await _context.Payments.
+                    FirstOrDefaultAsync(p => p.ShoppingCartId == shoppingCartId && p.shoppingCart.UserId == userId);
+
+                return payment;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
     }
 }
