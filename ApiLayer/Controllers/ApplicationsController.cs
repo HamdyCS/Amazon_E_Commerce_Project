@@ -204,13 +204,13 @@ namespace ApiLayer.Controllers
             }
         }
 
-        [HttpGet("latest-application-order-summary", Name = "GetLatestApplicationOrderSummary")]
+        [HttpGet("latest-application-order-summary", Name = "GetLatestUserApplicationOrderSummary")]
         [Authorize(Roles = Role.Customer)]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ApplicationOrderSummeryDto>> GetLatestApplicationOrderSummary()
+        public async Task<ActionResult<ApplicationOrderSummeryDto>> GetLatestUserApplicationOrderSummary()
         {
             try
             {
@@ -230,6 +230,8 @@ namespace ApiLayer.Controllers
             }
         }
 
+
+      
     }
 }
 

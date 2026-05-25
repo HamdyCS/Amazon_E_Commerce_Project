@@ -10,9 +10,9 @@ namespace BusinessLayer.Dtos
     {
         public long ApplicationId { get; set; }
         public long LastApplicationOrderTypeId { get; set; }
-        public DateTime LastApplicationOrderCreatedAt { get; set; }     
-        public long ShoppingCartId {  get; set; }
-        public long UserAddressId {  get; set; }
+        public DateTime LastApplicationOrderCreatedAt { get; set; }
+        public long ShoppingCartId { get; set; }
+        public long UserAddressId { get; set; }
         public string UserAddressName { get; set; }
         public decimal TotalPrice { get; set; }
         public long? ReturnApplicatonId { get; set; }
@@ -20,6 +20,7 @@ namespace BusinessLayer.Dtos
         public ShoppingCartDto shoppingCartDto { get; set; }
         public string PaymentType { get; set; }
         public string ApplicationOrderType { get; set; }
+        public long ApplicationOrderTypeId { get; set; }
 
         public DateOnly? EstimatedDeliveryFrom { get; set; }
 

@@ -59,7 +59,8 @@ namespace BusinessLayer.Servicese
                 PaymentType = ((EnPaymentType)payment.PaymentTypeId).ToString(),
                 ApplicationOrderType = ((EnApplicationOrderType)ActiveApplicationOrder.ApplicationOrderTypeId).ToString(),
                 EstimatedDeliveryFrom = OrderApplication.EstimatedDeliveryFrom,
-                EstimatedDeliveryTo = OrderApplication.EstimatedDeliveryTo
+                EstimatedDeliveryTo = OrderApplication.EstimatedDeliveryTo,
+                ApplicationOrderTypeId = ActiveApplicationOrder.ApplicationOrderTypeId
 
             };
 
