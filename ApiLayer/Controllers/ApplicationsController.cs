@@ -132,13 +132,14 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ApplicationDto>>> AddNewReturnApplicationByUserId(long ApplcationId, [FromBody] string UserId)
+        public async Task<ActionResult<IEnumerable<ApplicationDto>>> AddNewReturnApplicationByUserId(long ApplcationId)
         {
-            if (string.IsNullOrEmpty(UserId)) return BadRequest("UserId cannot be null or empty");
             try
             {
+                var userId = Helper.GetIdFromClaimsPrincipal(User); 
+                if (userId is null) return Unauthorized();
 
-                var ReturnApplicatonDto = await _applicationService.AddNewReturnApplicationAsync(UserId, ApplcationId);
+                var ReturnApplicatonDto = await _applicationService.AddNewReturnApplicationAsync(userId, ApplcationId);
                 if (ReturnApplicatonDto is null)
                     return BadRequest("cannot add new return application.");
 
@@ -231,7 +232,7 @@ namespace ApiLayer.Controllers
         }
 
 
-      
+
     }
 }
 

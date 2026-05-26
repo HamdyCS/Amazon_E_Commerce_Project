@@ -50,6 +50,7 @@ namespace BusinessLayer.Servicese
             {
                 ApplicationId = ApplicationId,
                 LastApplicationOrderTypeId = ActiveApplicationOrder.ApplicationOrderTypeId,
+                LastApplicationOrderType = ((EnApplicationOrderType)ActiveApplicationOrder.ApplicationOrderTypeId).ToString(),
                 LastApplicationOrderCreatedAt = ActiveApplicationOrder.CreatedAt,
                 ShoppingCartId = payment.ShoppingCartId,
                 UserAddressId = userAddress.Id,
@@ -57,10 +58,9 @@ namespace BusinessLayer.Servicese
                 TotalPrice = payment.TotalPrice,
                 shoppingCartDto = shoppingCartDto,
                 PaymentType = ((EnPaymentType)payment.PaymentTypeId).ToString(),
-                ApplicationOrderType = ((EnApplicationOrderType)ActiveApplicationOrder.ApplicationOrderTypeId).ToString(),
                 EstimatedDeliveryFrom = OrderApplication.EstimatedDeliveryFrom,
                 EstimatedDeliveryTo = OrderApplication.EstimatedDeliveryTo,
-                ApplicationOrderTypeId = ActiveApplicationOrder.ApplicationOrderTypeId
+               
 
             };
 

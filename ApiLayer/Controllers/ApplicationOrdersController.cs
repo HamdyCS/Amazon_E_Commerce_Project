@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/applications")]
+    [Route("api/applications/{ApplicationId}")]
     [ApiController]
     [Authorize(Roles = Role.Customer)]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
@@ -22,7 +22,7 @@ namespace ApiLayer.Controllers
             this._applicationOrderService = applicationOrderService;
         }
 
-        [HttpGet("{ApplicationId}/active-application-orders", Name = "GetActiveApplicationOrderbyApplicationId")]
+        [HttpGet("active-application-orders", Name = "GetActiveApplicationOrderbyApplicationId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -51,7 +51,7 @@ namespace ApiLayer.Controllers
 
 
 
-        [HttpGet("{ApplicationId}/track-application-orders", Name = "TrackApplicationOrderByApplicatonIdAndUserId")]
+        [HttpGet("track-application-orders", Name = "TrackApplicationOrderByApplicatonIdAndUserId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -77,5 +77,29 @@ namespace ApiLayer.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-    } 
+
+        [HttpPost("cancel", Name = "AddCancelApplicationOrder")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<ApplicationOrderDto>> AddCancelApplicationOrder(long ApplicationId)
+        {
+            if (ApplicationId < 1) return BadRequest("ApplicationId must be bigger than zero.");
+
+            var userId = Helper.GetIdFromClaimsPrincipal(User);
+            if (userId == null) return Unauthorized();
+
+            try
+            {
+                var canceledApplicationOrder = await _applicationOrderService.AddNewCanceledApplicationOrderAsync(ApplicationId, userId);
+                if (canceledApplicationOrder == null) return BadRequest($"Unable to cancel application order. Id = {ApplicationId}");
+                return Ok(canceledApplicationOrder);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+    }
 }

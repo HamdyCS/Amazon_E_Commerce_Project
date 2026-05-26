@@ -4,6 +4,7 @@
     {
         UnderProcessing = 1,
         Shipped,
-        Delivered
+        Delivered,
+        Canceled,
     }
 }

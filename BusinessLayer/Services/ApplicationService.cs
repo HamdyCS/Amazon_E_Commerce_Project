@@ -92,18 +92,24 @@ namespace BusinessLayer.Servicese
             return applicationsDtosList;
         }
 
-        public async Task<ApplicationDto> AddNewReturnApplicationAsync(string userId, long OrderApplicationId)
+        public async Task<ApplicationDto> AddNewReturnApplicationAsync(string userId, long applicationId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
-            ParamaterException.CheckIfLongIsBiggerThanZero(OrderApplicationId, nameof(OrderApplicationId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(applicationId, nameof(applicationId));
 
             var userDto = await _userService.FindByIdAsync(userId);
-            if (userDto == null) return null;
+            if (userDto == null) throw new KeyNotFoundException("User not found.");
 
-            var OrderApplication = await _unitOfWork.applicationRepository.GetByIdAndUserIdAsync(OrderApplicationId,userId);
-            if (OrderApplication is null) return null;
+            var application = await _unitOfWork.applicationRepository.GetByIdAndUserIdAsync(applicationId,userId);
+            if (application is null) throw new KeyNotFoundException("Application not found.");
 
-            var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(OrderApplicationId);
+            //check if the order application is delivered before allowing to create a return application for it
+            var lastApplicationOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAndUserIdAsync(applicationId,userId);
+
+            if(lastApplicationOrder == null || lastApplicationOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.Delivered)
+                throw new InvalidOperationException("Only delivered orders can be returned.");
+
+            var activeApplictionOrder = await _unitOfWork.applicationOrderRepository.GetActiveApplicationOrderByApplicationIdAsync(applicationId);
             if (activeApplictionOrder == null || activeApplictionOrder.ApplicationOrderTypeId != (long)EnApplicationOrderType.Delivered)
                 return null;
 
@@ -126,10 +132,10 @@ namespace BusinessLayer.Servicese
 
                 var ReturnApplicationDto = _genericMapper.MapSingle<Application, ApplicationDto>(NewReturnApplication);
 
-                OrderApplication.ReturnApplicationId = NewReturnApplication.Id;
+                application.ReturnApplicationId = NewReturnApplication.Id;
 
 
-                await _unitOfWork.applicationRepository.UpdateAsync(OrderApplicationId, OrderApplication);
+                await _unitOfWork.applicationRepository.UpdateAsync(applicationId, application);
 
                 var IsOrderApplicationUpdated = await _CompleteAsync();
                 if (!IsOrderApplicationUpdated) throw new Exception("OrderApplication not Updated.");
@@ -138,7 +144,7 @@ namespace BusinessLayer.Servicese
                 await _unitOfWork.CommitTransactionAsync();
 
 
-                await _mailService.SendEmailAsync(userDto.Email, $"Your order ({OrderApplicationId}) has been successfully cancelled..", $"Your order ({OrderApplicationId}) has been successfully cancelled.");
+                await _mailService.SendEmailAsync(userDto.Email, $"Your order ({applicationId}) has been successfully cancelled..", $"Your order ({applicationId}) has been successfully cancelled.");
 
                 return ReturnApplicationDto;
             }

@@ -268,5 +268,46 @@ namespace BusinessLayer.Servicese
             var applicationOrdersDtosList = _genericMapper.MapCollection<ApplicationOrder, ApplicationOrderDto>(applicationOrdersList);
             return applicationOrdersDtosList;
         }
+
+        public async Task<ApplicationOrderDto> AddNewCanceledApplicationOrderAsync(long ApplicationId, string UserId)
+        {
+
+            ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+
+
+            var UserDto = await _userService.FindByIdAsync(UserId);
+            if (UserDto == null) throw new KeyNotFoundException("User not found.");
+
+            var applicationDto = await _applicationService.FindByIdAsync(ApplicationId);
+            if (applicationDto == null) throw new KeyNotFoundException($"Application not found. Id: {ApplicationId}");
+
+            // Check if there is an active application order for this application and user
+            var applicationOrderDtos = await _unitOfWork.applicationOrderRepository.GetAllApplicationOrdersByApplicatonIdAndUserIdAsync(ApplicationId, UserId);
+            if (applicationOrderDtos == null || !applicationOrderDtos.Any())
+                throw new KeyNotFoundException($"No application order found for ApplicationId: {ApplicationId}");
+
+
+            if (applicationOrderDtos.Any(
+                ao => ao.ApplicationOrderTypeId == (long)EnApplicationOrderType.Delivered || ao.ApplicationOrderTypeId == (long)EnApplicationOrderType.Canceled))
+                throw new InvalidOperationException("Cannot cancel an order that has been canceled or delivered.");
+
+
+            // Create a new application order with the same details but with the status of canceled
+            var newApplicationOrder = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrder>(applicationOrderDtos.OrderBy(ao=>ao.CreatedAt).Last());
+            newApplicationOrder.CreatedAt = DateTime.Now;
+            newApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Canceled;
+
+            await _unitOfWork.applicationOrderRepository.AddAsync(newApplicationOrder);
+
+            var IsNewApplicationOrderAdded = await _CompleteAsync();
+            if (!IsNewApplicationOrderAdded) return null;
+
+
+            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({ApplicationId}) is Canceled", $"Your order ({ApplicationId}) is canceled");
+
+            var newApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(newApplicationOrder);
+            return newApplicationOrderDto;
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace BusinessLayer.Dtos
         public DateTime? ReturnApplicationCreatedAt { get; set; }
         public ShoppingCartDto shoppingCartDto { get; set; }
         public string PaymentType { get; set; }
-        public string ApplicationOrderType { get; set; }
+        public string LastApplicationOrderType { get; set; }
         public long ApplicationOrderTypeId { get; set; }
 
         public DateOnly? EstimatedDeliveryFrom { get; set; }
