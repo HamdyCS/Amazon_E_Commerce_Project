@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Dtos;
+using BusinessLayer.Servicese;
 
 namespace BusinessLayer.Contracks
 {
@@ -35,7 +36,10 @@ namespace BusinessLayer.Contracks
 
         Task<ProductDto> UpdateProductRatingAsync(long ProductId, int NewRating);
 
-
         Task UpdateProductsInRedisCacheAsync();
+
+        public Task AddRecentSearchAsync(string UserId, AddToRecentSearchDto addToRecentSearchDto);
+       
+        Task<List<string>> GetRecentSearchesAsync(string UserId);
     }
 }

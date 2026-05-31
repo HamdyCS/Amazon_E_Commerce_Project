@@ -7,6 +7,7 @@ using DataAccessLayer.Pagination;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using static Azure.Core.HttpHeader;
 
 namespace BusinessLayer.Servicese
 {
@@ -44,6 +45,75 @@ namespace BusinessLayer.Servicese
         {
             var NumberOfRowsAfected = await _unitOfWork.CompleteAsync();
             return NumberOfRowsAfected > 0;
+        }
+
+        public async Task AddRecentSearchAsync(string UserId, AddToRecentSearchDto addToRecentSearchDto)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+            ParamaterException.CheckIfObjectIfNotNull(addToRecentSearchDto, nameof(addToRecentSearchDto));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(addToRecentSearchDto.SearchQuery, nameof(addToRecentSearchDto.SearchQuery));
+
+            try
+            {
+
+                var resentSearchDtoList = await _redisCashService.GetValueByKeyAsync<List<RecentSearchDto>>($"recentSearches:{UserId}");
+
+
+                if (resentSearchDtoList is null || !resentSearchDtoList.Any())
+                {
+                    resentSearchDtoList = new List<RecentSearchDto>();
+                }
+
+                if (resentSearchDtoList.Any(e => e.Queyry == addToRecentSearchDto.SearchQuery))
+                {
+                    return;
+                }
+
+                var newResentSearchDto = new RecentSearchDto()
+                {
+                    Queyry = addToRecentSearchDto.SearchQuery,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                resentSearchDtoList.Add(newResentSearchDto);
+
+                //keep only 10 recent searches
+                if (resentSearchDtoList.Count > 10)
+                {
+                    var orderedList = resentSearchDtoList.OrderByDescending(e => e.CreatedAt).Take(10).ToList();
+                    resentSearchDtoList = orderedList;
+                }
+
+
+                await _redisCashService.SetValueByKeyAsync($"recentSearches:{UserId}", resentSearchDtoList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to add recent search for user {UserId} with query {addToRecentSearchDto.SearchQuery}");
+                return;
+            }
+        }
+
+        public async Task<List<string>> GetRecentSearchesAsync(string UserId)
+        {
+            try
+            {
+
+                var resentSearchDtoList = await _redisCashService.GetValueByKeyAsync<List<RecentSearchDto>>($"recentSearches:{UserId}");
+
+
+                if (resentSearchDtoList is null || !resentSearchDtoList.Any())
+                {
+                    return [];
+                }
+
+                var orderedList = resentSearchDtoList.OrderByDescending(e => e.CreatedAt).Take(10).Select(e => e.Queyry).ToList();
+                return orderedList;
+            }
+            catch (Exception ex)
+            {
+                return [];
+            }
         }
 
         public async Task<ProductDto> AddAsync(CreateProductDto createProductDto, string UserId)
@@ -428,9 +498,17 @@ namespace BusinessLayer.Servicese
         public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameEnAsync(string queryEn, int pageSize)
         {
             //using cacheing
-
             var productCacheDtos = await
                 _redisCashService.GetValueByKeyAsync<IEnumerable<ProductCashDto>>($"products:all");
+
+            //if cash is empty fill cash and return search result
+            if (productCacheDtos is null || !productCacheDtos.Any())
+            {
+                await UpdateProductsInRedisCacheAsync();
+                productCacheDtos = await
+                _redisCashService.GetValueByKeyAsync<IEnumerable<ProductCashDto>>($"products:all");
+            }
+            ;
 
             if (productCacheDtos is null) return [];
 
@@ -445,6 +523,7 @@ namespace BusinessLayer.Servicese
 
             return productSearchResultsDtosList;
         }
+
 
         public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string queryAr, int pageSize)
         {
@@ -541,6 +620,7 @@ namespace BusinessLayer.Servicese
 
             //number of houers
             int hours = _configuration.GetValue<int>("Redis:ProductsDurationInHoues");
+            if (hours <= 0) hours = 24;
 
             //set in redis cash
             await _redisCashService.SetValueByKeyAsync("products:all", productCashDtoList, TimeSpan.FromHours(hours));
@@ -574,6 +654,6 @@ namespace BusinessLayer.Servicese
             return productDto;
         }
 
-    
+
     }
 }

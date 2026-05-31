@@ -137,8 +137,8 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
             try
             {
-                var sellerProduct = await _context.SellerProducts.Include(s=>s.Product).
-                    ThenInclude(p=>p.ProductImages).
+                var sellerProduct = await _context.SellerProducts.Include(s => s.Product).
+                    ThenInclude(p => p.ProductImages).
                     FirstOrDefaultAsync(e => e.Id == id);
 
                 return sellerProduct;
@@ -166,8 +166,8 @@ namespace DataAccessLayer.Repositories
                 if (totalCount == 0)
                     return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
 
-                var data = await query.Include(s=>s.Product).
-                    ThenInclude(p=>p.ProductImages).OrderBy(s => s.Id)
+                var data = await query.Include(s => s.Product).
+                    ThenInclude(p => p.ProductImages).OrderBy(s => s.Id)
                     .Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
@@ -198,7 +198,7 @@ namespace DataAccessLayer.Repositories
                     return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
 
                 var data = await query.Include(s => s.Product).ThenInclude(p => p.ProductImages).
-                    OrderBy(s=>s.Id)
+                    OrderBy(s => s.Id)
                     .Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
@@ -241,6 +241,43 @@ namespace DataAccessLayer.Repositories
                 throw HandleDatabaseException(ex);
             }
 
+        }
+
+        public async Task<PaginationResult<SellerProduct>> SearchByProductNameAsync(string query, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(query, nameof(query));
+
+            try
+            {
+                var sqlQuery = _context.SellerProducts.Where(sp =>
+                sp.Product.NameEn.Contains(query) || sp.Product.NameAr.Contains(query));
+
+                var count = await sqlQuery.CountAsync();
+
+                //not found any result
+                if (count == 0)
+                {
+                    sqlQuery = _context.SellerProducts;
+                    count = await sqlQuery.CountAsync();
+
+                    var result = await sqlQuery.
+                        Include(sp => sp.Product).OrderBy(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
+                    Take(pageSize).AsSplitQuery().ToListAsync();
+
+                    return new PaginationResult<SellerProduct>(result, count,pageNumber,pageSize);
+                }
+
+                var data = await sqlQuery.
+                       Include(sp => sp.Product).ThenInclude(p=>p.ProductImages).OrderByDescending(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
+                   Take(pageSize).AsSplitQuery().ToListAsync();
+
+
+                return new PaginationResult<SellerProduct>(data, count, pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
         }
 
 

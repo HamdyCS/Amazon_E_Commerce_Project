@@ -28,5 +28,7 @@ namespace DataAccessLayer.Contracks
 
         Task<PaginationResult<SellerProduct>> GetPagedByBrandIdAsync(long brandId, int pageNumber, int pageSize);
 
+        Task<PaginationResult<SellerProduct>> SearchByProductNameAsync(string query,int pageNumber, int pageSize);
+
     }
 }

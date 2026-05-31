@@ -386,5 +386,37 @@ namespace BusinessLayer.Servicese
             return pagedSellerProductsDto;
         }
 
+        public async Task<PaginationResultDto<SellerProductDto>> SearchByProductNameAsync(string query, int pageNumber, int pageSize)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(query, nameof(query));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageNumber, nameof(pageNumber));
+            ParamaterException.CheckIfLongIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            var pagedSellerProducts = await _unitOfWork.sellerProductRepository.SearchByProductNameAsync(query, pageNumber, pageSize);
+
+            var sellerProductDtos = _genericMapper.MapCollection<SellerProduct, SellerProductDto>(pagedSellerProducts.Data);
+
+
+            for (int i = 0; i < pagedSellerProducts.Data.Count(); i++)
+            {
+                var s = pagedSellerProducts.Data.ElementAt(i);
+
+                if (s.Product == null || s.Product.ProductImages == null || !s.Product.ProductImages.Any())
+                    continue;
+
+                //images
+                var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
+
+                if (sellerProductDtos.ElementAt(i)?.Product != null)
+                    sellerProductDtos.ElementAt(i).Product.Images = imageDtos.ToList();
+
+            }
+
+
+            var pagedSellerProductsDto = _genericMapper.MapSingle<PaginationResult<SellerProduct>, PaginationResultDto<SellerProductDto>>(pagedSellerProducts);
+            pagedSellerProductsDto.Data = sellerProductDtos;
+
+            return pagedSellerProductsDto;
+        }
     }
 }

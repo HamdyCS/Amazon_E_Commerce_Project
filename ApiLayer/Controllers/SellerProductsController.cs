@@ -326,6 +326,21 @@ namespace ApiLayer.Controllers
 
             return Ok(pagedProductsDtos);
         }
+
+        [HttpGet("search", Name = "SearchByProductName")] [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<PaginationResultDto<ProductDto>>> SearchByProductName([FromQuery] string query, [FromQuery] int pageNumber, [FromQuery] int pageSize)
+        {
+            if (string.IsNullOrEmpty(query)) return BadRequest("Query must not be null or empty.");
+            if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
+
+            var pagedProductsDtos = await _SellerProductService.SearchByProductNameAsync(query, pageNumber, pageSize);
+
+            return Ok(pagedProductsDtos);
+        }
+
     }
 
 }

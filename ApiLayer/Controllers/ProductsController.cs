@@ -9,9 +9,9 @@ using System.Net;
 
 namespace ApiLayer.Controllers
 {
-    [Route("api/product")]
+    [Route("api/products")]
     [ApiController]
-    [Authorize(Roles = Role.Admin)]
+    [Authorize]
     [EnableRateLimiting("FixedWindowPolicyByUserIpAddress")]
     public class ProductsController : ControllerBase
     {
@@ -319,16 +319,16 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("search/{name}", Name = "SearchByName")]
+        [HttpGet("search", Name = "SearchByName")]
         [AllowAnonymous]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ProductSearchResultDto>>> SearchByName(string name, [FromQuery] int pageSize)
+        public async Task<ActionResult<IEnumerable<ProductSearchResultDto>>> SearchByName([FromQuery] string q, [FromQuery] int pageSize)
         {
             if (pageSize < 1) return BadRequest("pageSize must be bigger than 0");
 
-            if (string.IsNullOrEmpty(name)) return Ok();
+            if (string.IsNullOrEmpty(q)) return Ok();
 
 
             var lang = Request.Headers["lang"].ToString();
@@ -338,12 +338,12 @@ namespace ApiLayer.Controllers
             {
                 if (lang.ToLower() == "ar")
                 {
-                    var productSearchResultsDtos = await _productService.SearchByNameArAsync(name, pageSize);
+                    var productSearchResultsDtos = await _productService.SearchByNameArAsync(  q , pageSize);
                     return Ok(productSearchResultsDtos);
                 }
                 else if (lang.ToLower() == "en")
                 {
-                    var productSearchResultsDtos = await _productService.SearchByNameEnAsync(name, pageSize);
+                    var productSearchResultsDtos = await _productService.SearchByNameEnAsync(q, pageSize);
                     return Ok(productSearchResultsDtos);
                 }
                 else
@@ -359,9 +359,47 @@ namespace ApiLayer.Controllers
 
         }
 
+        [HttpGet("recent-search", Name = "GetRecentSearch")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<string>>> GetRecentSearch()
+        {
+            try
+            {
+                var UserId = Helper.GetIdFromClaimsPrincipal(User);
+                if (UserId == null) return Ok(new List<string>());
 
-       
+                var recentSearch = await _productService.GetRecentSearchesAsync(UserId);
+                return Ok(recentSearch);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
+
+        [HttpPost("recent-search", Name = "AddToRecentSearch")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> AddToRecentSearch([FromBody] AddToRecentSearchDto addToRecentSearchDto)
+        {
+            try
+            {
+                var UserId = Helper.GetIdFromClaimsPrincipal(User);
+                if (UserId == null) return Ok();
+
+                await _productService.AddRecentSearchAsync(UserId, addToRecentSearchDto);
+               
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 
 }
