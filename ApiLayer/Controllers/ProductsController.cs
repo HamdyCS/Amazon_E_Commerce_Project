@@ -319,45 +319,45 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("search", Name = "SearchByName")]
-        [AllowAnonymous]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ProductSearchResultDto>>> SearchByName([FromQuery] string q, [FromQuery] int pageSize)
-        {
-            if (pageSize < 1) return BadRequest("pageSize must be bigger than 0");
+        //[HttpGet("search", Name = "SearchByName")]
+        //[AllowAnonymous]
+        //[ProducesResponseType(200)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(500)]
+        //public async Task<ActionResult<IEnumerable<ProductSearchResultDto>>> SearchByName([FromQuery] string q, [FromQuery] int pageSize)
+        //{
+        //    if (pageSize < 1) return BadRequest("pageSize must be bigger than 0");
 
-            if (string.IsNullOrEmpty(q)) return Ok();
+        //    if (string.IsNullOrEmpty(q)) return Ok();
 
 
-            var lang = Request.Headers["lang"].ToString();
-            if (lang == null) return BadRequest("Cannot find lang var in header");
+        //    var lang = Request.Headers["lang"].ToString();
+        //    if (lang == null) return BadRequest("Cannot find lang var in header");
 
-            try
-            {
-                if (lang.ToLower() == "ar")
-                {
-                    var productSearchResultsDtos = await _productService.SearchByNameArAsync(  q , pageSize);
-                    return Ok(productSearchResultsDtos);
-                }
-                else if (lang.ToLower() == "en")
-                {
-                    var productSearchResultsDtos = await _productService.SearchByNameEnAsync(q, pageSize);
-                    return Ok(productSearchResultsDtos);
-                }
-                else
-                {
-                    return BadRequest("This language cannot be accepted.");
-                }
-            }
+        //    try
+        //    {
+        //        if (lang.ToLower() == "ar")
+        //        {
+        //            var productSearchResultsDtos = await _productService.SearchByNameArAsync(q, pageSize);
+        //            return Ok(productSearchResultsDtos);
+        //        }
+        //        else if (lang.ToLower() == "en")
+        //        {
+        //            var productSearchResultsDtos = await _productService.SearchByNameEnAsync(q, pageSize);
+        //            return Ok(productSearchResultsDtos);
+        //        }
+        //        else
+        //        {
+        //            return BadRequest("This language cannot be accepted.");
+        //        }
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, ex.Message);
+        //    }
 
-        }
+        //}
 
         [HttpGet("recent-search", Name = "GetRecentSearch")]
         [ProducesResponseType(200)]
@@ -392,8 +392,29 @@ namespace ApiLayer.Controllers
                 if (UserId == null) return Ok();
 
                 await _productService.AddRecentSearchAsync(UserId, addToRecentSearchDto);
-               
+
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+
+        [HttpGet("search", Name = "SearchInProductsByName")]
+        [AllowAnonymous]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<string>>> SearchInProductsByName([FromQuery] string query, [FromQuery] int pageSize)
+        {
+            if (pageSize < 1) return BadRequest("pageSize must be bigger than 0");
+            if (string.IsNullOrEmpty(query)) return Ok();
+            try
+            {
+                var results = await _productService.SearchByNameAsync(query, pageSize);
+                return Ok(results);
             }
             catch (Exception ex)
             {

@@ -3,11 +3,11 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
-using DataAccessLayer.Pagination;
+using DataAccessLayer.Enums;
+using DataAccessLayer.Help;
 using DataAccessLayer.UnitOfWork.Contracks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using static Azure.Core.HttpHeader;
 
 namespace BusinessLayer.Servicese
 {
@@ -94,7 +94,7 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<List<string>> GetRecentSearchesAsync(string UserId)
+        public async Task<IEnumerable<string>> GetRecentSearchesAsync(string UserId)
         {
             try
             {
@@ -524,7 +524,6 @@ namespace BusinessLayer.Servicese
             return productSearchResultsDtosList;
         }
 
-
         public async Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string queryAr, int pageSize)
         {
             //using cacheing
@@ -652,6 +651,19 @@ namespace BusinessLayer.Servicese
 
             var productDto = _genericMapper.MapSingle<Product, ProductDto>(product);
             return productDto;
+        }
+
+        public async Task<IEnumerable<string>> SearchByNameAsync(string query, int pageSize)
+        {
+            ParamaterException.CheckIfIntIsBiggerThanZero(pageSize, nameof(pageSize));
+
+            if (string.IsNullOrEmpty(query)) return
+                   [];
+
+            var lang = Helper.IsArabicLang(query) ? EnLang.Arabic : EnLang.English;
+            var seacrhResults = await _unitOfWork.productRepository.SearchByNameAsync(query, pageSize, lang);
+
+            return seacrhResults;
         }
 
 

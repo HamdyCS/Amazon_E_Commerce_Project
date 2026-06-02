@@ -30,6 +30,8 @@ namespace BusinessLayer.Contracks
 
         Task<IEnumerable<ProductSearchResultDto>> SearchByNameArAsync(string NameAr, int pageSize);
 
+        Task<IEnumerable<string>> SearchByNameAsync(string query, int pageSize);
+
         Task<IEnumerable<ProductDto>> GetAllOrderByBestSellerDescAsync();
 
         Task<IEnumerable<ProductDto>> GetPagedOrderByBestSellerDescAsync(int pageNumber, int pageSize);
@@ -38,8 +40,10 @@ namespace BusinessLayer.Contracks
 
         Task UpdateProductsInRedisCacheAsync();
 
-        public Task AddRecentSearchAsync(string UserId, AddToRecentSearchDto addToRecentSearchDto);
+        Task AddRecentSearchAsync(string UserId, AddToRecentSearchDto addToRecentSearchDto);
        
-        Task<List<string>> GetRecentSearchesAsync(string UserId);
+        Task<IEnumerable<string>> GetRecentSearchesAsync(string UserId);
+
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
 using DataAccessLayer.Pagination;
 using Microsoft.Data.SqlClient;
@@ -145,7 +146,7 @@ namespace DataAccessLayer.Repositories
 
                     commend.CommandText = sql;
 
-                    commend.Parameters.Add(new SqlParameter("@PageNumber",pageNumber));
+                    commend.Parameters.Add(new SqlParameter("@PageNumber", pageNumber));
                     commend.Parameters.Add(new SqlParameter("@PageSize", pageSize));
 
                     using (var reader = commend.ExecuteReader())
@@ -217,6 +218,35 @@ namespace DataAccessLayer.Repositories
                 var products = await _context.Products.Where(e => e.NameAr.Contains(NameAr)).Take(pageSize)
                     .ToListAsync();
                 return products;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<IEnumerable<string>> SearchByNameAsync(string query, int pageSize, EnLang lang)
+        {
+            try
+            {
+                List<string> results = new();
+
+                //query is null
+                if (query == null)
+                {
+                    return results;
+                }
+
+                if (lang == EnLang.English) {
+                    results = await _context.Products.Where(e => e.NameEn.Contains(query) || e.NameAr.Contains(query)).Select(e => e.NameEn).Take(pageSize).ToListAsync();
+                }
+
+                if (lang == EnLang.Arabic)
+                {
+                    results = await _context.Products.Where(e => e.NameEn.Contains(query) || e.NameAr.Contains(query)).Select(e => e.NameAr).Take(pageSize).ToListAsync();
+                }
+
+                return results;
             }
             catch (Exception ex)
             {
