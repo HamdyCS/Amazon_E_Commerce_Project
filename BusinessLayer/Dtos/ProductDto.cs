@@ -49,5 +49,8 @@ namespace BusinessLayer.Dtos
 
         public decimal AvgRating { get; set; }
 
+        public List<ProductReviewDto> ProductReviews { get; set; }
+
+
     }
 }

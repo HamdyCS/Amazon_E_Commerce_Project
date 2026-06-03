@@ -24,21 +24,22 @@ namespace DataAccessLayer.Repositories
             this._logger = logger;
         }
 
-        public async Task<bool> CheckIfThisUserReviewedThisProductByIdAndUserIdAsync(long Id, string UserId)
+
+        public async Task<bool> CheckIfUserReviewedProductAsync(string userId, long productId)
         {
-            ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(UserId, nameof(UserId));
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
+
             try
             {
-                var productReview = await _context.ProductReview.FirstOrDefaultAsync(e=>e.Id == Id
-                && e.UserId == UserId);
-
-                return productReview != null;
+                var isReviewed = await _context.ProductReview.AnyAsync(e => e.UserId == userId && e.ProductId == productId);
+                return isReviewed;
             }
             catch (Exception ex)
             {
                 throw HandleDatabaseException(ex);
             }
+
         }
 
         public async Task<IEnumerable<ProductReview>> GetAllProductReviewsByProductIdAsync(long productId)
@@ -48,24 +49,6 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var productReviewsList = await _context.ProductReview.AsNoTracking().
-                    Where(e=>e.ProductId == productId).ToListAsync();
-
-                return productReviewsList;
-            }
-            catch (Exception ex)
-            {
-                throw HandleDatabaseException(ex);
-            }
-        }
-
-        public async Task<IEnumerable<ProductReview>> GetAllproductReviewsWithUserInfoByProductIdAsync(long productId)
-        { 
-            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
-
-            try
-            {
-                var productReviewsList = await _context.ProductReview.AsNoTracking()
-                    .Include(e=>e.user).
                     Where(e => e.ProductId == productId).ToListAsync();
 
                 return productReviewsList;
@@ -76,7 +59,25 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-     
+        public async Task<IEnumerable<ProductReview>> GetAllproductReviewsWithUserInfoByProductIdAsync(long productId)
+        {
+            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
+
+            try
+            {
+                var productReviewsList = await _context.ProductReview.AsNoTracking()
+                    .Include(e => e.user).
+                    Where(e => e.ProductId == productId).ToListAsync();
+
+                return productReviewsList;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+
         public async Task<double> GetAveragedOfStarsByProductIdAsync(long productId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
@@ -91,7 +92,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task<IEnumerable<ProductReview>> GetPagedProductReviewsWithUserInfoByProductIdAsync(int PageNumber,int PageSize,long productId)
+        public async Task<IEnumerable<ProductReview>> GetPagedProductReviewsWithUserInfoByProductIdAsync(int PageNumber, int PageSize, long productId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
             ParamaterException.CheckIfIntIsBiggerThanZero(PageNumber, nameof(PageNumber));
@@ -101,7 +102,7 @@ namespace DataAccessLayer.Repositories
             {
                 var productReviewsList = await _context.ProductReview.AsNoTracking()
                     .Include(e => e.user).Where(e => e.ProductId == productId)
-                    .Skip((PageNumber-1)*PageSize).Take(PageSize).ToListAsync();
+                    .Skip((PageNumber - 1) * PageSize).Take(PageSize).ToListAsync();
 
                 return productReviewsList;
             }
@@ -111,7 +112,7 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-   
+
         public async Task<ProductReview> GetProductReviewByIdAndUserIdAsync(long Id, string UserId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(Id, nameof(Id));
@@ -121,7 +122,7 @@ namespace DataAccessLayer.Repositories
             {
                 var productReview = await _context.ProductReview.AsTracking().
                     FirstOrDefaultAsync(e => e.Id == Id && e.UserId == UserId);
-                    
+
 
                 return productReview;
             }

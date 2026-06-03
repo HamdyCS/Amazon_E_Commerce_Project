@@ -44,6 +44,8 @@ namespace BusinessLayer.Contracks
        
         Task<IEnumerable<string>> GetRecentSearchesAsync(string UserId);
 
+        Task<bool> CheckIfUserBoughtProductAsync(string userId, long productId);
+
 
     }
 }

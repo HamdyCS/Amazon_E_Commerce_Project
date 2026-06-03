@@ -18,7 +18,8 @@ namespace DataAccessLayer.Contracks
 
         Task<IEnumerable<ProductReview>> GetPagedProductReviewsWithUserInfoByProductIdAsync(int PageNumber, int PageSize, long ProductId);
 
-        Task<bool> CheckIfThisUserReviewedThisProductByIdAndUserIdAsync(long Id,string UserId);
+
+        Task<bool> CheckIfUserReviewedProductAsync(string userId, long productId);
 
     }
 }

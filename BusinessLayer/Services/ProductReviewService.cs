@@ -39,21 +39,42 @@ namespace BusinessLayer.Servicese
             var userDto = await _userService.FindByIdAsync(UserId);
             if (userDto is null) throw new KeyNotFoundException($"Not Found User With This Id: {UserId}");
 
-            var productReview = _genericMapper.MapSingle<ProductReviewDto, ProductReview>(productReivewDto);
+            //check if user already added review for this product
+            var isReviewed = await _unitOfWork.productReviewRepository.CheckIfUserReviewedProductAsync(UserId, productReivewDto.ProductId);
+            if (isReviewed) throw new InvalidOperationException("User has already reviewed this product.");
 
-            productReview.UserId = UserId;
-            productReview.CreatedAt = DateTime.UtcNow;
+            //check if user bought this product
+            var isBought = await _ProductService.CheckIfUserBoughtProductAsync(UserId, productReivewDto.ProductId);
+            if (!isBought) throw new InvalidOperationException("User has not bought this product.");
 
-            await _unitOfWork.productReviewRepository.AddAsync(productReview);
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+                var productReview = _genericMapper.MapSingle<ProductReviewDto, ProductReview>(productReivewDto);
 
-            var IsProductReviewAdded = await _completeAsync();
-            if (!IsProductReviewAdded) throw new Exception("Product Review Not Added To Database");
+                productReview.UserId = UserId;
+                productReview.CreatedAt = DateTime.UtcNow;
+                productReview.Name = $"{userDto.FirstName} {userDto.LastName}";
 
-            //update product rating
-            var newProductReviewDto = await _ProductService.UpdateProductRatingAsync(productReview.ProductId, productReivewDto.NumberOfStars);
-            if(newProductReviewDto is null) throw new Exception("Failed To Update Product Rating");
+                await _unitOfWork.productReviewRepository.AddAsync(productReview);
 
-            return productReivewDto;
+                var IsProductReviewAdded = await _completeAsync();
+                if (!IsProductReviewAdded) throw new Exception("Product Review Not Added To Database");
+
+                //update product rating
+                var newProductReviewDto = await _ProductService.UpdateProductRatingAsync(productReview.ProductId, productReivewDto.NumberOfStars);
+                if (newProductReviewDto is null) throw new Exception("Failed To Update Product Rating");
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                return productReivewDto;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync(); 
+                throw ex;
+            }
+
         }
 
         public async Task<bool> DeleteByIdAndUserIdAsync(long Id, string UserId)

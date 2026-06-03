@@ -643,7 +643,7 @@ namespace BusinessLayer.Servicese
             product.RatingCount = newRatingCount;
             product.AvgRating = (int)newAvgRating;
 
-            await _unitOfWork.productRepository.UpdateAsync(product.Id, product);
+             _unitOfWork.productRepository.Update(product);
             var isUpdated = await _CompleteAsync();
 
             if (!isUpdated) throw new Exception("Failed to update product rating.");
@@ -666,6 +666,13 @@ namespace BusinessLayer.Servicese
             return seacrhResults;
         }
 
+        public async Task<bool> CheckIfUserBoughtProductAsync(string userId, long productId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
 
+            var isBought = await _unitOfWork.productRepository.CheckIfUserBoughtProductAsync(userId, productId);
+            return isBought;
+        }
     }
 }

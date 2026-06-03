@@ -3,11 +3,9 @@ using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
-using DataAccessLayer.Pagination;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Drawing.Printing;
 
 namespace DataAccessLayer.Repositories
 {
@@ -20,6 +18,27 @@ namespace DataAccessLayer.Repositories
         {
             this._context = context;
             this._logger = logger;
+        }
+
+        public async Task<bool> CheckIfUserBoughtProductAsync(string userId, long productId)
+        {
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
+
+            try
+            {
+                var isBought = await _context.ApplicationOrders.
+                    Where(e => e.ApplicationOrderTypeId == (long)EnApplicationOrderType.Delivered
+                    && e.ShoppingCart.UserId == userId)
+                    .SelectMany(ao => ao.ShoppingCart.SellerProducts)
+                    .AnyAsync(e => e.SellerProduct.ProductId == productId);
+                   
+
+                return isBought;
+            }
+            catch (Exception ex) { 
+                throw HandleDatabaseException(ex);
+            }
         }
 
         public async Task<IEnumerable<Product>> GetAllOrderByBestSellerDescAsync()
@@ -237,7 +256,8 @@ namespace DataAccessLayer.Repositories
                     return results;
                 }
 
-                if (lang == EnLang.English) {
+                if (lang == EnLang.English)
+                {
                     results = await _context.Products.Where(e => e.NameEn.Contains(query) || e.NameAr.Contains(query)).Select(e => e.NameEn).Take(pageSize).ToListAsync();
                 }
 

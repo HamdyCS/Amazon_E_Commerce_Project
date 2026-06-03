@@ -33,18 +33,13 @@ namespace ApiLayer.Controllers
         {
             if (productId < 1) return BadRequest("Id must be bigger than zero.");
 
-            try
-            {
-               var AvgOfStars = await _productReviewService.GetAverageOfStarsByProductIdAsync(productId);
 
-                if (AvgOfStars < 0) return NotFound("Not found any product review.");
+            var AvgOfStars = await _productReviewService.GetAverageOfStarsByProductIdAsync(productId);
 
-                return Ok(AvgOfStars);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (AvgOfStars < 0) return NotFound("Not found any product review.");
+
+            return Ok(AvgOfStars);
+
         }
 
 
@@ -57,18 +52,13 @@ namespace ApiLayer.Controllers
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
-            try
-            {
-                var productReview = await _productReviewService.FindByIdAsync(Id);
 
-                if (productReview == null) return NotFound($"Not found product review. Id = {Id}");
+            var productReview = await _productReviewService.FindByIdAsync(Id);
 
-                return Ok(productReview);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (productReview == null) return NotFound($"Not found product review. Id = {Id}");
+
+            return Ok(productReview);
+
         }
 
 
@@ -80,19 +70,14 @@ namespace ApiLayer.Controllers
         public async Task<ActionResult<ProductReviewDto>> GetAllProductReviewsBySellerProductId(long productId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
-            try
-            {
-                var productReviewsDtosList = await _productReviewService.GetAllProductReviewsByProductIdAsync(productId);
 
-                if (productReviewsDtosList == null || !productReviewsDtosList.Any())
-                    return NotFound($"Didnot find any product review.");
+            var productReviewsDtosList = await _productReviewService.GetAllProductReviewsByProductIdAsync(productId);
 
-                return Ok(productReviewsDtosList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (productReviewsDtosList == null || !productReviewsDtosList.Any())
+                return NotFound($"Didnot find any product review.");
+
+            return Ok(productReviewsDtosList);
+
         }
 
 
@@ -101,52 +86,40 @@ namespace ApiLayer.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<ProductReviewDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize,long productId)
+        public async Task<ActionResult<IEnumerable<ProductReviewDto>>> GetPaged([FromQuery] int pageNumber, [FromQuery] int pageSize, long productId)
         {
             if (pageNumber < 1 || pageSize < 1) return BadRequest("pagenumber and pagesize must be bigger than 0.");
 
-            try
-            {
-                var productReviewsDtosList = await _productReviewService.GetPagedProductReviewsByProductIdAsync(pageNumber, pageSize, productId);
 
-                if (productReviewsDtosList == null || !productReviewsDtosList.Any())
-                    return NotFound($"Didnot find any product review.");
+            var productReviewsDtosList = await _productReviewService.GetPagedProductReviewsByProductIdAsync(pageNumber, pageSize, productId);
 
-                return Ok(productReviewsDtosList);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (productReviewsDtosList == null || !productReviewsDtosList.Any())
+                return NotFound($"Didnot find any product review.");
+
+            return Ok(productReviewsDtosList);
+
 
         }
 
 
         [HttpPost("", Name = "AddNewProductReview")]
         [Authorize]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(401)]
         public async Task<ActionResult<ProductReviewDto>> AddNew(ProductReviewDto productReviewDto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
-                var NewProductReviewDto = await _productReviewService.AddAsync(productReviewDto, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (NewProductReviewDto == null) return BadRequest("Cannot add new product review.");
+            var NewProductReviewDto = await _productReviewService.AddAsync(productReviewDto, UserId);
 
-                return CreatedAtRoute("GetProductReviewById", new { Id = NewProductReviewDto.Id }, NewProductReviewDto);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (NewProductReviewDto == null) return BadRequest("Cannot add new product review.");
+            return Ok(NewProductReviewDto);
+
         }
 
 
@@ -160,23 +133,15 @@ namespace ApiLayer.Controllers
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
 
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
+            var IsProductReviewUpdated = await _productReviewService.UpdateByIdAndUserIdAsync(Id, UserId, productReviewDto);
 
-                var IsProductReviewUpdated = await _productReviewService.UpdateByIdAndUserIdAsync(Id, UserId, productReviewDto);
+            if (!IsProductReviewUpdated) return BadRequest("Cannot Update product review.");
 
-                if (!IsProductReviewUpdated) return BadRequest("Cannot Update product review.");
+            return Ok("Updated product review successfully.");
 
-                return Ok("Updated product review successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
         }
 
 
@@ -189,22 +154,17 @@ namespace ApiLayer.Controllers
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
-            try
-            {
-                var IsProductReviewDeleted = await _productReviewService.DeleteByIdAsync(Id);
 
-                if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
+            var IsProductReviewDeleted = await _productReviewService.DeleteByIdAsync(Id);
 
-                return Ok("Deleted product review successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
+
+            return Ok("Deleted product review successfully.");
+
         }
 
 
-        [HttpDelete("{Id}", Name = "DeleteSellerProductReviewByIdAndUserId")]   
+        [HttpDelete("{Id}", Name = "DeleteSellerProductReviewByIdAndUserId")]
         [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -213,21 +173,15 @@ namespace ApiLayer.Controllers
         {
             if (Id < 1) return BadRequest("Id must be bigger than zero.");
 
-            try
-            {
-                var UserId = Helper.GetIdFromClaimsPrincipal(User);
-                if (UserId == null) return Unauthorized();
 
-                var IsProductReviewDeleted = await _productReviewService.DeleteByIdAndUserIdAsync(Id, UserId);
+            var UserId = Helper.GetIdFromClaimsPrincipal(User);
+            if (UserId == null) return Unauthorized();
 
-                if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
+            var IsProductReviewDeleted = await _productReviewService.DeleteByIdAndUserIdAsync(Id, UserId);
 
-                return Ok("Deleted product review successfully.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            if (!IsProductReviewDeleted) return BadRequest("Cannot Delete product review.");
+
+            return Ok("Deleted product review successfully.");
         }
 
 

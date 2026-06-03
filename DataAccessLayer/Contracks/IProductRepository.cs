@@ -14,6 +14,7 @@ namespace DataAccessLayer.Contracks
         Task<IEnumerable<string>> SearchByNameAsync(string query, int pageSize, EnLang lang);
         Task<IEnumerable<Product>> GetAllOrderByBestSellerDescAsync();
         Task<IEnumerable<Product>> GetPagedOrderByBestSellerDescAsync(int pageNumber,int pageSize);
+        Task<bool> CheckIfUserBoughtProductAsync(string userId, long productId);
 
     }
 }

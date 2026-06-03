@@ -290,6 +290,7 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(e => e.ProductSubCategory).WithMany(e => e.Products).HasForeignKey(
                 e => e.ProductSubCategoryId);
 
+            //to optimize search by name
             entity.HasIndex(e => e.NameEn);
             entity.HasIndex(e => e.NameAr);
 
@@ -355,6 +356,9 @@ public class AppDbContext : IdentityDbContext<User>
             entity.HasOne(d => d.Product).WithMany(p => p.ProductReviews)
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK_ProductReviews_SellerProductId");
+
+            //create unique index to ensure that each user can review a product only once
+            entity.HasIndex(p=>new {p.ProductId ,p.UserId}).IsUnique().HasDatabaseName("IX_ProductId_UserId");
 
             entity.HasQueryFilter(e => !e.IsDeleted);
 

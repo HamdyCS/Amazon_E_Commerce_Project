@@ -28,7 +28,9 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(ProductId, nameof(ProductId));
             try
             {
-                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Include(s => s.Product).ThenInclude(p => p.ProductImages)
+                var sellerProductsList = await _context.SellerProducts.AsNoTracking().
+                    Include(s => s.Product).ThenInclude(p => p.ProductImages).Include(s=>s.Product).
+                    ThenInclude(p => p.ProductReviews)
                     .Where(e => e.ProductId == ProductId).OrderBy(e => e.Price).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
             }
@@ -45,7 +47,10 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var sellerProductsList = await _context.SellerProducts
-                    .Where(e => e.SellerId == sellerId).Include(s => s.Product).ThenInclude(p => p.ProductImages).AsSplitQuery().ToListAsync();
+                    .Where(e => e.SellerId == sellerId).
+                    Include(s => s.Product).ThenInclude(p => p.ProductImages)
+                    .Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
             }
             catch (Exception ex)
@@ -61,7 +66,11 @@ namespace DataAccessLayer.Repositories
             ParamaterException.CheckIfLongIsBiggerThanZero(productId, nameof(productId));
             try
             {
-                var sellerProductsList = await _context.SellerProducts.AsNoTracking().Include(s => s.Product).ThenInclude(p => p.ProductImages).Where(e => e.ProductId == productId)
+                var sellerProductsList = await _context.SellerProducts.AsNoTracking()
+                    .Include(s => s.Product).ThenInclude(p => p.ProductImages)
+                    .Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews)
+                    .Where(e => e.ProductId == productId)
                     .Skip(pageSize * (pageNumber - 1)).Take(pageSize).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
 
@@ -119,7 +128,8 @@ namespace DataAccessLayer.Repositories
             {
                 var TotalCount = await _context.SellerProducts.CountAsync();
                 var data = await _context.SellerProducts.Include(s => s.Product).
-                    ThenInclude(p => p.ProductImages).OrderBy(s => s.Id).Skip((pageNumber - 1) * pageSize).
+                    ThenInclude(p => p.ProductImages).Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).OrderBy(s => s.Id).Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
                 return new PaginationResult<SellerProduct>(data, TotalCount, pageNumber, pageSize);
@@ -138,7 +148,8 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var sellerProduct = await _context.SellerProducts.Include(s => s.Product).
-                    ThenInclude(p => p.ProductImages).
+                    ThenInclude(p => p.ProductImages).Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).
                     FirstOrDefaultAsync(e => e.Id == id);
 
                 return sellerProduct;
@@ -167,7 +178,8 @@ namespace DataAccessLayer.Repositories
                     return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
 
                 var data = await query.Include(s => s.Product).
-                    ThenInclude(p => p.ProductImages).OrderBy(s => s.Id)
+                    ThenInclude(p => p.ProductImages).OrderBy(s => s.Id).Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews)
                     .Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
@@ -198,6 +210,8 @@ namespace DataAccessLayer.Repositories
                     return new PaginationResult<SellerProduct>([], totalCount, pageNumber, pageSize); ;
 
                 var data = await query.Include(s => s.Product).ThenInclude(p => p.ProductImages).
+                    Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).
                     OrderBy(s => s.Id)
                     .Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
@@ -261,14 +275,16 @@ namespace DataAccessLayer.Repositories
                     count = await sqlQuery.CountAsync();
 
                     var result = await sqlQuery.
-                        Include(sp => sp.Product).OrderBy(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
+                        Include(sp => sp.Product).ThenInclude(p => p.ProductImages).Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).OrderBy(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
                     return new PaginationResult<SellerProduct>(result, count,pageNumber,pageSize);
                 }
 
                 var data = await sqlQuery.
-                       Include(sp => sp.Product).ThenInclude(p=>p.ProductImages).OrderByDescending(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
+                       Include(sp => sp.Product).ThenInclude(p=>p.ProductImages).Include(s => s.Product).
+                    ThenInclude(p => p.ProductReviews).OrderByDescending(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
                    Take(pageSize).AsSplitQuery().ToListAsync();
 
 
