@@ -695,5 +695,17 @@ namespace DataAccessLayer.Repositories
 
             }
         }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            try
+            {
+                await _userManager.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+               throw _HandelDataBaseException(ex);
+            }
+        }
     }
 }

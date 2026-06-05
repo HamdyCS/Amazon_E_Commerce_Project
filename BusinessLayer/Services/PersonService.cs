@@ -159,14 +159,14 @@ namespace BusinessLayer.Servicese
             try
             {
 
-                var person = await _unitOfWork.personRepository.GetByIdAsTrackingAsync(Id);
+                var person = await _unitOfWork.personRepository.GetByIdAsNoTrackingAsync(Id);
 
                 if (person == null)
                     return false;
 
                 _genericMapper.MapSingle(dto, person);
 
-                await _unitOfWork.personRepository.UpdateAsync(Id,person);
+               _unitOfWork.personRepository.Update(person);
 
                 var IsCompleted = await _completeAsync();
 

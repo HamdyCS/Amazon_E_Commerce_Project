@@ -54,5 +54,7 @@ namespace DataAccessLayer.Contracks
         Task<User> LoginByProviderAsync(string role);
 
         Task<User> GetUserByRefreshTokenAsync(string refreshToken);
+
+         Task UpdateUserAsync(User user);
     }
 }

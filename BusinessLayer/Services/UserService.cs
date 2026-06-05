@@ -518,6 +518,10 @@ namespace BusinessLayer.Servicesep
                 var userDto = _genericMapper.MapSingle<User, UserDto>(user);
                 _genericMapper.MapSingle(updateUserDto, userDto);
 
+              //update user info
+              _genericMapper.MapSingle(updateUserDto, user);
+                await _unitOfWork.userRepository.UpdateUserAsync(user);
+
                 //roles
                 var roles = await GetAllUserRolesByIdAsync(user.Id);
                 if (roles is not null)
