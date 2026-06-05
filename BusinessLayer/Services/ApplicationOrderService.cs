@@ -295,7 +295,7 @@ namespace BusinessLayer.Servicese
 
             // Create a new application order with the same details but with the status of canceled
             var newApplicationOrder = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrder>(applicationOrderDtos.OrderBy(ao=>ao.CreatedAt).Last());
-            newApplicationOrder.CreatedAt = DateTime.Now;
+            newApplicationOrder.CreatedAt = DateTime.UtcNow;
             newApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Canceled;
 
             await _unitOfWork.applicationOrderRepository.AddAsync(newApplicationOrder);

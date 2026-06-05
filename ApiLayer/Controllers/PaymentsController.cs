@@ -1,3 +1,4 @@
+using ApiLayer.Filters;
 using ApiLayer.Help;
 using BusinessLayer.Contracks;
 using BusinessLayer.Dtos;
@@ -68,6 +69,7 @@ namespace ApiLayer.Controllers
 
 
         [HttpPost("pre-paid", Name = "PaymentPrePaid")]
+        [Idempotency]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -91,6 +93,7 @@ namespace ApiLayer.Controllers
 
 
         [HttpPost("cash-on-delivery", Name = "PaymentCashOnDelivery")]
+        [Idempotency]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

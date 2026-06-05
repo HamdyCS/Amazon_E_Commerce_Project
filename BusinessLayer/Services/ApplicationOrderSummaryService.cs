@@ -23,7 +23,7 @@ namespace BusinessLayer.Servicese
             this._shoppingCartService = shoppingCartService;
         }
 
-        public async Task<ApplicationOrderSummeryDto> GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(long ApplicationId, string userId)
+        public async Task<ApplicationOrderSummeryDto> GetApplicationOrderSummaryByUserIdAndApplicationIdAsync(long ApplicationId, string userId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(ApplicationId, nameof(ApplicationId));
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
@@ -89,7 +89,7 @@ namespace BusinessLayer.Servicese
             var orderApplicationSummariesDtosList = new List<ApplicationOrderSummeryDto>();
             foreach (var userOrderApplication in userOrderApplicationsList)
             {
-                var orderApplicationSummary = await GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(userOrderApplication.Id, userId);
+                var orderApplicationSummary = await GetApplicationOrderSummaryByUserIdAndApplicationIdAsync(userOrderApplication.Id, userId);
 
                 if (orderApplicationSummary != null) orderApplicationSummariesDtosList.Add(orderApplicationSummary);
             }
@@ -104,7 +104,7 @@ namespace BusinessLayer.Servicese
             var latestUserApplicationOrder = await _unitOfWork.applicationOrderRepository.GetLatestApplicationOrderByUserIdAsync(userId);
             if (latestUserApplicationOrder is null) return null;
 
-            var applicationOrderSummary = await GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(latestUserApplicationOrder.ApplicationId, userId);
+            var applicationOrderSummary = await GetApplicationOrderSummaryByUserIdAndApplicationIdAsync(latestUserApplicationOrder.ApplicationId, userId);
             return applicationOrderSummary;
 
         }

@@ -165,7 +165,7 @@ namespace ApiLayer.Controllers
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
                 if (userId is null) return Unauthorized();
 
-                ApplicationOrderSummeryDto? applicationOrderSummeryDto = await _orderApplicationSummaryService.GetUserApplicationOrderSummaryByUserIdAndApplicationIdAsync(ApplcationId, userId);
+                ApplicationOrderSummeryDto? applicationOrderSummeryDto = await _orderApplicationSummaryService.GetApplicationOrderSummaryByUserIdAndApplicationIdAsync(ApplcationId, userId);
                 if (applicationOrderSummeryDto is null)
                     return NotFound($"Not found order application summary. ApplicationId = {ApplcationId}");
 

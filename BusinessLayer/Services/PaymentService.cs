@@ -4,6 +4,7 @@ using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
+using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
 
 namespace BusinessLayer.Servicese
@@ -133,15 +134,7 @@ namespace BusinessLayer.Servicese
                     if (!IsPaymentAdded) throw new Exception("Payment not added");
                 }
 
-                //add new application
-                var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
-                if (NewApplication is null) throw new Exception("Failed to add new application");
-
-
-                var NewApplicationOrderDto = await _applicationOrderService.
-                    AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId, NewApplication.Id);
-
-                if (NewApplicationOrderDto == null) throw new Exception("Failed to add new application order");
+              
 
                 /*
                 var newStripeToken = await _stripeService.CreateStripeTokenAsync(paymentPrePaidDto.CardInfo);
@@ -371,7 +364,21 @@ namespace BusinessLayer.Servicese
                 //deactive shopping cart if payment is succeeded
                 if (enPaymentStatus == EnPaymentStatus.Succeeded)
                 {
+
+                    var shoppingCart = await _shoppingCartService.FindByIdAsync(shoppingCartId);
+                    if(shoppingCart == null) throw new Exception("Shopping cart not found");
+
                     await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
+
+                    //add new application
+                    var NewApplication = await _applicationService.AddNewOrderApplicationAsync(shoppingCart.UserId);
+                    if (NewApplication is null) throw new Exception("Failed to add new application");
+
+
+                    var NewApplicationOrderDto = await _applicationOrderService.
+                        AddNewUnderProcessingApplicationOrderAsync(shoppingCart.Id, payment.Id, shoppingCart.UserId, NewApplication.Id);
+
+                    if (NewApplicationOrderDto == null) throw new Exception("Failed to add new application order");
                 }
 
                 await _unitOfWork.CommitTransactionAsync();
