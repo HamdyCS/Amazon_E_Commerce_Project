@@ -30,5 +30,6 @@ namespace DataAccessLayer.Contracks
 
         Task<PaginationResult<SellerProduct>> SearchByProductNameAsync(string query,int pageNumber, int pageSize);
 
+        Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities);
     }
 }

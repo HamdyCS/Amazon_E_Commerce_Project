@@ -418,5 +418,16 @@ namespace BusinessLayer.Servicese
 
             return pagedSellerProductsDto;
         }
+
+        public async Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities)
+        {
+            if(sellerProductsIdAndQuantities == null || !sellerProductsIdAndQuantities.Any())
+                throw new ArgumentNullException("sellerProductsIdAndQuantities cannot be null or empty", nameof(sellerProductsIdAndQuantities));
+
+            await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities);
+            var isStocksUpdated = await _completeAsync();
+
+            return isStocksUpdated;
+        }
     }
 }

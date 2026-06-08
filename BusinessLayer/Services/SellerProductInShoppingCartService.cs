@@ -45,6 +45,8 @@ namespace BusinessLayer.Servicese
             var sellerProductDto = await _sellerProductService.FindByIdAsync(addProductInShoppingCartDto.SellerProductId);
             if (sellerProductDto == null) throw new KeyNotFoundException($"Not found seller product. Id = {addProductInShoppingCartDto.SellerProductId}");
 
+            if(addProductInShoppingCartDto.Quantity <= 0) throw new InvalidOperationException("Quantity must be greater than zero");
+
             //check if Quantity greater than stock
             if (addProductInShoppingCartDto.Quantity > sellerProductDto.NumberInStock)
                 addProductInShoppingCartDto.Quantity = sellerProductDto.NumberInStock;
@@ -107,6 +109,8 @@ namespace BusinessLayer.Servicese
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
             if (ActiveShoppingCartDto is null || ActiveShoppingCartDto.Id != addProductInShoppingCartDto.ShoppingCartId)
                 throw new KeyNotFoundException($"Not found cart or ActiveShoppingCart not equal shopping cart. Id: {addProductInShoppingCartDto.ShoppingCartId}");
+
+
 
             //add product in shopping cart
             await _AddAsync(addProductInShoppingCartDto, ActiveShoppingCartDto, UserId);

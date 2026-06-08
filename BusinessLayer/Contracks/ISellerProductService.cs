@@ -40,5 +40,6 @@ namespace BusinessLayer.Contracks
 
         Task<PaginationResultDto<SellerProductDto>> SearchByProductNameAsync(string query, int pageNumber, int pageSiz);
 
+        Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities);
     }
 }

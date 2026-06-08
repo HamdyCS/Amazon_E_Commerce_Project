@@ -20,11 +20,13 @@ namespace BusinessLayer.Servicese
         private readonly IStripeService _stripeService;
         private readonly IApplicationService _applicationService;
         private readonly IApplicationOrderService _applicationOrderService;
+        private readonly ISellerProductService _sellerProductService;
 
         public PaymentService(IGenericMapper genericMapper, IUserService userService, IUnitOfWork unitOfWork,
             IUserAddressService userAdderssService,
             IShippingCostService shippingCostService, IShoppingCartService shoppingCartService,
-            IApplicationOrderService applicationOrderService, IStripeService stripeService, IApplicationService applicationService)
+            IApplicationOrderService applicationOrderService, IStripeService stripeService, IApplicationService applicationService
+            , ISellerProductService sellerProductService)
         {
             this._genericMapper = genericMapper;
             this._userService = userService;
@@ -35,6 +37,7 @@ namespace BusinessLayer.Servicese
             this._applicationService = applicationService;
             this._applicationOrderService = applicationOrderService;
             this._unitOfWork = unitOfWork;
+            this._sellerProductService = sellerProductService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -246,7 +249,7 @@ namespace BusinessLayer.Servicese
                     _unitOfWork.paymentRepository.Update(payment);
 
                     var IsPaymentUpdated = await _CompleteAsync();
-                    if (!IsPaymentUpdated) throw new Exception("Payment not updated");
+                    if (!IsPaymentUpdated) throw new InvalidOperationException("Payment not updated");
                 }
 
                 //if null create new payment
@@ -265,20 +268,32 @@ namespace BusinessLayer.Servicese
                     await _unitOfWork.paymentRepository.AddAsync(payment);
                     var IsPaymentAdded = await _CompleteAsync();
 
-                    if (!IsPaymentAdded) throw new Exception("Payment not added");
+                    if (!IsPaymentAdded) throw new InvalidOperationException("Payment not added");
                 }
 
 
                 //add new application
                 var NewApplication = await _applicationService.AddNewOrderApplicationAsync(UserId);
-                if (NewApplication is null) throw new Exception("New application not added");
+                if (NewApplication is null) throw new InvalidOperationException("New application not added");
 
                 var NewApplicationOrderDto = await _applicationOrderService.
                     AddNewUnderProcessingApplicationOrderAsync(ActiveShoppingCartDto.Id, payment.Id, UserId, NewApplication.Id);
-                if (NewApplicationOrderDto == null) throw new Exception("not new application order added");
+                if (NewApplicationOrderDto == null) throw new InvalidOperationException("not new application order added");
 
                 //deactive shopping cart
                 await _shoppingCartService.DeactiveShoppingCartAsync(ActiveShoppingCartDto.Id);
+
+
+
+                //update stock quantity for each product in shopping cart
+                Dictionary<long, int> sellerProductsIdAndQuantit = ActiveShoppingCartDto.SellerProducts.
+                    ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+
+
+
+
+                var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit);
+                if(!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
 
 
                 await _unitOfWork.CommitTransactionAsync();
@@ -359,26 +374,32 @@ namespace BusinessLayer.Servicese
 
                 var IsPaymentUpdated = await _CompleteAsync();
 
-                if (!IsPaymentUpdated) throw new Exception("Payment not Updated");
+                if (!IsPaymentUpdated) throw new InvalidOperationException("Payment not Updated");
 
                 //deactive shopping cart if payment is succeeded
                 if (enPaymentStatus == EnPaymentStatus.Succeeded)
                 {
 
                     var shoppingCart = await _shoppingCartService.FindByIdAsync(shoppingCartId);
-                    if(shoppingCart == null) throw new Exception("Shopping cart not found");
+                    if(shoppingCart == null) throw new InvalidOperationException("Shopping cart not found");
 
                     await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
 
                     //add new application
                     var NewApplication = await _applicationService.AddNewOrderApplicationAsync(shoppingCart.UserId);
-                    if (NewApplication is null) throw new Exception("Failed to add new application");
+                    if (NewApplication is null) throw new InvalidOperationException("Failed to add new application");
 
 
                     var NewApplicationOrderDto = await _applicationOrderService.
                         AddNewUnderProcessingApplicationOrderAsync(shoppingCart.Id, payment.Id, shoppingCart.UserId, NewApplication.Id);
 
-                    if (NewApplicationOrderDto == null) throw new Exception("Failed to add new application order");
+                    if (NewApplicationOrderDto == null) throw new InvalidOperationException("Failed to add new application order");
+
+                    //update stock quantity for each product in shopping cart
+                    Dictionary<long, int> sellerProductsIdAndQuantit =  shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+
+                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit);
+                    if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
                 }
 
                 await _unitOfWork.CommitTransactionAsync();

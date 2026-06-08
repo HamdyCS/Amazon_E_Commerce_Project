@@ -29,7 +29,7 @@ namespace DataAccessLayer.Repositories
             try
             {
                 var sellerProductsList = await _context.SellerProducts.AsNoTracking().
-                    Include(s => s.Product).ThenInclude(p => p.ProductImages).Include(s=>s.Product).
+                    Include(s => s.Product).ThenInclude(p => p.ProductImages).Include(s => s.Product).
                     ThenInclude(p => p.ProductReviews)
                     .Where(e => e.ProductId == ProductId).OrderBy(e => e.Price).AsSplitQuery().ToListAsync();
                 return sellerProductsList;
@@ -279,11 +279,11 @@ namespace DataAccessLayer.Repositories
                     ThenInclude(p => p.ProductReviews).OrderBy(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
                     Take(pageSize).AsSplitQuery().ToListAsync();
 
-                    return new PaginationResult<SellerProduct>(result, count,pageNumber,pageSize);
+                    return new PaginationResult<SellerProduct>(result, count, pageNumber, pageSize);
                 }
 
                 var data = await sqlQuery.
-                       Include(sp => sp.Product).ThenInclude(p=>p.ProductImages).Include(s => s.Product).
+                       Include(sp => sp.Product).ThenInclude(p => p.ProductImages).Include(s => s.Product).
                     ThenInclude(p => p.ProductReviews).OrderByDescending(sp => sp.Id).Skip((pageNumber - 1) * pageSize).
                    Take(pageSize).AsSplitQuery().ToListAsync();
 
@@ -294,6 +294,45 @@ namespace DataAccessLayer.Repositories
             {
                 throw HandleDatabaseException(ex);
             }
+        }
+
+        public async Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities)
+        {
+            try
+            {
+                var sellerProductIds = sellerProductsIdAndQuantities.Keys.ToList();
+
+                //get the seller products that match the provided IDs
+                var sellerProducts = await _context.SellerProducts.Where(sp =>
+                sellerProductIds.Any(id => id == sp.Id)
+                ).ToListAsync();
+
+                if (sellerProducts.Count <= 0)
+                    throw new InvalidOperationException("No seller products found.");
+
+                // Update the stock for each seller product
+
+                foreach (var sellerProduct in sellerProducts)
+                {
+                    var quantityToSubtract = sellerProductsIdAndQuantities[sellerProduct.Id];
+
+                    if (quantityToSubtract < 0)
+                        throw new InvalidOperationException("Quantity to subtract cannot be negative.");
+                    if (sellerProduct.NumberInStock < quantityToSubtract)
+
+                        throw new InvalidOperationException($"Not enough stock for seller product with ID {sellerProduct.Id}.");
+                    sellerProduct.NumberInStock -= quantityToSubtract;
+
+
+                }
+
+                _context.SellerProducts.UpdateRange(sellerProducts);
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+
         }
 
 
