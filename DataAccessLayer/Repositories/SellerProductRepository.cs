@@ -301,49 +301,47 @@ namespace DataAccessLayer.Repositories
         {
             try
             {
+                //check if any quantity is less than or equal to zero
+                if (sellerProductsIdAndQuantities.Values.Any(q => q <= 0))
+                    throw new InvalidOperationException("Quantities cannot be less than or equal to zero.");
+
                 var sellerProductIds = sellerProductsIdAndQuantities.Keys.ToList();
 
-                //get the seller products that match the provided IDs (contains convert to (In) in sql server )
-                var sellerProducts = await _context.SellerProducts.Where(sp =>
-                sellerProductIds.Contains(sp.Id)
-                ).ToListAsync();
-
-                if (sellerProducts.Count <= 0)
-                    throw new InvalidOperationException("No seller products found.");
-
-                // Update the stock for each seller product
-
-                foreach (var sellerProduct in sellerProducts)
+                //subtrack case
+                if (operation == EnOperation.Subtract)
                 {
-                    
-                    if (operation == EnOperation.Subtract)
+                    foreach (var item in sellerProductsIdAndQuantities)
                     {
-                        var quantityToSubtract = sellerProductsIdAndQuantities[sellerProduct.Id];
+                        var rowsAffected = await
+                            _context.Database.ExecuteSqlAsync(
+                                $"Update SellerProducts set NumberInStock = NumberInStock - {item.Value} where Id = {item.Key} and NumberInStock >= {item.Value}"
+                                );
 
-                        if (quantityToSubtract < 0)
-                            throw new InvalidOperationException("Quantity to subtract cannot be negative.");
-                        if (sellerProduct.NumberInStock < quantityToSubtract)
-
-                            throw new InvalidOperationException($"Not enough stock for seller product with ID {sellerProduct.Id}.");
-                        sellerProduct.NumberInStock -= quantityToSubtract;
-                    }
-
-                    if(operation == EnOperation.Add)
-                    {
-                        var quantityToAdd = sellerProductsIdAndQuantities[sellerProduct.Id];
-                        if (quantityToAdd < 0)
-                            throw new InvalidOperationException("Quantity to add cannot be negative.");
-                        sellerProduct.NumberInStock += quantityToAdd;
+                        if (rowsAffected == 0)
+                            throw new InvalidOperationException($"Not enough stock for seller product with ID {item.Key}.");
                     }
                 }
 
-                _context.SellerProducts.UpdateRange(sellerProducts);
+
+                //add case 
+                if (operation == EnOperation.Add)
+                {
+                    foreach (var item in sellerProductsIdAndQuantities)
+                    {
+                        var rowsAffected = await
+                            _context.Database.ExecuteSqlAsync(
+                                $"Update SellerProducts set NumberInStock = NumberInStock + {item.Value} where Id = {item.Key}"
+                                );
+
+                        if (rowsAffected == 0)
+                            throw new InvalidOperationException($"Failed to update stock for seller product with ID {item.Key}.");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 throw HandleDatabaseException(ex);
             }
-
         }
 
 

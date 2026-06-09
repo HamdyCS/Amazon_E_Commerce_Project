@@ -426,9 +426,9 @@ namespace BusinessLayer.Servicese
                 throw new ArgumentNullException("sellerProductsIdAndQuantities cannot be null or empty", nameof(sellerProductsIdAndQuantities));
 
             await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities, operation);
-            var isStocksUpdated = await _completeAsync();
+            
 
-            return isStocksUpdated;
+            return true;
         }
     }
 }

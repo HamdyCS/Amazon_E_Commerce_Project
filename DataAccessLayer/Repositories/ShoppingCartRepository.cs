@@ -131,8 +131,6 @@ namespace DataAccessLayer.Repositories
 
                 shoppingCart.IsActive = false;
                 _context.ShoppingCarts.Update(shoppingCart);
-
-                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
