@@ -3,6 +3,7 @@ using BusinessLayer.Dtos;
 using BusinessLayer.Exceptions;
 using BusinessLayer.Mapper.Contracks;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.Pagination;
 using DataAccessLayer.UnitOfWork.Contracks;
 using System;
@@ -419,12 +420,12 @@ namespace BusinessLayer.Servicese
             return pagedSellerProductsDto;
         }
 
-        public async Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities)
+        public async Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities, EnOperation operation)
         {
             if(sellerProductsIdAndQuantities == null || !sellerProductsIdAndQuantities.Any())
                 throw new ArgumentNullException("sellerProductsIdAndQuantities cannot be null or empty", nameof(sellerProductsIdAndQuantities));
 
-            await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities);
+            await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities, operation);
             var isStocksUpdated = await _completeAsync();
 
             return isStocksUpdated;

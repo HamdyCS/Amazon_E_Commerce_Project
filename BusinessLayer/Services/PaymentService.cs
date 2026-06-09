@@ -292,7 +292,7 @@ namespace BusinessLayer.Servicese
 
 
 
-                var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit);
+                var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
                 if(!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
 
 
@@ -398,7 +398,7 @@ namespace BusinessLayer.Servicese
                     //update stock quantity for each product in shopping cart
                     Dictionary<long, int> sellerProductsIdAndQuantit =  shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
 
-                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit);
+                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
                     if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
                 }
 

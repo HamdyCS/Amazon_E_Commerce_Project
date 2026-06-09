@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Dtos;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,6 +41,6 @@ namespace BusinessLayer.Contracks
 
         Task<PaginationResultDto<SellerProductDto>> SearchByProductNameAsync(string query, int pageNumber, int pageSiz);
 
-        Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities);
+        Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities, EnOperation operation);
     }
 }

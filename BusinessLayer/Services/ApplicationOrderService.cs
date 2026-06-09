@@ -17,10 +17,11 @@ namespace BusinessLayer.Servicese
         private readonly IMailService _mailService;
         private readonly IGenericMapper _genericMapper;
         private readonly IShoppingCartService _shoppingCartService;
+        private readonly ISellerProductService _sellerProductService;
 
         public ApplicationOrderService(IUnitOfWork unitOfWork, IUserService userService, IApplicationService applicationService,
             IApplicationTypeService applicationTypeService, IMailService mailService,
-            IGenericMapper genericMapper, IShoppingCartService shoppingCartService)
+            IGenericMapper genericMapper, IShoppingCartService shoppingCartService,ISellerProductService sellerProductService)
         {
             this._unitOfWork = unitOfWork;
             this._userService = userService;
@@ -28,6 +29,7 @@ namespace BusinessLayer.Servicese
             this._mailService = mailService;
             this._genericMapper = genericMapper;
             this._shoppingCartService = shoppingCartService;
+            this._sellerProductService = sellerProductService;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -282,32 +284,52 @@ namespace BusinessLayer.Servicese
             var applicationDto = await _applicationService.FindByIdAsync(ApplicationId);
             if (applicationDto == null) throw new KeyNotFoundException($"Application not found. Id: {ApplicationId}");
 
+
             // Check if there is an active application order for this application and user
             var applicationOrderDtos = await _unitOfWork.applicationOrderRepository.GetAllApplicationOrdersByApplicatonIdAndUserIdAsync(ApplicationId, UserId);
             if (applicationOrderDtos == null || !applicationOrderDtos.Any())
                 throw new KeyNotFoundException($"No application order found for ApplicationId: {ApplicationId}");
 
-
             if (applicationOrderDtos.Any(
                 ao => ao.ApplicationOrderTypeId == (long)EnApplicationOrderType.Delivered || ao.ApplicationOrderTypeId == (long)EnApplicationOrderType.Canceled))
                 throw new InvalidOperationException("Cannot cancel an order that has been canceled or delivered.");
 
+            //get shopinng cart
+            var shoppingCart = await _unitOfWork.shoppingCartRepository.GetByIdAsNoTrackingAsync(applicationOrderDtos.First().ShoppingCartId);
+            if (shoppingCart == null)
+                throw new KeyNotFoundException($"Shopping cart not found for ApplicationId: {ApplicationId}");
 
-            // Create a new application order with the same details but with the status of canceled
-            var newApplicationOrder = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrder>(applicationOrderDtos.OrderBy(ao=>ao.CreatedAt).Last());
-            newApplicationOrder.CreatedAt = DateTime.UtcNow;
-            newApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Canceled;
+            try
+            {
+                // Create a new application order with the same details but with the status of canceled
+                var newApplicationOrder = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrder>(applicationOrderDtos.OrderBy(ao => ao.CreatedAt).Last());
+                newApplicationOrder.CreatedAt = DateTime.UtcNow;
+                newApplicationOrder.ApplicationOrderTypeId = (long)EnApplicationOrderType.Canceled;
 
-            await _unitOfWork.applicationOrderRepository.AddAsync(newApplicationOrder);
+                await _unitOfWork.applicationOrderRepository.AddAsync(newApplicationOrder);
 
-            var IsNewApplicationOrderAdded = await _CompleteAsync();
-            if (!IsNewApplicationOrderAdded) return null;
+                var IsNewApplicationOrderAdded = await _CompleteAsync();
+                if (!IsNewApplicationOrderAdded) return null;
+
+                //update stock quantity for each product in shopping cart
+                Dictionary<long, int> sellerProductsIdAndQuantit = shoppingCart.SellerProducts.
+                    ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+
+                var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Add);
+                if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
+
+                await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({ApplicationId}) is Canceled", $"Your order ({ApplicationId}) is canceled");
+
+                var newApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(newApplicationOrder);
+                return newApplicationOrderDto;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
 
 
-            await _mailService.SendEmailAsync(UserDto.Email, subject: $"Your order ({ApplicationId}) is Canceled", $"Your order ({ApplicationId}) is canceled");
-
-            var newApplicationOrderDto = _genericMapper.MapSingle<ApplicationOrder, ApplicationOrderDto>(newApplicationOrder);
-            return newApplicationOrderDto;
         }
     }
 }

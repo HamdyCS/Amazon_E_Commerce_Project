@@ -1,4 +1,5 @@
 ﻿using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.Pagination;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,6 @@ namespace DataAccessLayer.Contracks
 
         Task<PaginationResult<SellerProduct>> SearchByProductNameAsync(string query,int pageNumber, int pageSize);
 
-        Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities);
+        Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities, EnOperation operation);
     }
 }

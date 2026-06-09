@@ -1,6 +1,7 @@
 ﻿using DataAccessLayer.Contracks;
 using DataAccessLayer.Data;
 using DataAccessLayer.Entities;
+using DataAccessLayer.Enums;
 using DataAccessLayer.Exceptions;
 using DataAccessLayer.Pagination;
 using Microsoft.EntityFrameworkCore;
@@ -296,15 +297,15 @@ namespace DataAccessLayer.Repositories
             }
         }
 
-        public async Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities)
+        public async Task UpdateStocksAsync(Dictionary<long, int> sellerProductsIdAndQuantities, EnOperation operation)
         {
             try
             {
                 var sellerProductIds = sellerProductsIdAndQuantities.Keys.ToList();
 
-                //get the seller products that match the provided IDs
+                //get the seller products that match the provided IDs (contains convert to (In) in sql server )
                 var sellerProducts = await _context.SellerProducts.Where(sp =>
-                sellerProductIds.Any(id => id == sp.Id)
+                sellerProductIds.Contains(sp.Id)
                 ).ToListAsync();
 
                 if (sellerProducts.Count <= 0)
@@ -314,16 +315,26 @@ namespace DataAccessLayer.Repositories
 
                 foreach (var sellerProduct in sellerProducts)
                 {
-                    var quantityToSubtract = sellerProductsIdAndQuantities[sellerProduct.Id];
+                    
+                    if (operation == EnOperation.Subtract)
+                    {
+                        var quantityToSubtract = sellerProductsIdAndQuantities[sellerProduct.Id];
 
-                    if (quantityToSubtract < 0)
-                        throw new InvalidOperationException("Quantity to subtract cannot be negative.");
-                    if (sellerProduct.NumberInStock < quantityToSubtract)
+                        if (quantityToSubtract < 0)
+                            throw new InvalidOperationException("Quantity to subtract cannot be negative.");
+                        if (sellerProduct.NumberInStock < quantityToSubtract)
 
-                        throw new InvalidOperationException($"Not enough stock for seller product with ID {sellerProduct.Id}.");
-                    sellerProduct.NumberInStock -= quantityToSubtract;
+                            throw new InvalidOperationException($"Not enough stock for seller product with ID {sellerProduct.Id}.");
+                        sellerProduct.NumberInStock -= quantityToSubtract;
+                    }
 
-
+                    if(operation == EnOperation.Add)
+                    {
+                        var quantityToAdd = sellerProductsIdAndQuantities[sellerProduct.Id];
+                        if (quantityToAdd < 0)
+                            throw new InvalidOperationException("Quantity to add cannot be negative.");
+                        sellerProduct.NumberInStock += quantityToAdd;
+                    }
                 }
 
                 _context.SellerProducts.UpdateRange(sellerProducts);
