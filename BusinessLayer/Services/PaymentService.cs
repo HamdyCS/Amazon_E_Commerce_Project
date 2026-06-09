@@ -328,30 +328,6 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdatePaymentByIdAndInvoiceIdAsync(long paymentId, string invoiceId)
-        {
-            ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(invoiceId, nameof(invoiceId));
-
-            try
-            {
-                //get payment by id
-                var payment = await _unitOfWork.paymentRepository.GetByIdAndInvoiceIdAsync(paymentId, invoiceId);
-                if (payment == null) return false;
-
-                //update payment status
-                payment.InvoiceId = invoiceId;
-                await _unitOfWork.paymentRepository.UpdateAsync(payment.Id, payment);
-
-                var IsPaymentUpdated = await _CompleteAsync();
-                return IsPaymentUpdated;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
         public async Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId, long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
@@ -382,7 +358,12 @@ namespace BusinessLayer.Servicese
                     var shoppingCart = await _shoppingCartService.FindByIdAsync(shoppingCartId);
                     if (shoppingCart == null) throw new InvalidOperationException("Shopping cart not found");
 
-                    await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
+                    //update stock quantity for each product in shopping cart
+                    Dictionary<long, int> sellerProductsIdAndQuantit = shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+
+                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
+                    if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
+
 
                     //add new application
                     var NewApplication = await _applicationService.AddNewOrderApplicationAsync(shoppingCart.UserId);
@@ -391,14 +372,11 @@ namespace BusinessLayer.Servicese
 
                     var NewApplicationOrderDto = await _applicationOrderService.
                         AddNewUnderProcessingApplicationOrderAsync(shoppingCart.Id, payment.Id, shoppingCart.UserId, NewApplication.Id);
-
                     if (NewApplicationOrderDto == null) throw new InvalidOperationException("Failed to add new application order");
 
-                    //update stock quantity for each product in shopping cart
-                    Dictionary<long, int> sellerProductsIdAndQuantit = shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+                    //deactive shopping cart
+                    await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
 
-                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
-                    if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
                 }
 
                 await _unitOfWork.CommitTransactionAsync();

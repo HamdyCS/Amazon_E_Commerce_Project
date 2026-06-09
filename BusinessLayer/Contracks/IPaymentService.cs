@@ -18,8 +18,6 @@ namespace BusinessLayer.Contracks
 
         Task<bool> UpdatePaymentStatusByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus);
 
-        Task<bool> UpdatePaymentByIdAndInvoiceIdAsync(long paymentId, string invoiceId);
-
         Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId,long shoppingCartId);
 
         Task<PaymentDto> GetPaymentByApplicationOrderIdAndUserIdAsync(long applicationOrderId, string userId);
