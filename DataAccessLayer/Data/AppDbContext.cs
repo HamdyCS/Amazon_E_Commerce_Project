@@ -68,6 +68,8 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<PaymentStatus> PaymentStatuses { get; set; }
 
+    public virtual DbSet<RefundStatus> RefundStatuses { get; set; }
+
     public virtual DbSet<Banner> Banners { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -358,7 +360,7 @@ public class AppDbContext : IdentityDbContext<User>
                 .HasConstraintName("FK_ProductReviews_SellerProductId");
 
             //create unique index to ensure that each user can review a product only once
-            entity.HasIndex(p=>new {p.ProductId ,p.UserId}).IsUnique().HasDatabaseName("IX_ProductId_UserId");
+            entity.HasIndex(p => new { p.ProductId, p.UserId }).IsUnique().HasDatabaseName("IX_ProductId_UserId");
 
             entity.HasQueryFilter(e => !e.IsDeleted);
 
@@ -469,28 +471,65 @@ public class AppDbContext : IdentityDbContext<User>
             entity.Property(e => e.Name).HasMaxLength(255);
         });
 
-        modelBuilder.Entity<Banner>(entity =>
+        modelBuilder.Entity<RefundStatus>(entity =>
         {
-            entity.ToTable("Banners").HasKey(e => e.Id);
-            entity.HasIndex(e => e.DisplayOrder);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
+            entity.ToTable("RefundStatuses");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.DescriptionAr).HasMaxLength(1000);
+            entity.Property(e => e.DescriptionEn).HasMaxLength(1000);
+            entity.Property(e => e.Name).HasMaxLength(255);
+            entity.HasMany(e => e.Payments).WithOne(p => p.RefundStatus).HasForeignKey(p => p.RefundStatusId);
+            entity.HasData(new List<RefundStatus>
+            {
 
-            entity.HasQueryFilter(b => !b.IsDeleted);
+                new RefundStatus
+                {
+                    Id = 1,
+                    Name = "Pending",
+                    DescriptionAr = "طلب الاسترداد قيد المعالجة",
+                    DescriptionEn = "Refund request is being processed"
+                },
+                 new RefundStatus
+                 {
+                     Id = 2,
+                     Name = "Succeeded",
+                     DescriptionAr = "تم تنفيذ عملية الاسترداد بنجاح",
+                     DescriptionEn = "Refund completed successfully"
+                 },
+                  new RefundStatus
+                  {
+                      Id = 3,
+                      Name = "Failed",
+                      DescriptionAr = "فشلت عملية الاسترداد",
+                      DescriptionEn = "Refund failed"
+                  }
+            }
+            );
         });
 
-        //to enable Login with providers
-        //modelBuilder.Ignore<IdentityUserClaim<string>>();
-        //modelBuilder.Ignore<IdentityRoleClaim<string>>();
-        //modelBuilder.Ignore<IdentityUserLogin<string>>();
-        //modelBuilder.Ignore<IdentityUserToken<string>>();
+        modelBuilder.Entity<Banner>(entity =>
+            {
+                entity.ToTable("Banners").HasKey(e => e.Id);
+                entity.HasIndex(e => e.DisplayOrder);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.IsDeleted).HasDefaultValue(false);
 
-        modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
-        modelBuilder.Entity<IdentityRole>().ToTable("Roles");
+                entity.HasQueryFilter(b => !b.IsDeleted);
+            });
+
+            //to enable Login with providers
+            //modelBuilder.Ignore<IdentityUserClaim<string>>();
+            //modelBuilder.Ignore<IdentityRoleClaim<string>>();
+            //modelBuilder.Ignore<IdentityUserLogin<string>>();
+            //modelBuilder.Ignore<IdentityUserToken<string>>();
+
+            modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+            modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
 
-        ApplyDeleteRestrict(modelBuilder);
-    }
+            ApplyDeleteRestrict(modelBuilder);
+        }
+
 
     private void ApplyDeleteRestrict(ModelBuilder modelBuilder)
     {

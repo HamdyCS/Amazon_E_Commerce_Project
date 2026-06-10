@@ -6,6 +6,7 @@ using DataAccessLayer.Entities;
 using DataAccessLayer.Enums;
 using DataAccessLayer.Identity.Entities;
 using DataAccessLayer.UnitOfWork.Contracks;
+using Stripe;
 
 namespace BusinessLayer.Servicese
 {
@@ -21,6 +22,8 @@ namespace BusinessLayer.Servicese
         private readonly IApplicationService _applicationService;
         private readonly IApplicationOrderService _applicationOrderService;
         private readonly ISellerProductService _sellerProductService;
+
+        private  bool _IsRefunded = false;
 
         public PaymentService(IGenericMapper genericMapper, IUserService userService, IUnitOfWork unitOfWork,
             IUserAddressService userAdderssService,
@@ -44,6 +47,47 @@ namespace BusinessLayer.Servicese
         {
             var numberOfRowsAffected = await _unitOfWork.CompleteAsync();
             return numberOfRowsAffected > 0;
+        }
+
+        private async Task _HandelPaymentSuccessAsync(long shoppingCartId, Payment payment, string paymentIntentId)
+        {
+            var shoppingCart = await _shoppingCartService.FindByIdAsync(shoppingCartId);
+            if (shoppingCart == null) throw new InvalidOperationException("Shopping cart not found");
+
+            //update stock quantity for each product in shopping cart
+            Dictionary<long, int> sellerProductsIdAndQuantit = shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
+
+            var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
+            if (!isStocksUpdated)
+            {
+                //refund payment if failed to update stocks
+                payment.RefundStatusId = (int)EnRefundStatus.Pending;
+                _unitOfWork.paymentRepository.Update(payment);
+
+                //create refund request
+                var refund = await _stripeService.CreateRefundAsync(paymentIntentId, payment.Id, payment.TotalPrice);
+                if (refund == null) throw new Exception("Failed to create refund");
+
+                var isPaymentRefunded = await _CompleteAsync();
+                if (!isPaymentRefunded) throw new InvalidOperationException($"Payment not refunded. Payment ID: {payment.Id}");
+
+                //update IsRefunded to true
+                _IsRefunded = true;
+                return;
+            }
+
+
+            //add new application
+            var NewApplication = await _applicationService.AddNewOrderApplicationAsync(shoppingCart.UserId);
+            if (NewApplication is null) throw new InvalidOperationException("Failed to add new application");
+
+
+            var NewApplicationOrderDto = await _applicationOrderService.
+                AddNewUnderProcessingApplicationOrderAsync(shoppingCart.Id, payment.Id, shoppingCart.UserId, NewApplication.Id);
+            if (NewApplicationOrderDto == null) throw new InvalidOperationException("Failed to add new application order");
+
+            //deactive shopping cart
+            await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
         }
 
         public async Task<decimal> GetTotalPriceAsync(PaymentDto paymentDto, string UserId)
@@ -108,8 +152,6 @@ namespace BusinessLayer.Servicese
                 throw new KeyNotFoundException($"Not found any seller products in cart. ShoppingCartId: {ActiveShoppingCartDto.Id}"); ;
 
             var TotalPrice = ShoppingCartTotalPrice + shippingCostDto.Price;
-
-
 
 
             try
@@ -328,11 +370,11 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        public async Task<bool> UpdatePaymentStatusAndInvoiceIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string invoiceId, long shoppingCartId)
+        public async Task<bool> UpdatePaymentStatusAndPaymentIntentIdByIdAsync(long paymentId, EnPaymentStatus enPaymentStatus, string paymentIntentId, long shoppingCartId)
         {
             ParamaterException.CheckIfLongIsBiggerThanZero(paymentId, nameof(paymentId));
-            ParamaterException.CheckIfStringIsNotNullOrEmpty(invoiceId, nameof(invoiceId));
-
+            ParamaterException.CheckIfStringIsNotNullOrEmpty(paymentIntentId, nameof(paymentIntentId));
+            ParamaterException.CheckIfLongIsBiggerThanZero(shoppingCartId, nameof(shoppingCartId));
 
             try
             {
@@ -344,42 +386,21 @@ namespace BusinessLayer.Servicese
                 //update payment
                 payment.PaymentStatusId = (int)enPaymentStatus;
 
-                payment.InvoiceId = invoiceId;
+                payment.InvoiceId = paymentIntentId;
                 _unitOfWork.paymentRepository.Update(payment);
 
                 var IsPaymentUpdated = await _CompleteAsync();
-
                 if (!IsPaymentUpdated) throw new InvalidOperationException("Payment not Updated");
 
-                //deactive shopping cart if payment is succeeded
                 if (enPaymentStatus == EnPaymentStatus.Succeeded)
                 {
 
-                    var shoppingCart = await _shoppingCartService.FindByIdAsync(shoppingCartId);
-                    if (shoppingCart == null) throw new InvalidOperationException("Shopping cart not found");
-
-                    //update stock quantity for each product in shopping cart
-                    Dictionary<long, int> sellerProductsIdAndQuantit = shoppingCart.SellerProducts.ToDictionary(sp => sp.SellerProductId, sp => sp.Quantity);
-
-                    var isStocksUpdated = await _sellerProductService.UpdateSellerProductsStockAsync(sellerProductsIdAndQuantit, EnOperation.Subtract);
-                    if (!isStocksUpdated) throw new InvalidOperationException("Failed to update stocks for products in shopping cart");
-
-
-                    //add new application
-                    var NewApplication = await _applicationService.AddNewOrderApplicationAsync(shoppingCart.UserId);
-                    if (NewApplication is null) throw new InvalidOperationException("Failed to add new application");
-
-
-                    var NewApplicationOrderDto = await _applicationOrderService.
-                        AddNewUnderProcessingApplicationOrderAsync(shoppingCart.Id, payment.Id, shoppingCart.UserId, NewApplication.Id);
-                    if (NewApplicationOrderDto == null) throw new InvalidOperationException("Failed to add new application order");
-
-                    //deactive shopping cart
-                    await _shoppingCartService.DeactiveShoppingCartAsync(shoppingCartId);
+                    await _HandelPaymentSuccessAsync(shoppingCartId, payment, paymentIntentId);
 
                 }
 
                 await _unitOfWork.CommitTransactionAsync();
+
                 return true;
             }
             catch (Exception ex)
@@ -412,6 +433,24 @@ namespace BusinessLayer.Servicese
 
             var paymentDto = _genericMapper.MapSingle<Payment, PaymentDto>(payment);
             return paymentDto;
+
+        }
+
+        public async Task<bool> UpdateRefundStatusAsync(long paymentId, EnRefundStatus enRefundStatus)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(paymentId, 1, nameof(paymentId));
+            
+            var payment = await _unitOfWork.paymentRepository.GetByIdAsNoTrackingAsync(paymentId);
+            if(payment == null) throw new KeyNotFoundException($"Payment Not Found with id {paymentId}");
+
+            if(payment.RefundStatusId == null) throw new InvalidOperationException("Refund status is null cannot update");
+
+            //update refund status
+            payment.RefundStatusId = (int)enRefundStatus;
+            _unitOfWork.paymentRepository.Update(payment);
+
+            var IsRefundStatusUpdated = await _CompleteAsync();
+            return IsRefundStatusUpdated;
 
         }
     }

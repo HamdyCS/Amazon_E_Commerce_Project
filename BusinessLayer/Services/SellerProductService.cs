@@ -309,7 +309,7 @@ namespace BusinessLayer.Servicese
                 //images
                 var imageDtos = _genericMapper.MapCollection<ProductImage, ImageDto>(s.Product.ProductImages);
 
-                if (sellerProductDtos.ElementAt(i)?.Product!= null)
+                if (sellerProductDtos.ElementAt(i)?.Product != null)
                     sellerProductDtos.ElementAt(i).Product.Images = imageDtos.ToList();
 
             }
@@ -422,13 +422,17 @@ namespace BusinessLayer.Servicese
 
         public async Task<bool> UpdateSellerProductsStockAsync(Dictionary<long, int> sellerProductsIdAndQuantities, EnOperation operation)
         {
-            if(sellerProductsIdAndQuantities == null || !sellerProductsIdAndQuantities.Any())
+            if (sellerProductsIdAndQuantities == null || !sellerProductsIdAndQuantities.Any())
                 throw new ArgumentNullException("sellerProductsIdAndQuantities cannot be null or empty", nameof(sellerProductsIdAndQuantities));
-
-            await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities, operation);
-            
-
-            return true;
+            try
+            {
+                await _unitOfWork.sellerProductRepository.UpdateStocksAsync(sellerProductsIdAndQuantities, operation);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

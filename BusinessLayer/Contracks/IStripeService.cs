@@ -7,6 +7,7 @@ namespace BusinessLayer.Contracks
     {
         Task<StripeDto> CreateSessionAsync(CreateSessionDto createSessionDto);
 
+        Task<Refund> CreateRefundAsync(string paymentIntentId,long paymentId ,decimal amount);
 
         /// <summary>
         /// 

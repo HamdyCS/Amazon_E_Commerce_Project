@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ApiLayer.Controllers
 {
@@ -26,118 +25,118 @@ namespace ApiLayer.Controllers
 
         [AllowAnonymous]
         [HttpPost(Name = "HandleStripeWebhook")]
-       /* public async Task<IActionResult> HandleStripeWebhook()
-        {
-            //get payload
-            string json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-            if (string.IsNullOrEmpty(json)) return BadRequest("Invalid payload");
+        /* public async Task<IActionResult> HandleStripeWebhook()
+         {
+             //get payload
+             string json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+             if (string.IsNullOrEmpty(json)) return BadRequest("Invalid payload");
 
-            try
-            {
-                var StripeEvent = _stripeService.GetStripeEvent(json, Request.Headers["Stripe-Signature"]);
-                if (StripeEvent is null) return BadRequest("Invalid event");//unauthorized
+             try
+             {
+                 var StripeEvent = _stripeService.GetStripeEvent(json, Request.Headers["Stripe-Signature"]);
+                 if (StripeEvent is null) return BadRequest("Invalid event");//unauthorized
 
-                // Handle the event
+                 // Handle the event
 
-                //payment succeeded
-                if (StripeEvent.Type == "payment_intent.succeeded")
-                {
-                    var paymentIntent = StripeEvent.Data.Object as PaymentIntent;
-                    if (paymentIntent is null) return BadRequest("Invalid paymentIntent data");
+                 //payment succeeded
+                 if (StripeEvent.Type == "payment_intent.succeeded")
+                 {
+                     var paymentIntent = StripeEvent.Data.Object as PaymentIntent;
+                     if (paymentIntent is null) return BadRequest("Invalid paymentIntent data");
 
-                    if (string.IsNullOrEmpty(paymentIntent.Id))
-                        return BadRequest("PaymentIntentId is null or empty");
+                     if (string.IsNullOrEmpty(paymentIntent.Id))
+                         return BadRequest("PaymentIntentId is null or empty");
 
-                    // get paymentId from metadata
-                    var paymentId = long.TryParse(paymentIntent.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
-                    //get shopping cart id from metadata
-                    var shoppingCartId = long.TryParse(paymentIntent.Metadata["ShoppingCartId"], out var parsedShoppingCartId) ? parsedShoppingCartId : 0;
+                     // get paymentId from metadata
+                     var paymentId = long.TryParse(paymentIntent.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
+                     //get shopping cart id from metadata
+                     var shoppingCartId = long.TryParse(paymentIntent.Metadata["ShoppingCartId"], out var parsedShoppingCartId) ? parsedShoppingCartId : 0;
 
-                    if (shoppingCartId <= 0 || paymentId <= 0)
-                        return BadRequest("Invalid shopping cart id or payment id");
+                     if (shoppingCartId <= 0 || paymentId <= 0)
+                         return BadRequest("Invalid shopping cart id or payment id");
 
-                    //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Succeeded, paymentIntent.Id, shoppingCartId);
+                     //update payment status to Succeeded
+                     var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Succeeded, paymentIntent.Id, shoppingCartId);
 
-                    if (!IsPaymentUpdated)
-                        throw new Exception("Failed to update payment.");
+                     if (!IsPaymentUpdated)
+                         throw new Exception("Failed to update payment.");
 
-                    return Ok();
+                     return Ok();
 
-                }
+                 }
 
-                //payment failed
-                if (StripeEvent.Type == "payment_intent.payment_failed")
-                {
-                    var paymentIntent = StripeEvent.Data.Object as PaymentIntent;
-                    if (paymentIntent is null) return BadRequest("Invalid paymentIntent data");
+                 //payment failed
+                 if (StripeEvent.Type == "payment_intent.payment_failed")
+                 {
+                     var paymentIntent = StripeEvent.Data.Object as PaymentIntent;
+                     if (paymentIntent is null) return BadRequest("Invalid paymentIntent data");
 
-                    if (string.IsNullOrEmpty(paymentIntent.Id))
-                        return BadRequest("PaymentIntentId is null or empty");
+                     if (string.IsNullOrEmpty(paymentIntent.Id))
+                         return BadRequest("PaymentIntentId is null or empty");
 
-                    // get paymentId from metadata
-                    var paymentId = long.TryParse(paymentIntent.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
+                     // get paymentId from metadata
+                     var paymentId = long.TryParse(paymentIntent.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
 
-                    if (paymentId <= 0)
-                        return BadRequest("Invalid payment id");
+                     if (paymentId <= 0)
+                         return BadRequest("Invalid payment id");
 
-                    //get shopping cart id from metadata
-                    var shoppingCartId = long.TryParse(paymentIntent.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
-                        ? parsedShoppingCartId : 0;
-
-
-                    //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, paymentIntent.Id, shoppingCartId);
-                    if (!IsPaymentUpdated)
-                        throw new Exception("Failed to update payment.");
-
-                    return Ok();
-
-                }
-
-                //session expired
-                if (StripeEvent.Type == "checkout.session.expired")
-                {
-                    var session = StripeEvent.Data.Object as Session;
-                    if (session is null) return BadRequest("Invalid session data");
-
-                    if (string.IsNullOrEmpty(session.PaymentIntentId))
-                        return BadRequest("PaymentIntentId is null or empty");
-
-                    // get paymentId from metadata
-                    var paymentId = long.TryParse(session.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
-
-                    if (paymentId <= 0)
-                        return BadRequest("Invalid payment id");
-
-                    //get shopping cart id from metadata
-                    var shoppingCartId = long.TryParse(session.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
-                        ? parsedShoppingCartId : 0;
+                     //get shopping cart id from metadata
+                     var shoppingCartId = long.TryParse(paymentIntent.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
+                         ? parsedShoppingCartId : 0;
 
 
-                    //update payment status to Succeeded
-                    var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, session.PaymentIntentId, shoppingCartId);
+                     //update payment status to Succeeded
+                     var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, paymentIntent.Id, shoppingCartId);
+                     if (!IsPaymentUpdated)
+                         throw new Exception("Failed to update payment.");
 
-                    if (!IsPaymentUpdated)
-                        throw new Exception("Failed to update payment.");
+                     return Ok();
 
-                    return Ok();
+                 }
 
-                }
+                 //session expired
+                 if (StripeEvent.Type == "checkout.session.expired")
+                 {
+                     var session = StripeEvent.Data.Object as Session;
+                     if (session is null) return BadRequest("Invalid session data");
+
+                     if (string.IsNullOrEmpty(session.PaymentIntentId))
+                         return BadRequest("PaymentIntentId is null or empty");
+
+                     // get paymentId from metadata
+                     var paymentId = long.TryParse(session.Metadata["PaymentId"], out var parsedPaymentId) ? parsedPaymentId : 0;
+
+                     if (paymentId <= 0)
+                         return BadRequest("Invalid payment id");
+
+                     //get shopping cart id from metadata
+                     var shoppingCartId = long.TryParse(session.Metadata["ShoppingCartId"], out var parsedShoppingCartId)
+                         ? parsedShoppingCartId : 0;
+
+
+                     //update payment status to Succeeded
+                     var IsPaymentUpdated = await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(paymentId, EnPaymentStatus.Failed, session.PaymentIntentId, shoppingCartId);
+
+                     if (!IsPaymentUpdated)
+                         throw new Exception("Failed to update payment.");
+
+                     return Ok();
+
+                 }
 
 
 
-                return BadRequest("Unhandled event type");
-            }
-            catch (StripeException stripeEx)
-            {
-                return BadRequest($"Stripe error: {stripeEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error processing webhook: {ex.Message}");
-            }
-        }*/
+                 return BadRequest("Unhandled event type");
+             }
+             catch (StripeException stripeEx)
+             {
+                 return BadRequest($"Stripe error: {stripeEx.Message}");
+             }
+             catch (Exception ex)
+             {
+                 return StatusCode(500, $"Error processing webhook: {ex.Message}");
+             }
+         }*/
         public async Task<IActionResult> HandleStripeWebhook()
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
@@ -182,6 +181,13 @@ namespace ApiLayer.Controllers
                         await HandleSessionExpired(stripeEvent);
                         break;
 
+                    // =========================
+                    // Refund Updated
+                    // =========================
+                    case "refund.updated":
+                        await HandelRefundUpdated(stripeEvent);
+                        break;
+
                     default:
                         return Ok(); // ignore unhandled events
                 }
@@ -213,7 +219,7 @@ namespace ApiLayer.Controllers
             if (paymentId <= 0 || cartId <= 0)
                 throw new Exception("Invalid metadata");
 
-            await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(
+            await _paymentService.UpdatePaymentStatusAndPaymentIntentIdByIdAsync(
                 paymentId,
                 EnPaymentStatus.Succeeded,
                 paymentIntent.Id,
@@ -234,7 +240,7 @@ namespace ApiLayer.Controllers
             if (paymentId <= 0)
                 throw new Exception("Invalid PaymentId");
 
-            await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(
+            await _paymentService.UpdatePaymentStatusAndPaymentIntentIdByIdAsync(
                 paymentId,
                 EnPaymentStatus.Failed,
                 paymentIntent.Id,
@@ -271,7 +277,7 @@ namespace ApiLayer.Controllers
             if (paymentId <= 0)
                 return;
 
-            await _paymentService.UpdatePaymentStatusAndInvoiceIdByIdAsync(
+            await _paymentService.UpdatePaymentStatusAndPaymentIntentIdByIdAsync(
                 paymentId,
                 EnPaymentStatus.Failed,
                 session.PaymentIntentId,
@@ -279,6 +285,24 @@ namespace ApiLayer.Controllers
             );
         }
 
-        
+        private async Task HandelRefundUpdated(Event stripeEvent)
+        {
+            var refund = stripeEvent.Data.Object as Refund;
+            if (refund == null) return;
+
+
+            var paymentId = Helper.GetMetadataLong(refund.Metadata, "PaymentId");
+            if (paymentId <= 0) return;
+
+            if (refund.Status == "succeeded")
+            {
+                await _paymentService.UpdateRefundStatusAsync(paymentId, EnRefundStatus.Succeeded);
+            }
+
+            if (refund.Status == "failed")
+            {
+                await _paymentService.UpdateRefundStatusAsync(paymentId, EnRefundStatus.Failed);
+            }
+        }
     }
 }

@@ -76,6 +76,8 @@ namespace BusinessLayer.Extensions
 
             services.AddScoped<IApplicationOrderService, ApplicationOrderService>();
 
+            services.AddScoped<Stripe.RefundService>();
+
             services.AddScoped<IStripeService, StripeService>();
 
             services.AddScoped<IPaymentService, PaymentService>();

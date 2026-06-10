@@ -18,11 +18,15 @@ public partial class Payment
 
     public int? PaymentStatusId { get; set; }
 
+    public int? RefundStatusId { get; set; }
+
     public string? SessionId { get; set; }
 
     public string? InvoiceId { get; set; }
 
     public virtual PaymentStatus paymentStatus { get; set; }
+
+    public virtual RefundStatus? RefundStatus { get; set; }
 
     public virtual UserAddress? UserAddress { get; set; }
 

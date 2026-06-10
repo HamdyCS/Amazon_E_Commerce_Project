@@ -15,12 +15,39 @@ namespace BusinessLayer.Servicese
         private readonly ILogger<StripeService> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly StripeOptions _stripeOptions;
-
-        public StripeService(ILogger<StripeService> logger, IUnitOfWork unitOfWork, StripeOptions stripeOptions)
+        private readonly RefundService _refundService;
+        public StripeService(ILogger<StripeService> logger, IUnitOfWork unitOfWork, StripeOptions stripeOptions,RefundService refundService
+            )
         {
             this._logger = logger;
             _unitOfWork = unitOfWork;
             _stripeOptions = stripeOptions;
+            _refundService = refundService;
+        }
+
+        public async  Task<Refund> CreateRefundAsync(string paymentIntentId, long paymentId, decimal amount)
+        {
+            try
+            {
+                var options = new RefundCreateOptions
+                {
+                    PaymentIntent = paymentIntentId,
+                    Amount = (long)(amount * 100), // Convert to cents
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "PaymentId", paymentId.ToString() }
+                    }
+                };
+
+                var refund = await _refundService.CreateAsync(options);
+                return refund;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating refund for PaymentIntentId: {paymentIntentId}, PaymentId: {paymentId}, Amount: {amount}");
+                throw new StripeException("An error occurred while creating the refund. Please try again later.", ex);
+            }
+
         }
 
         public async Task<StripeDto> CreateSessionAsync(CreateSessionDto createSessionDto)
