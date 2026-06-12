@@ -21,13 +21,18 @@ namespace BusinessLayer.Servicese
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<OtpService> _logger;
         private readonly IGenericMapper _genericMapper;
+        private readonly IMailService _mailService;
+        private readonly IEmailQueue _emailQueue;
 
-        public OtpService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<OtpService> logger, IGenericMapper genericMapper)
+        public OtpService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<OtpService> logger,
+            IGenericMapper genericMapper, IMailService mailService, IEmailQueue emailQueue)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _genericMapper = genericMapper;
+            _mailService = mailService;
+            _emailQueue = emailQueue;
         }
 
         private async Task<bool> _CompleteAsync()
@@ -46,34 +51,41 @@ namespace BusinessLayer.Servicese
 
         public async Task<OtpDto> AddNewOtpAsync(OtpDto otpDto)
         {
-            ParamaterException.CheckIfObjectIfNotNull(otpDto,nameof(otpDto));
+            ParamaterException.CheckIfObjectIfNotNull(otpDto, nameof(otpDto));
 
-            try
+
+            Otp otp = new Otp
             {
-                Otp otp = new Otp
-                {
-                    Email =  otpDto.Email,
-                    CreatedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Otp:LifeTimeMin"])),
-                    Code = otpDto.Otp,
-                    IsUsed = false,
+                Email = otpDto.Email,
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Otp:LifeTimeMin"])),
+                Code = otpDto.Otp,
+                IsUsed = false,
 
-                };
+            };
 
-                
-                await _unitOfWork.otpRepository.AddAsync(otp);
-                var IsAdded = await _CompleteAsync();
+            //deactive all old opts with email
+            await _unitOfWork.otpRepository.DeactiveAllEmailOtpsAsync(otpDto.
+                  Email);
 
-                if (!IsAdded) return null;
+            //add otp
+            await _unitOfWork.otpRepository.AddAsync(otp);
+            var IsAdded = await _CompleteAsync();
 
-                var NewOtpDto = _genericMapper.MapSingle<Otp,OtpDto>(otp);
+            if (!IsAdded) throw new InvalidOperationException("Failed To Add Otp to Database.");
 
-                return NewOtpDto;
-            }
-            catch (Exception ex)
+            //save otp in background service queue
+            var emailQueueDto = new EmailQueueDto
             {
-                throw;
-            }
+                Email = otpDto.Email,
+                OTP = otpDto.Otp
+            };
+            await _emailQueue.EnQueueAsync(emailQueueDto);
+
+
+            var NewOtpDto = _genericMapper.MapSingle<Otp, OtpDto>(otp);
+            return NewOtpDto;
+
         }
 
         public async Task<bool> CheckIsOtpValidAsync(OtpDto otpDto)
@@ -82,7 +94,7 @@ namespace BusinessLayer.Servicese
 
             try
             {
-                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email,otpDto.Otp);
+                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Otp);
 
                 if (otp is null) return false;
 
@@ -95,49 +107,36 @@ namespace BusinessLayer.Servicese
             }
         }
 
-        
         public async Task<OtpDto> GetByIdAsync(long id)
         {
-           ParamaterException.CheckIfLongIsBiggerThanZero(id,nameof(id));
+            ParamaterException.CheckIfLongIsBiggerThanZero(id, nameof(id));
 
-            try
-            {
-                var otp = await _unitOfWork.otpRepository.GetByIdAsTrackingAsync(id);
 
-                if (otp is null) return null;
+            var otp = await _unitOfWork.otpRepository.GetByIdAsNoTrackingAsync(id);
 
-                var otpDto = _genericMapper.MapSingle<Otp,OtpDto>(otp);
-                return otpDto;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            if (otp is null) throw new KeyNotFoundException($"Otp not found.Id = ${id}");
+
+            var otpDto = _genericMapper.MapSingle<Otp, OtpDto>(otp);
+            return otpDto;
+
         }
 
         public async Task<bool> MakeOtpUsedAsync(OtpDto otpDto)
         {
             ParamaterException.CheckIfObjectIfNotNull(otpDto, nameof(otpDto));
 
-            try
-            {
-                var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Otp);
 
-                if (otp is null) return false;
+            var otp = await _unitOfWork.otpRepository.GetTheLastByEmailAndCodeAsync(otpDto.Email, otpDto.Otp);
+            if (otp is null) return false;
+            otp.IsUsed = true;
 
-                otp.IsUsed = true;
+            _unitOfWork.otpRepository.Update(otp);
 
-                var IsUpdated = await _CompleteAsync();
+            var IsUpdated = await _CompleteAsync();
+            return IsUpdated;
 
-                return IsUpdated;
 
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
         }
 
-      
     }
 }

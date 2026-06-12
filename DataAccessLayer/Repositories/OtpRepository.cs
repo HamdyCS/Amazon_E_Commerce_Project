@@ -23,7 +23,7 @@ namespace DataAccessLayer.Repositories
             _logger = logger;
         }
 
-       
+
 
         public async Task<bool> CheckIsOtpActiveByEmailAndCodeAsync(string Email, string Code)
         {
@@ -32,7 +32,7 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var otp = await _context.Otps.Where(x=>x.Email==Email).OrderBy(x=>x.CreatedAt).LastOrDefaultAsync(o => o.Code == Code && o.IsActive);
+                var otp = await _context.Otps.Where(x => x.Email == Email).OrderBy(x => x.CreatedAt).LastOrDefaultAsync(o => o.Code == Code && o.IsActive);
                 return otp != null;
             }
             catch (Exception ex)
@@ -49,8 +49,26 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var otp = await _context.Otps.Where(x => x.Email == Email).OrderBy(x => x.CreatedAt).LastOrDefaultAsync( o=> o.Code == Code && o.IsUsed);
+                var otp = await _context.Otps.Where(x => x.Email == Email).OrderBy(x => x.CreatedAt).LastOrDefaultAsync(o => o.Code == Code && o.IsUsed);
                 return otp != null;
+            }
+            catch (Exception ex)
+            {
+                throw HandleDatabaseException(ex);
+            }
+        }
+
+        public async Task<bool> DeactiveAllEmailOtpsAsync(string Email)
+        {
+            try
+            {
+                var rowsEffetced = await _context.Otps.Where(otp => otp.Email == Email && !otp.IsUsed)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(
+                            otp => otp.IsUsed, false
+                            ));
+
+                return rowsEffetced > 0;
             }
             catch (Exception ex)
             {
@@ -65,10 +83,12 @@ namespace DataAccessLayer.Repositories
 
             try
             {
-                var otp = await _context.Otps.Where(x => x.Email == Email).OrderBy(x => x.CreatedAt).LastOrDefaultAsync(o => o.Code == Code);
+                var otp = await
+                    _context.Otps.AsNoTracking().Where(x => x.Email == Email).OrderBy(x => x.CreatedAt).
+                    LastOrDefaultAsync(o => o.Code == Code);
                 return otp;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw HandleDatabaseException(ex);
             }

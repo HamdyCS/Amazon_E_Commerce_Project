@@ -15,5 +15,7 @@ namespace DataAccessLayer.Contracks
 
 
         Task<Otp> GetTheLastByEmailAndCodeAsync(string Email, string Code);
+
+        Task<bool> DeactiveAllEmailOtpsAsync(string Email);
     }
 }

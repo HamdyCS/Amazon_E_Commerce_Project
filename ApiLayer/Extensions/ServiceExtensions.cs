@@ -18,6 +18,11 @@ namespace BusinessLayer.Extensions
 {
     public static class ServiceExtensions
     {
+        public static IServiceCollection AddBackgroundQueues(this IServiceCollection services)
+        {
+             services.AddSingleton<IEmailQueue, EmailQueue>();
+            return services;
+        }
         public static IServiceCollection AddCustomServiceseFromBusinessLayer(this IServiceCollection services)
         {
             services.AddScoped<IGenericMapper, GenericMapper>();

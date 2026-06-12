@@ -38,12 +38,10 @@ namespace BusinessLayer.Servicese
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "OtpEmailTemplate.html");
                 string htmlTemplate = await File.ReadAllTextAsync(filePath);
 
-                htmlTemplate = htmlTemplate.Replace("{{OTP_1}}", Otp[0].ToString())
-                               .Replace("{{OTP_2}}", Otp[1].ToString())
-                               .Replace("{{OTP_3}}", Otp[2].ToString())
-                               .Replace("{{OTP_4}}", Otp[3].ToString())
-                               .Replace("{{OTP_5}}", Otp[4].ToString())
-                               .Replace("{{OTP_6}}", Otp[5].ToString());
+                for (int i = 0; i < Otp.Length; i++)
+                {
+                    htmlTemplate = htmlTemplate.Replace($"{{{{OTP_{i + 1}}}}}", Otp[i].ToString());
+                }
 
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress("Amazon E-Commerce", _mailOptions.Email));

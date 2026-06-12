@@ -107,7 +107,6 @@ namespace ApiLayer.Controllers
                 var NewOptDto = await _otpService.AddNewOtpAsync(otpDto);
                 if (NewOptDto is null) return BadRequest("Cannot add new opt");
 
-                await _mailService.SendOtpEmailAsync(otpDto.Email,otpDto.Otp);
 
                 return Ok("Send otp to email successfuly");
 

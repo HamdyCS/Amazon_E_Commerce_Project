@@ -114,8 +114,10 @@ builder.Services.AddStackExchangeRedisCache(opt =>
     opt.InstanceName = builder.Configuration["Redis:InstanceName"];
 });
 
+//custom queues
+builder.Services.AddBackgroundQueues();
 
-//custom services and repositories
+//custom services and repositories 
 builder.Services.AddCustomRepositoriesFromDataAccessLayer().AddCustomServiceseFromBusinessLayer();
 builder.Services.AddCustomJwtBearer(jwtOptions);
 
@@ -155,6 +157,7 @@ builder.Services.AddControllers(opt =>
 
 //add background services
 builder.Services.AddHostedService<ProductsCacheUpdateBackgroundService>();
+builder.Services.AddHostedService<EmailOtpBackgroundService>();
 
 //add global exception handler 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
