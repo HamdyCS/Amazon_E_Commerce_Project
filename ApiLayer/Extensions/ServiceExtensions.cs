@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Contracks;
+﻿using BusinessLayer.BackgroundServices;
+using BusinessLayer.Contracks;
 using BusinessLayer.Mapper;
 using BusinessLayer.Mapper.Contracks;
 using BusinessLayer.Options;
@@ -20,9 +21,21 @@ namespace BusinessLayer.Extensions
     {
         public static IServiceCollection AddBackgroundQueues(this IServiceCollection services)
         {
-             services.AddSingleton<IEmailQueue, EmailQueue>();
+            services.AddSingleton<IOtpEmailQueue, EmailOtpQueue>();
+            services.AddSingleton<IUpdateOrderEmailQueue, UpdateOrderEmailQueue>();
+
             return services;
         }
+
+        public static IServiceCollection AddBackgroundService(this IServiceCollection services)
+        {
+            services.AddHostedService<ProductsCacheUpdateBackgroundService>();
+            services.AddHostedService<EmailOtpBackgroundService>();
+            services.AddHostedService<UpdateOrderEmailBackgroundService>();
+
+            return services;
+        }
+
         public static IServiceCollection AddCustomServiceseFromBusinessLayer(this IServiceCollection services)
         {
             services.AddScoped<IGenericMapper, GenericMapper>();
@@ -204,7 +217,6 @@ namespace BusinessLayer.Extensions
 
             return services;
         }
-
 
         public static IServiceCollection AddCustomRateLimiting(this IServiceCollection serviceCollection, RateLimitOptions rateLimitOptions)
         {

@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Update</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9">
+    <table border="0"
+           cellpadding="0"
+           cellspacing="0"
+           width="100%"
+           style="border-collapse: collapse; background-color: #f4f6f9">
+        <tr>
+            <td align="center" style="padding: 40px 10px">
+                <table border="0"
+                       cellpadding="0"
+                       cellspacing="0"
+                       width="450"
+                       style="
+              border-collapse: collapse;
+              background-color: #ffffff;
+              border-radius: 16px;
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+              text-align: center;
+              overflow: hidden;
+            ">
+                    <!-- قسم الصورة العلوية -->
+                    <tr>
+                        <td align="center"
+                            style="padding: 40px 30px 10px 30px; background-color: #ffffff">
+                            <img src="{{Image}}"
+                                 alt="Order Image"
+                                 width="220"
+                                 style="
+                    display: block;
+                    border: 0;
+                    max-width: 100%;
+                    height: auto;
+                    margin: 0 auto;
+                  " />
+                        </td>
+                    </tr>
+
+                    <!-- قسم محتوى الرسالة -->
+                    <tr>
+                        <td style="padding: 10px 40px 30px 40px">
+                            <h2 style="
+                    font-family: Arial, sans-serif;
+                    font-size: 22px;
+                    color: #1a1a1a;
+                    margin: 0 0 15px 0;
+                    font-weight: bold;
+                  ">
+                                Order Update!
+                            </h2>
+
+                            <!-- رسالة الـ .NET الديناميكية -->
+                            <p style="
+                    font-family: Arial, sans-serif;
+                    font-size: 15px;
+                    color: #555555;
+                    line-height: 1.6;
+                    margin: 0 0 25px 0;
+                    text-align: center;
+                  ">
+                                {{message}}
+                            </p>
+
+                            <!-- زر متابعة الطلب الديناميكي -->
+                            <table border="0"
+                                   cellpadding="0"
+                                   cellspacing="0"
+                                   align="center"
+                                   style="margin: 20px auto">
+                                <tr>
+                                    <td align="center"
+                                        style="border-radius: 8px; background-color: #2563eb">
+                                        <a href="{{TrackOrderUrl}}"
+                                           target="_blank"
+                                           style="
+                          font-family: Arial, sans-serif;
+                          font-size: 16px;
+                          color: #ffffff;
+                          text-decoration: none;
+                          padding: 12px 35px;
+                          display: inline-block;
+                          font-weight: bold;
+                          border-radius: 8px;
+                        ">
+                                            Track Order
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- تذييل الصفحة (Footer) -->
+                    <tr>
+                        <td style="
+                  padding: 20px 40px;
+                  background-color: #fafafa;
+                  border-top: 1px solid #eeeeee;
+                ">
+                            <p style="
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    color: #999999;
+                    margin: 0;
+                  ">
+                                If you have any questions, feel free to contact our support
+                                team.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

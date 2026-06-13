@@ -107,7 +107,7 @@ namespace BusinessLayer.Servicese
 
 
             var ActiveShoppingCartDto = await _shoppingCartService.FindActiveShoppingCartByUserIdAsync(UserId);
-            if (ActiveShoppingCartDto is null || ActiveShoppingCartDto.Id != addProductInShoppingCartDto.ShoppingCartId)
+            if (ActiveShoppingCartDto is null)
                 throw new KeyNotFoundException($"Not found cart or ActiveShoppingCart not equal shopping cart. Id: {addProductInShoppingCartDto.ShoppingCartId}");
 
 

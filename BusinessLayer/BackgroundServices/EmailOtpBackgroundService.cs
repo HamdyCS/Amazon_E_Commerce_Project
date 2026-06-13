@@ -10,13 +10,13 @@ namespace BusinessLayer.BackgroundServices
 {
     public class EmailOtpBackgroundService : BackgroundService
     {
-        private readonly IEmailQueue _emailQueue;
+        private readonly IOtpEmailQueue _emailOtpQueue;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<EmailOtpBackgroundService> _logger;
 
-        public EmailOtpBackgroundService(IEmailQueue emailQueue,IServiceProvider serviceProvider,ILogger<EmailOtpBackgroundService> logger)
+        public EmailOtpBackgroundService(IOtpEmailQueue emailQueue, IServiceProvider serviceProvider, ILogger<EmailOtpBackgroundService> logger)
         {
-            _emailQueue = emailQueue;
+            _emailOtpQueue = emailQueue;
             _serviceProvider = serviceProvider;
             _logger = logger;
         }
@@ -24,14 +24,22 @@ namespace BusinessLayer.BackgroundServices
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                //waiting for new email
-                var emailDto = await _emailQueue.DeQueueAsync(stoppingToken);
+                try
+                {
 
-                //create scope to get mailSerivce
-                using var scope = _serviceProvider.CreateScope();
-                var mailSerivce = scope.ServiceProvider.GetRequiredService<IMailService>();
+                    //waiting for new email
+                    var emailDto = await _emailOtpQueue.DeQueueAsync(stoppingToken);
 
-                await mailSerivce.SendOtpEmailAsync(emailDto.Email, emailDto.OTP);
+                    //create scope to get mailSerivce
+                    using var scope = _serviceProvider.CreateScope();
+                    var mailSerivce = scope.ServiceProvider.GetRequiredService<IMailService>();
+
+                    await mailSerivce.SendOtpEmailAsync(emailDto.Email, emailDto.OTP);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error on sending email. Message: {ex.Message}");
+                }
 
             }
         }

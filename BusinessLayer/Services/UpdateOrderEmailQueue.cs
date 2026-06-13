@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BusinessLayer.Services
 {
-    public class EmailQueue : BackgroundQueue<EmailQueueDto>,IEmailQueue
+    public class UpdateOrderEmailQueue : BackgroundQueue<UpdateOrderEmailQueueDto>,IUpdateOrderEmailQueue
     {
     }
 }

@@ -53,6 +53,18 @@ builder.Services.AddCors(options =>
     });
 });
 
+//app settings
+var applicationOptions = builder.Configuration.GetSection("ApplicationSettings").Get<ApplicationOptions>();
+ 
+if(applicationOptions != null)
+{
+    builder.Services.AddSingleton(applicationOptions);
+}
+else
+{
+    Environment.Exit(0);
+}
+
 //jwt options
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
 
@@ -156,8 +168,7 @@ builder.Services.AddControllers(opt =>
 });
 
 //add background services
-builder.Services.AddHostedService<ProductsCacheUpdateBackgroundService>();
-builder.Services.AddHostedService<EmailOtpBackgroundService>();
+builder.Services.AddBackgroundService();
 
 //add global exception handler 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -181,6 +192,7 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowWebsite"); // استخدام سياسة CORS
 app.UseAuthentication(); // إضافة المصادقة أولاً
 app.UseAuthorization();  // ثم التفويض
@@ -192,7 +204,6 @@ app.MapControllers();
 
 //global error handling middleware
 app.UseExceptionHandler();
-
 
 app.Run();
 

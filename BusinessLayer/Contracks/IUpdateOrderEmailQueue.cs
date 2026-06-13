@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BusinessLayer.Contracks
 {
-    public interface IEmailQueue : IBackgroundQueue<EmailQueueDto>
+    public interface IUpdateOrderEmailQueue : IBackgroundQueue<UpdateOrderEmailQueueDto>
     {
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BusinessLayer.Dtos
 {
-    public class EmailQueueDto
+    public class OtpEmailQueueDto
     {
         public string Email { get; set; }
 

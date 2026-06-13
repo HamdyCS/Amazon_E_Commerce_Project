@@ -1,6 +1,8 @@
 ﻿using BusinessLayer.Contracks;
+using BusinessLayer.Dtos;
 using BusinessLayer.Options;
 using CloudinaryDotNet;
+using DataAccessLayer.Entities;
 using DataAccessLayer.Exceptions;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
@@ -46,7 +48,7 @@ namespace BusinessLayer.Servicese
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress("Amazon E-Commerce", _mailOptions.Email));
                 message.To.Add(new MailboxAddress("", email));
-                message.Subject = Otp;
+                message.Subject = $"Otp is: {Otp}";
 
                 var bodyBuilder = new BodyBuilder
                 {
@@ -115,7 +117,53 @@ namespace BusinessLayer.Servicese
             }
 
         }
-       
 
+        public async Task SendUpdateOrderEmailAsync(UpdateOrderEmailQueueDto updateOrderEmailQueueDto)
+        {
+
+
+            try
+            {
+                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "OrderUpdateEmailTemplate.html");
+                string htmlTemplate = await File.ReadAllTextAsync(filePath);
+
+
+
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress("Amazon E-Commerce", _mailOptions.Email));
+                message.To.Add(new MailboxAddress("", updateOrderEmailQueueDto.Email));
+                message.Subject = updateOrderEmailQueueDto.Subject;
+
+                htmlTemplate = htmlTemplate.Replace("{{Image}}", updateOrderEmailQueueDto.ImageUrl);
+                htmlTemplate = htmlTemplate.Replace("{{message}}", updateOrderEmailQueueDto.Messsage); 
+                htmlTemplate = htmlTemplate.Replace("{{TrackOrderUrl}}", updateOrderEmailQueueDto.TrackOrderUrl);
+
+                var bodyBuilder = new BodyBuilder
+                {
+                    HtmlBody = htmlTemplate,
+                    TextBody = updateOrderEmailQueueDto.TextBody
+                };
+
+                message.Body = bodyBuilder.ToMessageBody();
+
+                using (var client = new SmtpClient())
+                {
+                    await client.ConnectAsync(_mailOptions.Host, _mailOptions.Port, MailKit.Security.SecureSocketOptions.StartTls);
+
+                    await client.AuthenticateAsync(_mailOptions.Email, _mailOptions.AppPassword);
+
+                    await client.SendAsync(message);
+
+                    await client.DisconnectAsync(true);
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on Send email, Error {error}", ex.Message);
+                throw new Exception($"Error on Send email, Error: {ex.Message}");
+            }
+        }
     }
 }

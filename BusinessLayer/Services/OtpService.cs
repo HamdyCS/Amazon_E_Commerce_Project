@@ -22,10 +22,10 @@ namespace BusinessLayer.Servicese
         private readonly ILogger<OtpService> _logger;
         private readonly IGenericMapper _genericMapper;
         private readonly IMailService _mailService;
-        private readonly IEmailQueue _emailQueue;
+        private readonly IOtpEmailQueue _emailQueue;
 
         public OtpService(IConfiguration configuration, IUnitOfWork unitOfWork, ILogger<OtpService> logger,
-            IGenericMapper genericMapper, IMailService mailService, IEmailQueue emailQueue)
+            IGenericMapper genericMapper, IMailService mailService, IOtpEmailQueue emailQueue)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
@@ -75,7 +75,7 @@ namespace BusinessLayer.Servicese
             if (!IsAdded) throw new InvalidOperationException("Failed To Add Otp to Database.");
 
             //save otp in background service queue
-            var emailQueueDto = new EmailQueueDto
+            var emailQueueDto = new OtpEmailQueueDto
             {
                 Email = otpDto.Email,
                 OTP = otpDto.Otp
