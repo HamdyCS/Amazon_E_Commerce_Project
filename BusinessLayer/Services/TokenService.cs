@@ -172,7 +172,7 @@ namespace BusinessLayer.Servicese
             return TokenString;
         }
 
-        public async Task<bool> RemoveAllUserRefrechTokensByUserIdAsync(string userId)
+        public async Task<bool> RemoveAllUserRefreshTokensByUserIdAsync(string userId)
         {
             ParamaterException.CheckIfStringIsNotNullOrEmpty(userId, nameof(userId));
 
@@ -189,6 +189,7 @@ namespace BusinessLayer.Servicese
             ParamaterException.CheckIfStringIsNotNullOrEmpty(refreshToken, nameof(refreshToken));
 
             var RefreshToken = await _unitOfWork.refreshTokenRepository.GetRefreshTokenByTokenAsync(refreshToken);
+            if(RefreshToken is null) return false;
 
             //check if the refresh token exists and is active
             if (refreshToken != null && RefreshToken.IsActive)

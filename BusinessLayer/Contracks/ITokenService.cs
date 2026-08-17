@@ -16,7 +16,7 @@ namespace BusinessLayer.Contracks
         public Task<string> AddNewRefreshTokenByUserIdAsync(string UserId);
 
         public Task<bool> CheckIfRefreshTokenIsActiveByUserIdAsync(string UserId,string RefreshTokenString);
-        Task<bool> RemoveAllUserRefrechTokensByUserIdAsync(string userId);
+        Task<bool> RemoveAllUserRefreshTokensByUserIdAsync(string userId);
         Task<bool> CheckIfRefreshTokenIsValidAsync(string refreshToken);
 
         public void AddAuthInfoToCookie(HttpResponse httpResponse, string token, string? refreshToken = null);

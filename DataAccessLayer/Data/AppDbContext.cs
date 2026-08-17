@@ -72,14 +72,6 @@ public class AppDbContext : IdentityDbContext<User>
 
     public virtual DbSet<Banner> Banners { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        base.OnConfiguring(optionsBuilder);
-
-        optionsBuilder.UseSqlServer("Server=.;Database=Amazon_E_Commerce_DB;Integrated Security=True;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;");
-
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

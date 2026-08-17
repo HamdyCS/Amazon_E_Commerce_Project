@@ -681,7 +681,7 @@ namespace ApiLayer.Controllers
                 var userId = Helper.GetIdFromClaimsPrincipal(User);
                 if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-                var IsLogout = await _tokenService.RemoveAllUserRefrechTokensByUserIdAsync(userId);
+                var IsLogout = await _tokenService.RemoveAllUserRefreshTokensByUserIdAsync(userId);
 
                 if (!IsLogout)
                     return NotFound("User is not logged in.");
