@@ -22,17 +22,17 @@ A production-oriented e-commerce backend built with ASP.NET Core 10 — multi-ro
 
 This repository is the **backend API only** for an Amazon-style marketplace. It supports four kinds of actors and everything they need to transact:
 
-| Actor | What they do |
-| --- | --- |
-| **Customer** | Browses the catalog, maintains a shopping cart, checks out with Stripe or cash on delivery, tracks and cancels orders, saves addresses, and reviews products they have received. |
-| **Seller** | Lists sellable offers (`SellerProduct`) against catalog products, sets prices and stock, and manages their own listings. |
-| **Delivery Agent** | Registers the cities they serve and reads the parcels assigned to them (`need-to-delivery` / `deliveried`). |
-| **Admin** | Manages the catalog, brands, banners, cities, shipping costs, users, reference data, and drives the order lifecycle (ship → deliver) while assigning delivery agents. |
+| Actor              | What they do                                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Customer**       | Browses the catalog, maintains a shopping cart, checks out with Stripe or cash on delivery, tracks and cancels orders, saves addresses, and reviews products they have received. |
+| **Seller**         | Lists sellable offers (`SellerProduct`) against catalog products, sets prices and stock, and manages their own listings.                                                         |
+| **Delivery Agent** | Registers the cities they serve and reads the parcels assigned to them (`need-to-delivery` / `deliveried`).                                                                      |
+| **Admin**          | Manages the catalog, brands, banners, cities, shipping costs, users, reference data, and drives the order lifecycle (ship → deliver) while assigning delivery agents.            |
 
 The core domain vocabulary is deliberately close to the data model:
 
 - An **Application** is a customer request — either an `Order` or a `Return`.
-- An **ApplicationOrder** is a *status row* on an Application. Statuses are never mutated in place; every transition **appends a new row**, which gives you a built-in, queryable order history.
+- An **ApplicationOrder** is a _status row_ on an Application. Statuses are never mutated in place; every transition **appends a new row**, which gives you a built-in, queryable order history.
 - A **Payment** is 1:1 with a ShoppingCart and carries its type (`CashOnDelivery` / `PrePaid`), status, refund status, and the Stripe `SessionId` / `InvoiceId`.
 - A **ShoppingCart** has an `IsActive` flag; exactly one cart per customer is active, and checkout deactivates it.
 
@@ -49,7 +49,7 @@ The core domain vocabulary is deliberately close to the data model:
 - Four separate registration endpoints (`register-customer`, `register-seller`, `register-deliveryagent`, and an Admin-only `register-admin`).
 - Login via `UserManager`/`SignInManager` with ASP.NET Core Identity password hashing.
 - **JWT access token + database-backed refresh token**, both issued as `HttpOnly` cookies (`access_token`, `refresh_token`).
-- Token refresh and logout (logout revokes *all* refresh tokens for the user).
+- Token refresh and logout (logout revokes _all_ refresh tokens for the user).
 - Password reset via OTP, password change via old password, email change via OTP.
 - External login with **GitHub** and **Google** (challenge → callback → find-or-create user → cookies → redirect).
 - Self-service and admin-initiated **soft account deletion**, enforced after the fact by a global action filter.
@@ -68,7 +68,7 @@ The core domain vocabulary is deliberately close to the data model:
 - Product **search with automatic Arabic/English detection**, plus category / sub-category / brand filtered paged search over seller offers.
 - **Best-seller ranking** computed from delivered orders (raw SQL with `OFFSET/FETCH`).
 - Per-user **recent searches** stored in Redis (last 10, de-duplicated).
-- **Ratings & reviews**: one review per user per product (unique index), gated on a *delivered* purchase, with running `AvgRating` / `RatingCount` on the product.
+- **Ratings & reviews**: one review per user per product (unique index), gated on a _delivered_ purchase, with running `AvgRating` / `RatingCount` on the product.
 - Promotional **banners** with date windows, display ordering, activation flags, and bulk operations.
 
 ### Cart, Checkout & Payments
@@ -131,11 +131,11 @@ The solution is a classic **three-layer architecture** with one ASP.NET Core hos
 
 **Layer responsibilities**
 
-| Layer | Owns | Must not do |
-| --- | --- | --- |
-| `ApiLayer` | HTTP shape: routes, status codes, binding, filters, auth attributes, rate limiting, Swagger, CORS, service registration | Business rules, EF Core, SQL |
-| `BusinessLayer` | Use-case orchestration, business rules, DTO↔entity mapping, validation, transactions (via Unit of Work), email/queueing, external SDKs (Stripe, Cloudinary, MailKit) | HTTP concepts (`HttpContext`, `IActionResult`) except for the token/cookie helper |
-| `DataAccessLayer` | Entities, EF configuration, migrations, query construction, repository implementations, Identity storage | Business decisions |
+| Layer             | Owns                                                                                                                                                                 | Must not do                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `ApiLayer`        | HTTP shape: routes, status codes, binding, filters, auth attributes, rate limiting, Swagger, CORS, service registration                                              | Business rules, EF Core, SQL                                                      |
+| `BusinessLayer`   | Use-case orchestration, business rules, DTO↔entity mapping, validation, transactions (via Unit of Work), email/queueing, external SDKs (Stripe, Cloudinary, MailKit) | HTTP concepts (`HttpContext`, `IActionResult`) except for the token/cookie helper |
+| `DataAccessLayer` | Entities, EF configuration, migrations, query construction, repository implementations, Identity storage                                                             | Business decisions                                                                |
 
 **How a request flows**
 
@@ -157,21 +157,21 @@ All wiring lives in `ApiLayer/Program.cs` plus `ApiLayer/Extensions/ServiceExten
 
 ## Design Patterns & Engineering Practices
 
-| Pattern | Where it lives | Why it matters here |
-| --- | --- | --- |
-| **Layered architecture** | 3 projects with per-layer contracts | Keeps HTTP, business rules, and SQL independently testable and replaceable. |
-| **Generic repository** | `GenericRepository<T>` implements `IGenericRepository<T>`; 27 entity-specific repositories live alongside it in `DataAccessLayer/Repositories` | Centralizes CRUD, paging, counting, and the reflection-based soft-delete so every entity behaves consistently. |
-| **Unit of Work** | `DataAccessLayer/UnitOfWork/UnitOfWork.cs` exposes all repositories plus `BeginTransactionAsync` / `CommitTransactionAsync` / `RollbackTransactionAsync` / `CompleteAsync` | Gives one object for multi-aggregate transactions — checkout, webhook processing, OTP registration, return creation. |
-| **Service layer** | 35 services behind 36 interfaces in `BusinessLayer` | Each use case is a single, named method that a controller can call in one line. |
-| **DTO boundary** | 59 DTOs, 30 AutoMapper profiles | Entities never cross the API boundary; serialization, validation, and mapping stay decoupled from the schema. |
-| **Options pattern** | `JwtOptions`, `MailOptions`, `StripeOptions`, `CloudinaryOptions`, `ApplicationOptions`, `RateLimitOptions` bound at startup, with fail-fast `Environment.Exit` when a required section is missing | Configuration is validated once at boot instead of failing on the first request. |
-| **Action filter** | `CheckIfUserIsNotDeletedFilter` (global), `IdempotencyAttribute` (per-action) | Cross-cutting request concerns run before the action without polluting controllers. |
-| **Exception handler** | `GlobalExceptionHandler : IExceptionHandler` + `AddProblemDetails()` | Unhandled exceptions become structured JSON with a mapped status code instead of a stack trace. |
-| **Background queue (producer/consumer)** | `BackgroundQueue<T>` over `System.Threading.Channels`, typed as `IOtpEmailQueue` / `IUpdateOrderEmailQueue`, consumed by `BackgroundService`s | SMTP I/O never blocks a request thread; controllers enqueue and return immediately. |
-| **Cache-aside + scheduled refresh** | `RedisCashService` (`IRedisCashService`) plus `ProductsCacheUpdateBackgroundService` | Expensive read paths (name search, city lookups) hit Redis; a background loop keeps the entry warm. |
-| **Idempotency guard** | `IdempotencyAttribute` writing `idempotency:{key}` to Redis | Makes non-retryable checkout POSTs safe to retry from a flaky client. |
-| **Soft delete** | `IsDeleted` / `DateOfDeletion` + `HasQueryFilter` + reflection in `GenericRepository.DeleteAsync` | Deleted rows stay for audit/relations and disappear from every query automatically. |
-| **Fail-fast configuration** | Required `Options` sections abort startup when absent | Misconfiguration is caught at deploy time. |
+| Pattern                                  | Where it lives                                                                                                                                                                                     | Why it matters here                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Layered architecture**                 | 3 projects with per-layer contracts                                                                                                                                                                | Keeps HTTP, business rules, and SQL independently testable and replaceable.                                          |
+| **Generic repository**                   | `GenericRepository<T>` implements `IGenericRepository<T>`; 27 entity-specific repositories live alongside it in `DataAccessLayer/Repositories`                                                     | Centralizes CRUD, paging, counting, and the reflection-based soft-delete so every entity behaves consistently.       |
+| **Unit of Work**                         | `DataAccessLayer/UnitOfWork/UnitOfWork.cs` exposes all repositories plus `BeginTransactionAsync` / `CommitTransactionAsync` / `RollbackTransactionAsync` / `CompleteAsync`                         | Gives one object for multi-aggregate transactions — checkout, webhook processing, OTP registration, return creation. |
+| **Service layer**                        | 35 services behind 36 interfaces in `BusinessLayer`                                                                                                                                                | Each use case is a single, named method that a controller can call in one line.                                      |
+| **DTO boundary**                         | 59 DTOs, 30 AutoMapper profiles                                                                                                                                                                    | Entities never cross the API boundary; serialization, validation, and mapping stay decoupled from the schema.        |
+| **Options pattern**                      | `JwtOptions`, `MailOptions`, `StripeOptions`, `CloudinaryOptions`, `ApplicationOptions`, `RateLimitOptions` bound at startup, with fail-fast `Environment.Exit` when a required section is missing | Configuration is validated once at boot instead of failing on the first request.                                     |
+| **Action filter**                        | `CheckIfUserIsNotDeletedFilter` (global), `IdempotencyAttribute` (per-action)                                                                                                                      | Cross-cutting request concerns run before the action without polluting controllers.                                  |
+| **Exception handler**                    | `GlobalExceptionHandler : IExceptionHandler` + `AddProblemDetails()`                                                                                                                               | Unhandled exceptions become structured JSON with a mapped status code instead of a stack trace.                      |
+| **Background queue (producer/consumer)** | `BackgroundQueue<T>` over `System.Threading.Channels`, typed as `IOtpEmailQueue` / `IUpdateOrderEmailQueue`, consumed by `BackgroundService`s                                                      | SMTP I/O never blocks a request thread; controllers enqueue and return immediately.                                  |
+| **Cache-aside + scheduled refresh**      | `RedisCashService` (`IRedisCashService`) plus `ProductsCacheUpdateBackgroundService`                                                                                                               | Expensive read paths (name search, city lookups) hit Redis; a background loop keeps the entry warm.                  |
+| **Idempotency guard**                    | `IdempotencyAttribute` writing `idempotency:{key}` to Redis                                                                                                                                        | Makes non-retryable checkout POSTs safe to retry from a flaky client.                                                |
+| **Soft delete**                          | `IsDeleted` / `DateOfDeletion` + `HasQueryFilter` + reflection in `GenericRepository.DeleteAsync`                                                                                                  | Deleted rows stay for audit/relations and disappear from every query automatically.                                  |
+| **Fail-fast configuration**              | Required `Options` sections abort startup when absent                                                                                                                                              | Misconfiguration is caught at deploy time.                                                                           |
 
 > [!IMPORTANT]
 > This is a layered architecture, not Clean Architecture: there is no separate Domain project, no dependency-inversion interfaces for the ORM, and no CQRS/MediatR pipeline. It is documented as what it is.
@@ -211,16 +211,16 @@ Person 1──1 User (IdentityUser, table "Users")
 
 ### Key enums
 
-| Enum | Values (numeric id) | Backing table |
-| --- | --- | --- |
-| `EnApplicationType` | `Order = 1`, `Return = 2` | `ApplicationTypes` |
-| `EnApplicationOrderType` | `UnderProcessing = 1`, `Shipped = 2`, `Delivered = 3`, `Canceled = 4` | `ApplicationOrderTypes` |
-| `EnPaymentType` | `CashOnDelivery = 1`, `PrePaid = 2` | `PaymentsTypes` |
-| `EnPaymentStatus` | `Pending = 1`, `Succeeded = 2`, `Failed = 3` | `PaymentStatuses` |
-| `EnRefundStatus` | `Pending = 1`, `Succeeded = 2`, `Failed = 3` | `RefundStatuses` (seeded) |
-| `EnLang` | `English`, `Arabic` | — (search projection switch) |
-| `EnOperation` | `Add = 1`, `Subtract = 2` | — (stock adjustment) |
-| `EnProvider` | `GitHub = 1`, `Google` | — (external login) |
+| Enum                     | Values (numeric id)                                                   | Backing table                |
+| ------------------------ | --------------------------------------------------------------------- | ---------------------------- |
+| `EnApplicationType`      | `Order = 1`, `Return = 2`                                             | `ApplicationTypes`           |
+| `EnApplicationOrderType` | `UnderProcessing = 1`, `Shipped = 2`, `Delivered = 3`, `Canceled = 4` | `ApplicationOrderTypes`      |
+| `EnPaymentType`          | `CashOnDelivery = 1`, `PrePaid = 2`                                   | `PaymentsTypes`              |
+| `EnPaymentStatus`        | `Pending = 1`, `Succeeded = 2`, `Failed = 3`                          | `PaymentStatuses`            |
+| `EnRefundStatus`         | `Pending = 1`, `Succeeded = 2`, `Failed = 3`                          | `RefundStatuses` (seeded)    |
+| `EnLang`                 | `English`, `Arabic`                                                   | — (search projection switch) |
+| `EnOperation`            | `Add = 1`, `Subtract = 2`                                             | — (stock adjustment)         |
+| `EnProvider`             | `GitHub = 1`, `Google`                                                | — (external login)           |
 
 ### Business rules encoded in the schema
 
@@ -254,14 +254,14 @@ POST /logout                 → delete ALL refresh tokens for the user → dele
 
 ### JWT
 
-| Property | Value |
-| --- | --- |
-| Signing | HMAC-SHA256 with `Jwt:SigningKey` |
-| Encryption | AES-256-KW + AES-128-CBC-HMAC-SHA256 with `Jwt:EncryptionKey` (first 32 chars) |
-| Issuer / Audience / Lifetime | `Jwt:Issuar`, `Jwt:Audience`, `Jwt:LifeTimeMin` (dev: 10 min) |
-| `ClockSkew` | `TimeSpan.Zero` |
-| Claims | `ClaimTypes.NameIdentifier`, `ClaimTypes.Email`, one `ClaimTypes.Role` per role |
-| Transport | **Not** in an `Authorization` header — `OnMessageReceived` reads `Request.Cookies["access_token"]` |
+| Property                     | Value                                                                                              |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| Signing                      | HMAC-SHA256 with `Jwt:SigningKey`                                                                  |
+| Encryption                   | AES-256-KW + AES-128-CBC-HMAC-SHA256 with `Jwt:EncryptionKey` (first 32 chars)                     |
+| Issuer / Audience / Lifetime | `Jwt:Issuar`, `Jwt:Audience`, `Jwt:LifeTimeMin` (dev: 10 min)                                      |
+| `ClockSkew`                  | `TimeSpan.Zero`                                                                                    |
+| Claims                       | `ClaimTypes.NameIdentifier`, `ClaimTypes.Email`, one `ClaimTypes.Role` per role                    |
+| Transport                    | **Not** in an `Authorization` header — `OnMessageReceived` reads `Request.Cookies["access_token"]` |
 
 ### Refresh tokens
 
@@ -310,12 +310,12 @@ GET /external-login-callback?returnUrl=&remoteError=
 
 ### Global roles
 
-| Role | Granted at | Typical powers |
-| --- | --- | --- |
-| `Admin` | `register-admin` (Admin-only) | Full catalog/brand/banner/city/shipping/reference CRUD, user lookup & deletion, ship/deliver transitions, return applications, all reports/lists |
-| `Customer` | `register-customer`, external login | Cart, checkout, own orders, cancel, addresses, reviews, profile |
-| `Seller` | `register-seller` | Own `SellerProduct` listings (create/update/delete), read own listings |
-| `DeliveryAgent` | `register-deliveryagent` | Maintain served cities, read own delivery queues |
+| Role            | Granted at                          | Typical powers                                                                                                                                   |
+| --------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Admin`         | `register-admin` (Admin-only)       | Full catalog/brand/banner/city/shipping/reference CRUD, user lookup & deletion, ship/deliver transitions, return applications, all reports/lists |
+| `Customer`      | `register-customer`, external login | Cart, checkout, own orders, cancel, addresses, reviews, profile                                                                                  |
+| `Seller`        | `register-seller`                   | Own `SellerProduct` listings (create/update/delete), read own listings                                                                           |
+| `DeliveryAgent` | `register-deliveryagent`            | Maintain served cities, read own delivery queues                                                                                                 |
 
 ### How authorization is applied
 
@@ -342,7 +342,7 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 
 ```json
 {
-  "data": [ { "...": "..." } ],
+  "data": [{ "...": "..." }],
   "totalCount": 137,
   "pageNumber": 1,
   "pageSize": 10,
@@ -361,51 +361,51 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 <details>
 <summary><b>Authentication endpoints</b> — prefix <code>/api/authentication</code> (class-level <code>[Authorize]</code>)</summary>
 
-| Method | Route | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/api/authentication` | Auth | Current `UserDto` from the `NameIdentifier` claim |
-| GET | `/api/authentication/is-email-exist?email=` | Public | Email uniqueness probe |
-| POST | `/api/authentication/send-otp?email=` | Public | Generate + persist + enqueue a 6-digit OTP |
-| GET | `/api/authentication/is-otp-valid?otp=&email=` | Public | Check OTP is active and unused |
-| POST | `/api/authentication/register-customer` | Public | Register + `Customer` role + **issues cookies** |
-| POST | `/api/authentication/register-seller` | Public | Register + `Seller` role (no tokens issued) |
-| POST | `/api/authentication/register-deliveryagent` | Public | Register + `DeliveryAgent` role (no tokens issued) |
-| POST | `/api/authentication/register-admin` | Admin | Register + `Admin` role |
-| POST | `/api/authentication/login` | Public | Verify credentials → JWT + refresh cookies |
-| POST | `/api/authentication/refresh-token` | Public | New JWT from the `refresh_token` cookie |
-| POST | `/api/authentication/logout` | Auth | Revoke all refresh tokens + delete cookies |
-| PUT | `/api/authentication/reset-password` | Public | OTP + new password |
-| PUT | `/api/authentication/update-password` | Auth | Change password with old password |
-| PUT | `/api/authentication/update-email` | Auth | Change email/username after OTP validation |
-| PUT | `/api/authentication` | Auth | Update profile (name, DOB, phone) |
-| DELETE | `/api/authentication` | Auth | Soft-delete own account |
-| DELETE | `/api/authentication/{Id}` | Admin | Soft-delete any account |
-| GET | `/api/authentication/all?pageNumber=&pageSize=` | Admin | Paged users |
-| GET | `/api/authentication/count` | Admin | Total user count |
-| GET | `/api/authentication/login/customer/github?returnUrl=` | Public | 302 challenge to GitHub |
-| GET | `/api/authentication/login/customer/google?returnUrl=` | Public | 302 challenge to Google |
-| GET | `/api/authentication/external-login-callback?returnUrl=&remoteError=` | Public | Provider callback → cookies → redirect |
+| Method | Route                                                                 | Auth   | Purpose                                            |
+| ------ | --------------------------------------------------------------------- | ------ | -------------------------------------------------- |
+| GET    | `/api/authentication`                                                 | Auth   | Current `UserDto` from the `NameIdentifier` claim  |
+| GET    | `/api/authentication/is-email-exist?email=`                           | Public | Email uniqueness probe                             |
+| POST   | `/api/authentication/send-otp?email=`                                 | Public | Generate + persist + enqueue a 6-digit OTP         |
+| GET    | `/api/authentication/is-otp-valid?otp=&email=`                        | Public | Check OTP is active and unused                     |
+| POST   | `/api/authentication/register-customer`                               | Public | Register + `Customer` role + **issues cookies**    |
+| POST   | `/api/authentication/register-seller`                                 | Public | Register + `Seller` role (no tokens issued)        |
+| POST   | `/api/authentication/register-deliveryagent`                          | Public | Register + `DeliveryAgent` role (no tokens issued) |
+| POST   | `/api/authentication/register-admin`                                  | Admin  | Register + `Admin` role                            |
+| POST   | `/api/authentication/login`                                           | Public | Verify credentials → JWT + refresh cookies         |
+| POST   | `/api/authentication/refresh-token`                                   | Public | New JWT from the `refresh_token` cookie            |
+| POST   | `/api/authentication/logout`                                          | Auth   | Revoke all refresh tokens + delete cookies         |
+| PUT    | `/api/authentication/reset-password`                                  | Public | OTP + new password                                 |
+| PUT    | `/api/authentication/update-password`                                 | Auth   | Change password with old password                  |
+| PUT    | `/api/authentication/update-email`                                    | Auth   | Change email/username after OTP validation         |
+| PUT    | `/api/authentication`                                                 | Auth   | Update profile (name, DOB, phone)                  |
+| DELETE | `/api/authentication`                                                 | Auth   | Soft-delete own account                            |
+| DELETE | `/api/authentication/{Id}`                                            | Admin  | Soft-delete any account                            |
+| GET    | `/api/authentication/all?pageNumber=&pageSize=`                       | Admin  | Paged users                                        |
+| GET    | `/api/authentication/count`                                           | Admin  | Total user count                                   |
+| GET    | `/api/authentication/login/customer/github?returnUrl=`                | Public | 302 challenge to GitHub                            |
+| GET    | `/api/authentication/login/customer/google?returnUrl=`                | Public | 302 challenge to Google                            |
+| GET    | `/api/authentication/external-login-callback?returnUrl=&remoteError=` | Public | Provider callback → cookies → redirect             |
 
 </details>
 
 <details>
 <summary><b>Users, addresses, cities</b></summary>
 
-| Method | Route | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/api/admin/users/get-by-email` | Admin | Look up a user by email (body: raw string) |
-| GET | `/api/user-addresses/all` | Auth | Own addresses |
-| GET | `/api/user-addresses/count` | Auth | Own address count |
-| GET | `/api/user-addresses/{Id}` | Auth | Single own address |
-| POST | `/api/user-addresses` | Auth | Add address (applies default-address rule) → `201` |
-| PUT | `/api/user-addresses/{Id}` | Auth | Update address + default handling |
-| DELETE | `/api/user-addresses/{Id}` | Auth | Soft delete; oldest address promoted to default |
-| GET | `/api/cities/all-paged?page=&pageSize=` | Public | Paged cities (Redis cached) |
-| GET | `/api/cities/all` | Public | All cities (Redis `cities:all`) |
-| GET | `/api/cities/{Id}` | Public | City by id |
-| POST | `/api/cities` | Admin | Create city + refresh cache |
-| PUT | `/api/cities/{Id}` | Admin | Update city + refresh cache |
-| DELETE | `/api/cities/{Id}` | Admin | Soft delete city + refresh cache |
+| Method | Route                                   | Auth   | Purpose                                            |
+| ------ | --------------------------------------- | ------ | -------------------------------------------------- |
+| GET    | `/api/admin/users/get-by-email`         | Admin  | Look up a user by email (body: raw string)         |
+| GET    | `/api/user-addresses/all`               | Auth   | Own addresses                                      |
+| GET    | `/api/user-addresses/count`             | Auth   | Own address count                                  |
+| GET    | `/api/user-addresses/{Id}`              | Auth   | Single own address                                 |
+| POST   | `/api/user-addresses`                   | Auth   | Add address (applies default-address rule) → `201` |
+| PUT    | `/api/user-addresses/{Id}`              | Auth   | Update address + default handling                  |
+| DELETE | `/api/user-addresses/{Id}`              | Auth   | Soft delete; oldest address promoted to default    |
+| GET    | `/api/cities/all-paged?page=&pageSize=` | Public | Paged cities (Redis cached)                        |
+| GET    | `/api/cities/all`                       | Public | All cities (Redis `cities:all`)                    |
+| GET    | `/api/cities/{Id}`                      | Public | City by id                                         |
+| POST   | `/api/cities`                           | Admin  | Create city + refresh cache                        |
+| PUT    | `/api/cities/{Id}`                      | Admin  | Update city + refresh cache                        |
+| DELETE | `/api/cities/{Id}`                      | Admin  | Soft delete city + refresh cache                   |
 
 </details>
 
@@ -414,45 +414,45 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 <details>
 <summary><b>Products</b> — prefix <code>/api/products</code> (class-level <code>[Authorize]</code>)</summary>
 
-| Method | Route | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/api/products/{Id}` | Auth | Product with images |
-| GET | `/api/products/name-ar/{NameAr}` | Auth | By Arabic name |
-| GET | `/api/products/name-en/{NameEn}` | Auth | By English name |
-| GET | `/api/products/all` | Auth | All products |
-| GET | `/api/products/count` | Auth | Count |
-| GET | `/api/products/all-paged?pageNumber=&pageSize=` | Auth | Paged, bare array |
-| GET | `/api/products/all-order-by-best-seler-desc` | Auth | Sorted by delivered-order count (raw SQL) |
-| GET | `/api/products/all-paged-order-by-best-seler-desc?pageNumber=&pageSize=` | Auth | Paged best-seller (raw SQL + `OFFSET/FETCH`) |
-| POST | `/api/products` | Admin | **multipart/form-data** (`CreateProductDto`, `Images: List<IFormFile>`) — uploads to Cloudinary inside the transaction |
-| POST | `/api/products/range` | Admin | Bulk create (form) |
-| PUT | `/api/products/{Id}` | Admin | Update; deletes old Cloudinary images then uploads new |
-| DELETE | `/api/products/{Id}` | Admin | Soft delete + Cloudinary/image-row cleanup |
-| GET | `/api/products/search?query=&pageSize=` | Public | Name autocomplete, **auto Arabic/English detection** → `string[]` |
-| GET | `/api/products/recent-search` | Auth | Last ≤ 10 search strings from Redis |
-| POST | `/api/products/recent-search` | Auth | Save a search (`{ "searchQuery": "laptop" }`), de-duplicated |
+| Method | Route                                                                    | Auth   | Notes                                                                                                                  |
+| ------ | ------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/products/{Id}`                                                     | Auth   | Product with images                                                                                                    |
+| GET    | `/api/products/name-ar/{NameAr}`                                         | Auth   | By Arabic name                                                                                                         |
+| GET    | `/api/products/name-en/{NameEn}`                                         | Auth   | By English name                                                                                                        |
+| GET    | `/api/products/all`                                                      | Auth   | All products                                                                                                           |
+| GET    | `/api/products/count`                                                    | Auth   | Count                                                                                                                  |
+| GET    | `/api/products/all-paged?pageNumber=&pageSize=`                          | Auth   | Paged, bare array                                                                                                      |
+| GET    | `/api/products/all-order-by-best-seler-desc`                             | Auth   | Sorted by delivered-order count (raw SQL)                                                                              |
+| GET    | `/api/products/all-paged-order-by-best-seler-desc?pageNumber=&pageSize=` | Auth   | Paged best-seller (raw SQL + `OFFSET/FETCH`)                                                                           |
+| POST   | `/api/products`                                                          | Admin  | **multipart/form-data** (`CreateProductDto`, `Images: List<IFormFile>`) — uploads to Cloudinary inside the transaction |
+| POST   | `/api/products/range`                                                    | Admin  | Bulk create (form)                                                                                                     |
+| PUT    | `/api/products/{Id}`                                                     | Admin  | Update; deletes old Cloudinary images then uploads new                                                                 |
+| DELETE | `/api/products/{Id}`                                                     | Admin  | Soft delete + Cloudinary/image-row cleanup                                                                             |
+| GET    | `/api/products/search?query=&pageSize=`                                  | Public | Name autocomplete, **auto Arabic/English detection** → `string[]`                                                      |
+| GET    | `/api/products/recent-search`                                            | Auth   | Last ≤ 10 search strings from Redis                                                                                    |
+| POST   | `/api/products/recent-search`                                            | Auth   | Save a search (`{ "searchQuery": "laptop" }`), de-duplicated                                                           |
 
 </details>
 
 <details>
 <summary><b>Seller products</b> — prefix <code>/api/seller-products</code></summary>
 
-| Method | Route | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/api/seller-products?pageNumber=&pageSize=` | Public | Paged offers → pagination envelope (defaults `1`/`10`) |
-| GET | `/api/seller-products/{Id}` | Public | Offer by id |
-| GET | `/api/seller-products/products/{ProductId}` | Public | All offers for a product |
-| GET | `/api/seller-products/categories/{productCategoryId}?pageNumber=&pageSize=` | Public | Filter by category |
-| GET | `/api/seller-products/sub-categories/{productSubCategoryId}?pageNumber=&pageSize=` | Public | Filter by sub-category |
-| GET | `/api/seller-products/brands/{brnadId}?pageNumber=&pageSize=` | Public | Filter by brand |
-| GET | `/api/seller-products/search?query=&pageNumber=&pageSize=` | Public | Paged bilingual name search |
-| GET | `/api/seller-products/seller` | Seller | Own listings |
-| GET | `/api/seller-products/admin/seller/{sellerId}` | Admin | A seller's listings |
-| POST | `/api/seller-products` | Seller | Create offer |
-| POST | `/api/seller-products/range` | Seller | Bulk create (transaction) |
-| PUT | `/api/seller-products/{Id}` | Seller | Update own offer |
-| DELETE | `/api/seller-products/{Id}` | Seller | Delete own offer |
-| DELETE | `/api/seller-products/admin/{Id}` | Admin | Delete any offer |
+| Method | Route                                                                              | Auth   | Notes                                                  |
+| ------ | ---------------------------------------------------------------------------------- | ------ | ------------------------------------------------------ |
+| GET    | `/api/seller-products?pageNumber=&pageSize=`                                       | Public | Paged offers → pagination envelope (defaults `1`/`10`) |
+| GET    | `/api/seller-products/{Id}`                                                        | Public | Offer by id                                            |
+| GET    | `/api/seller-products/products/{ProductId}`                                        | Public | All offers for a product                               |
+| GET    | `/api/seller-products/categories/{productCategoryId}?pageNumber=&pageSize=`        | Public | Filter by category                                     |
+| GET    | `/api/seller-products/sub-categories/{productSubCategoryId}?pageNumber=&pageSize=` | Public | Filter by sub-category                                 |
+| GET    | `/api/seller-products/brands/{brnadId}?pageNumber=&pageSize=`                      | Public | Filter by brand                                        |
+| GET    | `/api/seller-products/search?query=&pageNumber=&pageSize=`                         | Public | Paged bilingual name search                            |
+| GET    | `/api/seller-products/seller`                                                      | Seller | Own listings                                           |
+| GET    | `/api/seller-products/admin/seller/{sellerId}`                                     | Admin  | A seller's listings                                    |
+| POST   | `/api/seller-products`                                                             | Seller | Create offer                                           |
+| POST   | `/api/seller-products/range`                                                       | Seller | Bulk create (transaction)                              |
+| PUT    | `/api/seller-products/{Id}`                                                        | Seller | Update own offer                                       |
+| DELETE | `/api/seller-products/{Id}`                                                        | Seller | Delete own offer                                       |
+| DELETE | `/api/seller-products/admin/{Id}`                                                  | Admin  | Delete any offer                                       |
 
 </details>
 
@@ -461,12 +461,12 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 
 **Product categories** — `/api/product-categories`
 
-| Method | Route | Auth |
-| --- | --- | --- |
-| GET | `/api/product-categories/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged?pageNumber=&pageSize=` | Public |
-| POST | `/api/product-categories` · `/range` (form, images) | Public ⚠ |
-| PUT | `/api/product-categories/{Id}` (form) | Public ⚠ |
-| DELETE | `/api/product-categories/{Id}` | Admin |
+| Method | Route                                                                                                                               | Auth     |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| GET    | `/api/product-categories/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged?pageNumber=&pageSize=` | Public   |
+| POST   | `/api/product-categories` · `/range` (form, images)                                                                                 | Public ⚠ |
+| PUT    | `/api/product-categories/{Id}` (form)                                                                                               | Public ⚠ |
+| DELETE | `/api/product-categories/{Id}`                                                                                                      | Admin    |
 
 **Product sub-categories** — `/api/product-sub-categories` (class-level `Admin`)
 
@@ -474,33 +474,33 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 
 **Brands** — `/api/brands`
 
-| Method | Route | Auth |
-| --- | --- | --- |
-| GET | `/api/brands/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged?pageNumber=&pageSize=` | Public |
-| POST | `/api/brands` · `/range` (form, single image) | Admin |
-| PUT | `/api/brands/{Id}` (form) | Admin |
-| DELETE | `/api/brands/{Id}` | Admin |
+| Method | Route                                                                                                                   | Auth   |
+| ------ | ----------------------------------------------------------------------------------------------------------------------- | ------ |
+| GET    | `/api/brands/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged?pageNumber=&pageSize=` | Public |
+| POST   | `/api/brands` · `/range` (form, single image)                                                                           | Admin  |
+| PUT    | `/api/brands/{Id}` (form)                                                                                               | Admin  |
+| DELETE | `/api/brands/{Id}`                                                                                                      | Admin  |
 
 **Banners** — `/api/banners` (class-level `Admin`, no rate limiting)
 
-| Method | Route | Auth |
-| --- | --- | --- |
-| GET | `/api/banners/all?pageNumber=&pageSize=` | Admin |
-| GET | `/api/banners/all/active` | **Public** (`AllowAnonymous`) |
-| GET | `/api/banners/{id}` | Admin |
-| POST | `/api/banners` (multipart) · `/bulk` | Admin |
-| PUT | `/api/banners` · `/range` | Admin |
-| DELETE | `/api/banners/{id}` · `/active` | Admin |
+| Method | Route                                    | Auth                          |
+| ------ | ---------------------------------------- | ----------------------------- |
+| GET    | `/api/banners/all?pageNumber=&pageSize=` | Admin                         |
+| GET    | `/api/banners/all/active`                | **Public** (`AllowAnonymous`) |
+| GET    | `/api/banners/{id}`                      | Admin                         |
+| POST   | `/api/banners` (multipart) · `/bulk`     | Admin                         |
+| PUT    | `/api/banners` · `/range`                | Admin                         |
+| DELETE | `/api/banners/{id}` · `/active`          | Admin                         |
 
 **Reviews** — `/api/products/{productId}/reviews`
 
-| Method | Route | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `…/avg` · `…/{Id}` · `…/all` · `…/all-paged?pageNumber=&pageSize=` | Public | Read-only |
-| POST | `…` | Auth | Requires a **delivered** purchase; one review per user per product |
-| PUT | `…/{Id}` | Auth | Owner only |
-| DELETE | `…/{Id}` | Auth | Owner only |
-| DELETE | `…/{Id}/admin` | Admin | Moderation delete |
+| Method | Route                                                              | Auth   | Notes                                                              |
+| ------ | ------------------------------------------------------------------ | ------ | ------------------------------------------------------------------ |
+| GET    | `…/avg` · `…/{Id}` · `…/all` · `…/all-paged?pageNumber=&pageSize=` | Public | Read-only                                                          |
+| POST   | `…`                                                                | Auth   | Requires a **delivered** purchase; one review per user per product |
+| PUT    | `…/{Id}`                                                           | Auth   | Owner only                                                         |
+| DELETE | `…/{Id}`                                                           | Auth   | Owner only                                                         |
+| DELETE | `…/{Id}/admin`                                                     | Admin  | Moderation delete                                                  |
 
 </details>
 
@@ -509,36 +509,36 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 <details>
 <summary><b>Shopping cart</b> — prefix <code>/api/shopping-carts</code></summary>
 
-| Method | Route | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/api/shopping-carts/active` | Customer | Auto-creates the cart if missing |
-| GET | `/api/shopping-carts/{ShoppingCartId}` | Admin | Any cart |
-| GET | `/api/shopping-carts/all` | Customer | Own carts |
-| GET | `/api/shopping-carts/total-price` | Customer | Cart subtotal (shipping excluded) |
-| POST | `/api/shopping-carts` | Customer | Create / return existing active cart. **Known issue:** the action targets route name `GetShoppingCartById`, but the registered name is `GetShoppingCart`, so a successful call throws at `CreatedAtRoute`. |
+| Method | Route                                  | Auth     | Notes                                                                                                                                    |
+| ------ | -------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/shopping-carts/active`           | Customer | Auto-creates the cart if missing                                                                                                         |
+| GET    | `/api/shopping-carts/{ShoppingCartId}` | Admin    | Any cart                                                                                                                                 |
+| GET    | `/api/shopping-carts/all`              | Customer | Own carts                                                                                                                                |
+| GET    | `/api/shopping-carts/total-price`      | Customer | Cart subtotal (shipping excluded)                                                                                                        |
+| POST   | `/api/shopping-carts`                  | Customer | Creates a new active cart or returns the existing active cart for the customer (Returns `201 Created` with `GetShoppingCartById` route). |
 
 **Cart lines** — `/api/shopping-carts/{ShoppingCartId}/seller-products` (class-level `Customer`)
 
-| Method | Route | Notes |
-| --- | --- | --- |
-| GET | `/{SellerProductInShoppingCartId}` | Line detail |
-| POST | `""` | Add or update a line; quantity clamped to `NumberInStock` |
-| POST | `/bulk` | Add many lines |
-| PUT | `/{SellerProductInShoppingCartId}` | Update quantity, recompute `TotalPrice` |
-| DELETE | `/{id}` | Remove line, returns the updated cart |
+| Method | Route                              | Notes                                                     |
+| ------ | ---------------------------------- | --------------------------------------------------------- |
+| GET    | `/{SellerProductInShoppingCartId}` | Line detail                                               |
+| POST   | `""`                               | Add or update a line; quantity clamped to `NumberInStock` |
+| POST   | `/bulk`                            | Add many lines                                            |
+| PUT    | `/{SellerProductInShoppingCartId}` | Update quantity, recompute `TotalPrice`                   |
+| DELETE | `/{id}`                            | Remove line, returns the updated cart                     |
 
 </details>
 
 <details>
 <summary><b>Payments</b> — prefix <code>/api/shopping-carts/payments</code> (class-level <code>Customer</code>)</summary>
 
-| Method | Route | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/total-price` | Customer | Cart total **+** shipping cost for the address's city. Note: the action takes a `PaymentDto` (`userAddressId`, `shoppingCartId`) — with `[ApiController]` this complex type is bound from a **JSON body**, not query string. |
-| GET | `/session/{sessionId}` | Customer | Payment by Stripe session id (scoped to caller) |
-| GET | `/application-orders/{applicationOrderId}` | Customer | Payment for one of the caller's order rows |
-| POST | `/pre-paid` | Customer | **Requires `Idempotency-Key`** → creates Stripe session |
-| POST | `/cash-on-delivery` | Customer | **Requires `Idempotency-Key`** → full checkout in one transaction |
+| Method | Route                                      | Auth     | Notes                                                                                                                                                                                                                        |
+| ------ | ------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/total-price`                             | Customer | Cart total **+** shipping cost for the address's city. Note: the action takes a `PaymentDto` (`userAddressId`, `shoppingCartId`) — with `[ApiController]` this complex type is bound from a **JSON body**, not query string. |
+| GET    | `/session/{sessionId}`                     | Customer | Payment by Stripe session id (scoped to caller)                                                                                                                                                                              |
+| GET    | `/application-orders/{applicationOrderId}` | Customer | Payment for one of the caller's order rows                                                                                                                                                                                   |
+| POST   | `/pre-paid`                                | Customer | **Requires `Idempotency-Key`** → creates Stripe session                                                                                                                                                                      |
+| POST   | `/cash-on-delivery`                        | Customer | **Requires `Idempotency-Key`** → full checkout in one transaction                                                                                                                                                            |
 
 `POST /api/stripe` (anonymous, no rate limiting) is the Stripe webhook.
 
@@ -549,48 +549,48 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 
 **Customer** — `/api/applications/{ApplicationId}` (class-level `Customer`)
 
-| Method | Route | Notes |
-| --- | --- | --- |
-| GET | `/active-application-orders` | Current status row |
-| GET | `/track-application-orders` | Full status history |
-| POST | `/cancel` | Cancel if not delivered/canceled → restores stock + emails |
+| Method | Route                        | Notes                                                      |
+| ------ | ---------------------------- | ---------------------------------------------------------- |
+| GET    | `/active-application-orders` | Current status row                                         |
+| GET    | `/track-application-orders`  | Full status history                                        |
+| POST   | `/cancel`                    | Cancel if not delivered/canceled → restores stock + emails |
 
 **Customer summaries** — `/api/applications`
 
-| Method | Route | Auth |
-| --- | --- | --- |
-| GET | `/api/applications/all` | Customer |
-| GET | `/api/applications/{ApplcationId}/order-application-summary` | Customer |
-| GET | `/api/applications/order-application-summaries` | Customer |
-| GET | `/api/applications/latest-application-order-summary` | Customer |
+| Method | Route                                                        | Auth     |
+| ------ | ------------------------------------------------------------ | -------- |
+| GET    | `/api/applications/all`                                      | Customer |
+| GET    | `/api/applications/{ApplcationId}/order-application-summary` | Customer |
+| GET    | `/api/applications/order-application-summaries`              | Customer |
+| GET    | `/api/applications/latest-application-order-summary`         | Customer |
 
 **Admin** — `/api/admin/applications` (class-level `Admin`)
 
-| Method | Route | Notes |
-| --- | --- | --- |
-| GET | `/application-orders/{ApplicationOrderId}` | Status row by id |
-| GET | `/{ApplicationId}/application-orders` | Full history |
-| GET | `/application-orders/active-under-processing` | Payable + unshipped queue |
-| GET | `/application-orders/active-shipping` | Shipped, not yet delivered |
-| GET | `/application-orders/active-delivered` | Delivered rows |
-| POST | `/{ApplicationId}/shipping-application-orders` | Body: `"<deliveryUserId>"` → `201`, assigns `DeliveryId`, emails |
-| POST | `/{ApplicationId}/delivered-application-orders` | `201`, marks COD payment `Succeeded`, emails |
+| Method | Route                                           | Notes                                                            |
+| ------ | ----------------------------------------------- | ---------------------------------------------------------------- |
+| GET    | `/application-orders/{ApplicationOrderId}`      | Status row by id                                                 |
+| GET    | `/{ApplicationId}/application-orders`           | Full history                                                     |
+| GET    | `/application-orders/active-under-processing`   | Payable + unshipped queue                                        |
+| GET    | `/application-orders/active-shipping`           | Shipped, not yet delivered                                       |
+| GET    | `/application-orders/active-delivered`          | Delivered rows                                                   |
+| POST   | `/{ApplicationId}/shipping-application-orders`  | Body: `"<deliveryUserId>"` → `201`, assigns `DeliveryId`, emails |
+| POST   | `/{ApplicationId}/delivered-application-orders` | `201`, marks COD payment `Succeeded`, emails                     |
 
 **Returns & admin reads** — `/api/applications`
 
-| Method | Route | Auth |
-| --- | --- | --- |
-| GET | `/api/applications/all-return` | Admin |
-| GET | `/api/applications/all-user-return` | Admin (body: user id) |
-| GET | `/api/applications/{ApplcationId}/shopping-cart` | Admin |
-| POST | `/api/applications/{ApplcationId}/return` | Admin |
+| Method | Route                                            | Auth                  |
+| ------ | ------------------------------------------------ | --------------------- |
+| GET    | `/api/applications/all-return`                   | Admin                 |
+| GET    | `/api/applications/all-user-return`              | Admin (body: user id) |
+| GET    | `/api/applications/{ApplcationId}/shopping-cart` | Admin                 |
+| POST   | `/api/applications/{ApplcationId}/return`        | Admin                 |
 
 **Delivery agent** — `/api/applications/application-order/delivery-orders` (class-level `DeliveryAgent`)
 
-| Method | Route |
-| --- | --- |
-| GET | `/need-to-delivery` |
-| GET | `/deliveried` |
+| Method | Route               |
+| ------ | ------------------- |
+| GET    | `/need-to-delivery` |
+| GET    | `/deliveried`       |
 
 **Admin delivery views** — `/api/admin/applications/application-order/delivery-orders` (class-level `Admin`)
 `GET /need-to-delivery` · `GET /deliveried`
@@ -600,13 +600,13 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 <details>
 <summary><b>Reference data & shipping</b></summary>
 
-| Controller | Prefix | Endpoints |
-| --- | --- | --- |
-| `ApplicationTypes` | `/api/application-types` | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin) |
-| `ApplicationOrderTypes` | `/api/application-order-types` | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin) |
-| `PaymentTypes` | `/api/payment-types` | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin) |
-| `ShippingCosts` | `/api/shipping-costs` (class `Auth`) | `GET {id}` (Admin) · `GET cities/{citiyId}` (Auth) · `GET all` · `GET paged` (Admin) · `POST ""` · `POST range` · `PUT {id}` · `DELETE {id}` (Admin) |
-| `Delivery cities` | `/api/deliveries` | `GET cities/cities-where-Delivery-workId/{id}` (Public) · `GET cities/{CityId}` (DeliveryAgent) · `GET cities/admin/{id}` (Admin) · `GET cities` (DeliveryAgent) · `GET {DeliveryId}/cities` (Admin) · `POST cities` · `POST cities/range` · `PUT cities/{id}` · `DELETE cities/{id}` (DeliveryAgent) |
+| Controller              | Prefix                               | Endpoints                                                                                                                                                                                                                                                                                             |
+| ----------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ApplicationTypes`      | `/api/application-types`             | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin)                                                                                                                                                                                                                                          |
+| `ApplicationOrderTypes` | `/api/application-order-types`       | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin)                                                                                                                                                                                                                                          |
+| `PaymentTypes`          | `/api/payment-types`                 | `GET {id}` (Public) · `GET all` (Admin) · `PUT {id}` (Admin)                                                                                                                                                                                                                                          |
+| `ShippingCosts`         | `/api/shipping-costs` (class `Auth`) | `GET {id}` (Admin) · `GET cities/{citiyId}` (Auth) · `GET all` · `GET paged` (Admin) · `POST ""` · `POST range` · `PUT {id}` · `DELETE {id}` (Admin)                                                                                                                                                  |
+| `Delivery cities`       | `/api/deliveries`                    | `GET cities/cities-where-Delivery-workId/{id}` (Public) · `GET cities/{CityId}` (DeliveryAgent) · `GET cities/admin/{id}` (Admin) · `GET cities` (DeliveryAgent) · `GET {DeliveryId}/cities` (Admin) · `POST cities` · `POST cities/range` · `PUT cities/{id}` · `DELETE cities/{id}` (DeliveryAgent) |
 
 </details>
 
@@ -614,93 +614,93 @@ Paged endpoints that return `PaginationResultDto<T>` use this exact shape:
 
 ## Endpoint Inventory
 
-| Method | Endpoint | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/api/authentication` | Auth | Current user profile |
-| GET | `/api/authentication/is-email-exist` | Public | Email exists? |
-| POST | `/api/authentication/send-otp` | Public | Send OTP |
-| GET | `/api/authentication/is-otp-valid` | Public | Validate OTP |
-| POST | `/api/authentication/register-customer` | Public | Register customer (+cookies) |
-| POST | `/api/authentication/register-seller` | Public | Register seller |
-| POST | `/api/authentication/register-deliveryagent` | Public | Register delivery agent |
-| POST | `/api/authentication/register-admin` | Admin | Register admin |
-| POST | `/api/authentication/login` | Public | Login |
-| POST | `/api/authentication/refresh-token` | Public | Refresh JWT |
-| POST | `/api/authentication/logout` | Auth | Revoke sessions |
-| PUT | `/api/authentication/reset-password` | Public | OTP password reset |
-| PUT | `/api/authentication/update-password` | Auth | Change password |
-| PUT | `/api/authentication/update-email` | Auth | Change email |
-| PUT | `/api/authentication` | Auth | Update profile |
-| DELETE | `/api/authentication` | Auth | Delete own account |
-| DELETE | `/api/authentication/{Id}` | Admin | Delete account |
-| GET | `/api/authentication/all` | Admin | Paged users |
-| GET | `/api/authentication/count` | Admin | User count |
-| GET | `/api/authentication/login/customer/github` | Public | GitHub challenge |
-| GET | `/api/authentication/login/customer/google` | Public | Google challenge |
-| GET | `/api/authentication/external-login-callback` | Public | OAuth callback |
-| GET | `/api/admin/users/get-by-email` | Admin | User lookup |
-| GET | `/api/user-addresses/all` · `/count` · `/{Id}` | Auth | Read own addresses |
-| POST | `/api/user-addresses` | Auth | Add address |
-| PUT | `/api/user-addresses/{Id}` | Auth | Update address |
-| DELETE | `/api/user-addresses/{Id}` | Auth | Delete address |
-| GET | `/api/cities/all-paged` · `/all` · `/{Id}` | Public | Read cities |
-| POST/PUT/DELETE | `/api/cities` · `/{Id}` | Admin | Manage cities |
-| GET | `/api/products/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged` · `/all-order-by-best-seler-desc` · `/all-paged-order-by-best-seler-desc` | Auth | Read catalog |
-| POST | `/api/products` · `/range` | Admin | Create products |
-| PUT | `/api/products/{Id}` | Admin | Update product |
-| DELETE | `/api/products/{Id}` | Admin | Delete product |
-| GET | `/api/products/search` | Public | Name autocomplete |
-| GET/POST | `/api/products/recent-search` | Auth | Recent searches |
-| GET | `/api/seller-products` · `/{Id}` · `/products/{ProductId}` · `/categories/{id}` · `/sub-categories/{id}` · `/brands/{id}` · `/search` | Public | Browse offers |
-| GET | `/api/seller-products/seller` | Seller | Own listings |
-| GET | `/api/seller-products/admin/seller/{sellerId}` | Admin | Listings by seller |
-| POST | `/api/seller-products` · `/range` | Seller | Create offers |
-| PUT | `/api/seller-products/{Id}` | Seller | Update offer |
-| DELETE | `/api/seller-products/{Id}` | Seller | Delete own offer |
-| DELETE | `/api/seller-products/admin/{Id}` | Admin | Delete any offer |
-| GET | `/api/product-categories/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged` | Public | Read categories |
-| POST | `/api/product-categories` · `/range` | Public ⚠ | Create categories |
-| PUT | `/api/product-categories/{Id}` | Public ⚠ | Update category |
-| DELETE | `/api/product-categories/{Id}` | Admin | Delete category |
-| *all* | `/api/product-sub-categories/**` | Admin | Sub-category CRUD & reads |
-| GET | `/api/brands/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged` | Public | Read brands |
-| POST/PUT/DELETE | `/api/brands` · `/range` · `/{Id}` | Admin | Manage brands |
-| GET | `/api/banners/all` · `/{id}` | Admin | Read banners |
-| GET | `/api/banners/all/active` | Public | Active banners |
-| POST/PUT/DELETE | `/api/banners` · `/bulk` · `/range` · `/{id}` · `/active` | Admin | Manage banners |
-| GET | `/api/products/{productId}/reviews/avg` · `/{Id}` · `/all` · `/all-paged` | Public | Read reviews |
-| POST | `/api/products/{productId}/reviews` | Auth | Create review (purchase required) |
-| PUT | `/api/products/{productId}/reviews/{Id}` | Auth | Update own review |
-| DELETE | `/api/products/{productId}/reviews/{Id}` | Auth | Delete own review |
-| DELETE | `/api/products/{productId}/reviews/{Id}/admin` | Admin | Delete any review |
-| GET | `/api/shopping-carts/active` · `/all` · `/total-price` | Customer | Read cart |
-| GET | `/api/shopping-carts/{ShoppingCartId}` | Admin | Read any cart |
-| POST | `/api/shopping-carts` | Customer | Create cart |
-| GET/POST/PUT/DELETE | `/api/shopping-carts/{ShoppingCartId}/seller-products/**` | Customer | Cart line CRUD |
-| GET | `/api/shopping-carts/payments/total-price` · `/session/{sessionId}` · `/application-orders/{id}` | Customer | Payment reads |
-| POST | `/api/shopping-carts/payments/pre-paid` | Customer | Stripe checkout session |
-| POST | `/api/shopping-carts/payments/cash-on-delivery` | Customer | COD checkout |
-| POST | `/api/stripe` | Public | Stripe webhook |
-| GET | `/api/applications/{ApplicationId}/active-application-orders` · `/track-application-orders` | Customer | Track order |
-| POST | `/api/applications/{ApplicationId}/cancel` | Customer | Cancel order |
-| GET | `/api/applications/all` · `/{id}/order-application-summary` · `/order-application-summaries` · `/latest-application-order-summary` | Customer | Order summaries |
-| GET | `/api/applications/all-return` · `/all-user-return` · `/{id}/shopping-cart` | Admin | Admin reads |
-| POST | `/api/applications/{ApplcationId}/return` | Admin | Create return |
-| GET | `/api/admin/applications/application-orders/{id}` · `/{id}/application-orders` · `/active-under-processing` · `/active-shipping` · `/active-delivered` | Admin | Order queues |
-| POST | `/api/admin/applications/{id}/shipping-application-orders` · `/delivered-application-orders` | Admin | Advance status |
-| GET | `/api/applications/application-order/delivery-orders/need-to-delivery` · `/deliveried` | DeliveryAgent | Own delivery queue |
-| GET | `/api/admin/applications/application-order/delivery-orders/need-to-delivery` · `/deliveried` | Admin | Delivery views |
-| GET | `/api/application-types/{id}` | Public | Reference read |
-| GET/PUT | `/api/application-types/all` · `/{id}` | Admin | Reference manage |
-| GET | `/api/application-order-types/{id}` | Public | Reference read |
-| GET/PUT | `/api/application-order-types/all` · `/{id}` | Admin | Reference manage |
-| GET | `/api/payment-types/{id}` | Public | Reference read |
-| GET/PUT | `/api/payment-types/all` · `/{id}` | Admin | Reference manage |
-| GET | `/api/shipping-costs/cities/{citiyId}` | Auth | Shipping cost by city |
-| GET/POST/PUT/DELETE | `/api/shipping-costs/**` | Admin | Manage shipping costs |
-| GET | `/api/deliveries/cities/cities-where-Delivery-workId/{id}` | Public | Read delivery city |
-| GET/POST/PUT/DELETE | `/api/deliveries/cities/**` | DeliveryAgent | Manage served cities |
-| GET | `/api/deliveries/cities/{CityId}` · `/cities/admin/{id}` · `/{DeliveryId}/cities` | Admin | Delivery admin reads |
+| Method              | Endpoint                                                                                                                                                                      | Auth          | Purpose                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------- |
+| GET                 | `/api/authentication`                                                                                                                                                         | Auth          | Current user profile              |
+| GET                 | `/api/authentication/is-email-exist`                                                                                                                                          | Public        | Email exists?                     |
+| POST                | `/api/authentication/send-otp`                                                                                                                                                | Public        | Send OTP                          |
+| GET                 | `/api/authentication/is-otp-valid`                                                                                                                                            | Public        | Validate OTP                      |
+| POST                | `/api/authentication/register-customer`                                                                                                                                       | Public        | Register customer (+cookies)      |
+| POST                | `/api/authentication/register-seller`                                                                                                                                         | Public        | Register seller                   |
+| POST                | `/api/authentication/register-deliveryagent`                                                                                                                                  | Public        | Register delivery agent           |
+| POST                | `/api/authentication/register-admin`                                                                                                                                          | Admin         | Register admin                    |
+| POST                | `/api/authentication/login`                                                                                                                                                   | Public        | Login                             |
+| POST                | `/api/authentication/refresh-token`                                                                                                                                           | Public        | Refresh JWT                       |
+| POST                | `/api/authentication/logout`                                                                                                                                                  | Auth          | Revoke sessions                   |
+| PUT                 | `/api/authentication/reset-password`                                                                                                                                          | Public        | OTP password reset                |
+| PUT                 | `/api/authentication/update-password`                                                                                                                                         | Auth          | Change password                   |
+| PUT                 | `/api/authentication/update-email`                                                                                                                                            | Auth          | Change email                      |
+| PUT                 | `/api/authentication`                                                                                                                                                         | Auth          | Update profile                    |
+| DELETE              | `/api/authentication`                                                                                                                                                         | Auth          | Delete own account                |
+| DELETE              | `/api/authentication/{Id}`                                                                                                                                                    | Admin         | Delete account                    |
+| GET                 | `/api/authentication/all`                                                                                                                                                     | Admin         | Paged users                       |
+| GET                 | `/api/authentication/count`                                                                                                                                                   | Admin         | User count                        |
+| GET                 | `/api/authentication/login/customer/github`                                                                                                                                   | Public        | GitHub challenge                  |
+| GET                 | `/api/authentication/login/customer/google`                                                                                                                                   | Public        | Google challenge                  |
+| GET                 | `/api/authentication/external-login-callback`                                                                                                                                 | Public        | OAuth callback                    |
+| GET                 | `/api/admin/users/get-by-email`                                                                                                                                               | Admin         | User lookup                       |
+| GET                 | `/api/user-addresses/all` · `/count` · `/{Id}`                                                                                                                                | Auth          | Read own addresses                |
+| POST                | `/api/user-addresses`                                                                                                                                                         | Auth          | Add address                       |
+| PUT                 | `/api/user-addresses/{Id}`                                                                                                                                                    | Auth          | Update address                    |
+| DELETE              | `/api/user-addresses/{Id}`                                                                                                                                                    | Auth          | Delete address                    |
+| GET                 | `/api/cities/all-paged` · `/all` · `/{Id}`                                                                                                                                    | Public        | Read cities                       |
+| POST/PUT/DELETE     | `/api/cities` · `/{Id}`                                                                                                                                                       | Admin         | Manage cities                     |
+| GET                 | `/api/products/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged` · `/all-order-by-best-seler-desc` · `/all-paged-order-by-best-seler-desc` | Auth          | Read catalog                      |
+| POST                | `/api/products` · `/range`                                                                                                                                                    | Admin         | Create products                   |
+| PUT                 | `/api/products/{Id}`                                                                                                                                                          | Admin         | Update product                    |
+| DELETE              | `/api/products/{Id}`                                                                                                                                                          | Admin         | Delete product                    |
+| GET                 | `/api/products/search`                                                                                                                                                        | Public        | Name autocomplete                 |
+| GET/POST            | `/api/products/recent-search`                                                                                                                                                 | Auth          | Recent searches                   |
+| GET                 | `/api/seller-products` · `/{Id}` · `/products/{ProductId}` · `/categories/{id}` · `/sub-categories/{id}` · `/brands/{id}` · `/search`                                         | Public        | Browse offers                     |
+| GET                 | `/api/seller-products/seller`                                                                                                                                                 | Seller        | Own listings                      |
+| GET                 | `/api/seller-products/admin/seller/{sellerId}`                                                                                                                                | Admin         | Listings by seller                |
+| POST                | `/api/seller-products` · `/range`                                                                                                                                             | Seller        | Create offers                     |
+| PUT                 | `/api/seller-products/{Id}`                                                                                                                                                   | Seller        | Update offer                      |
+| DELETE              | `/api/seller-products/{Id}`                                                                                                                                                   | Seller        | Delete own offer                  |
+| DELETE              | `/api/seller-products/admin/{Id}`                                                                                                                                             | Admin         | Delete any offer                  |
+| GET                 | `/api/product-categories/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged`                                                                 | Public        | Read categories                   |
+| POST                | `/api/product-categories` · `/range`                                                                                                                                          | Public ⚠      | Create categories                 |
+| PUT                 | `/api/product-categories/{Id}`                                                                                                                                                | Public ⚠      | Update category                   |
+| DELETE              | `/api/product-categories/{Id}`                                                                                                                                                | Admin         | Delete category                   |
+| _all_               | `/api/product-sub-categories/**`                                                                                                                                              | Admin         | Sub-category CRUD & reads         |
+| GET                 | `/api/brands/{Id}` · `/name-ar/{NameAr}` · `/name-en/{NameEn}` · `/all` · `/count` · `/all-paged`                                                                             | Public        | Read brands                       |
+| POST/PUT/DELETE     | `/api/brands` · `/range` · `/{Id}`                                                                                                                                            | Admin         | Manage brands                     |
+| GET                 | `/api/banners/all` · `/{id}`                                                                                                                                                  | Admin         | Read banners                      |
+| GET                 | `/api/banners/all/active`                                                                                                                                                     | Public        | Active banners                    |
+| POST/PUT/DELETE     | `/api/banners` · `/bulk` · `/range` · `/{id}` · `/active`                                                                                                                     | Admin         | Manage banners                    |
+| GET                 | `/api/products/{productId}/reviews/avg` · `/{Id}` · `/all` · `/all-paged`                                                                                                     | Public        | Read reviews                      |
+| POST                | `/api/products/{productId}/reviews`                                                                                                                                           | Auth          | Create review (purchase required) |
+| PUT                 | `/api/products/{productId}/reviews/{Id}`                                                                                                                                      | Auth          | Update own review                 |
+| DELETE              | `/api/products/{productId}/reviews/{Id}`                                                                                                                                      | Auth          | Delete own review                 |
+| DELETE              | `/api/products/{productId}/reviews/{Id}/admin`                                                                                                                                | Admin         | Delete any review                 |
+| GET                 | `/api/shopping-carts/active` · `/all` · `/total-price`                                                                                                                        | Customer      | Read cart                         |
+| GET                 | `/api/shopping-carts/{ShoppingCartId}`                                                                                                                                        | Admin         | Read any cart                     |
+| POST                | `/api/shopping-carts`                                                                                                                                                         | Customer      | Create cart                       |
+| GET/POST/PUT/DELETE | `/api/shopping-carts/{ShoppingCartId}/seller-products/**`                                                                                                                     | Customer      | Cart line CRUD                    |
+| GET                 | `/api/shopping-carts/payments/total-price` · `/session/{sessionId}` · `/application-orders/{id}`                                                                              | Customer      | Payment reads                     |
+| POST                | `/api/shopping-carts/payments/pre-paid`                                                                                                                                       | Customer      | Stripe checkout session           |
+| POST                | `/api/shopping-carts/payments/cash-on-delivery`                                                                                                                               | Customer      | COD checkout                      |
+| POST                | `/api/stripe`                                                                                                                                                                 | Public        | Stripe webhook                    |
+| GET                 | `/api/applications/{ApplicationId}/active-application-orders` · `/track-application-orders`                                                                                   | Customer      | Track order                       |
+| POST                | `/api/applications/{ApplicationId}/cancel`                                                                                                                                    | Customer      | Cancel order                      |
+| GET                 | `/api/applications/all` · `/{id}/order-application-summary` · `/order-application-summaries` · `/latest-application-order-summary`                                            | Customer      | Order summaries                   |
+| GET                 | `/api/applications/all-return` · `/all-user-return` · `/{id}/shopping-cart`                                                                                                   | Admin         | Admin reads                       |
+| POST                | `/api/applications/{ApplcationId}/return`                                                                                                                                     | Admin         | Create return                     |
+| GET                 | `/api/admin/applications/application-orders/{id}` · `/{id}/application-orders` · `/active-under-processing` · `/active-shipping` · `/active-delivered`                        | Admin         | Order queues                      |
+| POST                | `/api/admin/applications/{id}/shipping-application-orders` · `/delivered-application-orders`                                                                                  | Admin         | Advance status                    |
+| GET                 | `/api/applications/application-order/delivery-orders/need-to-delivery` · `/deliveried`                                                                                        | DeliveryAgent | Own delivery queue                |
+| GET                 | `/api/admin/applications/application-order/delivery-orders/need-to-delivery` · `/deliveried`                                                                                  | Admin         | Delivery views                    |
+| GET                 | `/api/application-types/{id}`                                                                                                                                                 | Public        | Reference read                    |
+| GET/PUT             | `/api/application-types/all` · `/{id}`                                                                                                                                        | Admin         | Reference manage                  |
+| GET                 | `/api/application-order-types/{id}`                                                                                                                                           | Public        | Reference read                    |
+| GET/PUT             | `/api/application-order-types/all` · `/{id}`                                                                                                                                  | Admin         | Reference manage                  |
+| GET                 | `/api/payment-types/{id}`                                                                                                                                                     | Public        | Reference read                    |
+| GET/PUT             | `/api/payment-types/all` · `/{id}`                                                                                                                                            | Admin         | Reference manage                  |
+| GET                 | `/api/shipping-costs/cities/{citiyId}`                                                                                                                                        | Auth          | Shipping cost by city             |
+| GET/POST/PUT/DELETE | `/api/shipping-costs/**`                                                                                                                                                      | Admin         | Manage shipping costs             |
+| GET                 | `/api/deliveries/cities/cities-where-Delivery-workId/{id}`                                                                                                                    | Public        | Read delivery city                |
+| GET/POST/PUT/DELETE | `/api/deliveries/cities/**`                                                                                                                                                   | DeliveryAgent | Manage served cities              |
+| GET                 | `/api/deliveries/cities/{CityId}` · `/cities/admin/{id}` · `/{DeliveryId}/cities`                                                                                             | Admin         | Delivery admin reads              |
 
 ---
 
@@ -825,7 +825,10 @@ Content-Type: application/json
 ```
 
 ```json
-{ "sessionUrl": "https://checkout.stripe.com/c/pay/cs_test_…", "sessionId": "cs_test_…" }
+{
+  "sessionUrl": "https://checkout.stripe.com/c/pay/cs_test_…",
+  "sessionId": "cs_test_…"
+}
 ```
 
 After the redirect, the SPA reads `?sessionId=` and polls:
@@ -867,7 +870,15 @@ GET /api/seller-products/search?query=لابتوب&pageNumber=1&pageSize=10
 
 ```json
 {
-  "data": [ { "id": 14, "price": 899.0, "numberInStock": 12, "productNameEn": "…", "productNameAr": "…" } ],
+  "data": [
+    {
+      "id": 14,
+      "price": 899.0,
+      "numberInStock": 12,
+      "productNameEn": "…",
+      "productNameAr": "…"
+    }
+  ],
   "totalCount": 3,
   "pageNumber": 1,
   "pageSize": 10,
@@ -887,7 +898,12 @@ Content-Type: application/json
 ```
 
 ```json
-{ "numberOfStars": 5, "message": "Exactly as described", "name": "Sarah", "productId": 9 }
+{
+  "numberOfStars": 5,
+  "message": "Exactly as described",
+  "name": "Sarah",
+  "productId": 9
+}
 ```
 
 `400 "User has not bought this product."` without a delivered order,
@@ -900,14 +916,14 @@ Content-Type: application/json
 Three cooperating mechanisms:
 
 1. **Controller-level `try/catch`** — most actions catch and return `StatusCode(500, ex.Message)` (or `400`) with a plain message. This is the dominant path.
-2. **`GlobalExceptionHandler : IExceptionHandler`** — registered via `AddExceptionHandler<GlobalExceptionHandler>()` + `AddProblemDetails()` and `app.UseExceptionHandler()`. It logs the exception and maps exception *types* to status codes:
+2. **`GlobalExceptionHandler : IExceptionHandler`** — registered via `AddExceptionHandler<GlobalExceptionHandler>()` + `AddProblemDetails()` and `app.UseExceptionHandler()`. It logs the exception and maps exception _types_ to status codes:
 
-   | Exception | Status |
-   | --- | --- |
-   | `ArgumentException`, `ArgumentNullException`, `ArgumentOutOfRangeException`, `InvalidOperationException` | `400` |
-   | `UnauthorizedAccessException` | `401` |
-   | `KeyNotFoundException` | `404` |
-   | anything else | `500` |
+   | Exception                                                                                                | Status |
+   | -------------------------------------------------------------------------------------------------------- | ------ |
+   | `ArgumentException`, `ArgumentNullException`, `ArgumentOutOfRangeException`, `InvalidOperationException` | `400`  |
+   | `UnauthorizedAccessException`                                                                            | `401`  |
+   | `KeyNotFoundException`                                                                                   | `404`  |
+   | anything else                                                                                            | `500`  |
 
    Response body:
 
@@ -967,28 +983,28 @@ RuleFor(x => x.EndDate).NotEmpty().Must((x, d) => d.Date >= x.StartDate.Date);
 
 ## Database & Persistence
 
-| Concern | Implementation |
-| --- | --- |
-| Provider | SQL Server via `Microsoft.EntityFrameworkCore.SqlServer` 10 |
-| Context | `AppDbContext : IdentityDbContext<User>` (27 entities + Identity tables) |
-| Identity tables | Mapped to `Users`, `Roles`, `UserRoles` (`PhoneNumberConfirmed` ignored) |
-| Migrations | 61 migrations in `DataAccessLayer/Migrations`, plus a full `Created Database script.sql` at the repo root |
-| Relationships | Explicit `HasOne/WithMany` with named FK constraints (`FK_Products_BrandId`, etc.) |
-| Delete behavior | **`Restrict` on every FK** (`ApplyDeleteRestrict`) |
-| Global filters | `HasQueryFilter(e => !e.IsDeleted)` on `User`, `Product`, `ProductCategory`, `ProductSubCategory`, `Brand`, `City`, `ShippingCost`, `SellerProduct`, `ProductReview`, `UserAddress`, `Banner` |
-| Default tracking | `ChangeTracker.QueryTrackingBehavior = NoTracking` in the context constructor |
-| Transactions | `IUnitOfWork.BeginTransactionAsync/CommitTransactionAsync/RollbackTransactionAsync` |
-| Pagination | `PaginationResult<T>` computed in SQL with `Skip/Take` and `CountAsync` |
+| Concern          | Implementation                                                                                                                                                                                |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider         | SQL Server via `Microsoft.EntityFrameworkCore.SqlServer` 10                                                                                                                                   |
+| Context          | `AppDbContext : IdentityDbContext<User>` (27 entities + Identity tables)                                                                                                                      |
+| Identity tables  | Mapped to `Users`, `Roles`, `UserRoles` (`PhoneNumberConfirmed` ignored)                                                                                                                      |
+| Migrations       | 61 migrations in `DataAccessLayer/Migrations`, plus a full `Created Database script.sql` at the repo root                                                                                     |
+| Relationships    | Explicit `HasOne/WithMany` with named FK constraints (`FK_Products_BrandId`, etc.)                                                                                                            |
+| Delete behavior  | **`Restrict` on every FK** (`ApplyDeleteRestrict`)                                                                                                                                            |
+| Global filters   | `HasQueryFilter(e => !e.IsDeleted)` on `User`, `Product`, `ProductCategory`, `ProductSubCategory`, `Brand`, `City`, `ShippingCost`, `SellerProduct`, `ProductReview`, `UserAddress`, `Banner` |
+| Default tracking | `ChangeTracker.QueryTrackingBehavior = NoTracking` in the context constructor                                                                                                                 |
+| Transactions     | `IUnitOfWork.BeginTransactionAsync/CommitTransactionAsync/RollbackTransactionAsync`                                                                                                           |
+| Pagination       | `PaginationResult<T>` computed in SQL with `Skip/Take` and `CountAsync`                                                                                                                       |
 
 **Indexes of note**
 
-| Table | Index | Purpose |
-| --- | --- | --- |
-| `Products` | `NameEn`, `NameAr` | Accelerate bilingual name search |
-| `ProductReviews` | `IX_ProductId_UserId` **unique** | One review per user per product |
-| `UserAddresses` | `Ix_User_Default_Address` **unique filtered** (`IsDefault = 1 AND IsDeleted = 0`) | At most one default address per user |
-| `ProductCategories` | `Name_En`, `Name_Ar` unique | Category name uniqueness |
-| `Banners` | `DisplayOrder` | Stable banner ordering |
+| Table               | Index                                                                             | Purpose                              |
+| ------------------- | --------------------------------------------------------------------------------- | ------------------------------------ |
+| `Products`          | `NameEn`, `NameAr`                                                                | Accelerate bilingual name search     |
+| `ProductReviews`    | `IX_ProductId_UserId` **unique**                                                  | One review per user per product      |
+| `UserAddresses`     | `Ix_User_Default_Address` **unique filtered** (`IsDefault = 1 AND IsDeleted = 0`) | At most one default address per user |
+| `ProductCategories` | `Name_En`, `Name_Ar` unique                                                       | Category name uniqueness             |
+| `Banners`           | `DisplayOrder`                                                                    | Stable banner ordering               |
 
 **Read optimizations** used across repositories: `AsNoTracking()` for read paths, `AsSplitQuery()` where an entity is loaded with multiple collection includes, `CountAsync` short-circuit before paging, DB-side `Skip/Take`, and projections for search/cache DTOs.
 
@@ -998,12 +1014,12 @@ RuleFor(x => x.EndDate).NotEmpty().Must((x, d) => d.Date >= x.StartDate.Date);
 
 Redis is used for **four distinct concerns** (via `IDistributedCache` / `AddStackExchangeRedisCache`):
 
-| Concern | Key pattern | TTL | Read | Write / invalidate |
-| --- | --- | --- | --- | --- |
-| Product name index | `products:all` | `Redis:ProductsDurationInHours` (dev 12 h) / 24 h fallback | `ProductService.SearchByNameEnAsync` / `SearchByNameArAsync` | `UpdateProductsInRedisCacheAsync()` — **on cold miss and on the background schedule only** |
-| City list | `cities:all` | default 24 h | `CityService` list/get | Rewritten on city create/update/delete |
-| Recent searches | `recentSearches:{UserId}` | default 24 h | `GetRecentSearchesAsync` (last 10, deduped) | `AddRecentSearchAsync` |
-| Idempotency | `idempotency:{Idempotency-Key}` | `InProgress` marker 5 s; cached response 5 min | `IdempotencyAttribute` | Written around the action; removed on non-2xx |
+| Concern            | Key pattern                     | TTL                                                        | Read                                                         | Write / invalidate                                                                         |
+| ------------------ | ------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Product name index | `products:all`                  | `Redis:ProductsDurationInHours` (dev 12 h) / 24 h fallback | `ProductService.SearchByNameEnAsync` / `SearchByNameArAsync` | `UpdateProductsInRedisCacheAsync()` — **on cold miss and on the background schedule only** |
+| City list          | `cities:all`                    | default 24 h                                               | `CityService` list/get                                       | Rewritten on city create/update/delete                                                     |
+| Recent searches    | `recentSearches:{UserId}`       | default 24 h                                               | `GetRecentSearchesAsync` (last 10, deduped)                  | `AddRecentSearchAsync`                                                                     |
+| Idempotency        | `idempotency:{Idempotency-Key}` | `InProgress` marker 5 s; cached response 5 min             | `IdempotencyAttribute`                                       | Written around the action; removed on non-2xx                                              |
 
 `RedisCashService` serializes values as JSON and logs + rethrows on failure. A missing key returns `default`.
 
@@ -1058,16 +1074,16 @@ Serilog is wired through `BuilderExtensions.UseSerilog()` (`ReadFrom.Configurati
 
 ## Email System
 
-| Piece | Detail |
-| --- | --- |
-| Library | **MailKit** `SmtpClient` — `ConnectAsync(host, port, StartTls)` → `AuthenticateAsync` → `SendAsync` |
-| From | Display name `"Amazon E-Commerce"`, address from `Mail:Email` |
-| Settings | `Mail:Email`, `Mail:AppPassword`, `Mail:Host`, `Mail:Port` (dev targets Ethereal SMTP) |
-| Templates | `Templates/OtpEmailTemplate.html` (six `{{OTP_n}}` slots), `Templates/OrderUpdateEmailTemplate.html` (`{{Image}}`, `{{message}}`, `{{TrackOrderUrl}}`) |
-| OTP email | Subject `Otp is: {code}`, plain text body + HTML template |
+| Piece              | Detail                                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Library            | **MailKit** `SmtpClient` — `ConnectAsync(host, port, StartTls)` → `AuthenticateAsync` → `SendAsync`                                                                                  |
+| From               | Display name `"Amazon E-Commerce"`, address from `Mail:Email`                                                                                                                        |
+| Settings           | `Mail:Email`, `Mail:AppPassword`, `Mail:Host`, `Mail:Port` (dev targets Ethereal SMTP)                                                                                               |
+| Templates          | `Templates/OtpEmailTemplate.html` (six `{{OTP_n}}` slots), `Templates/OrderUpdateEmailTemplate.html` (`{{Image}}`, `{{message}}`, `{{TrackOrderUrl}}`)                               |
+| OTP email          | Subject `Otp is: {code}`, plain text body + HTML template                                                                                                                            |
 | Order status email | Subject/body built by `Helper.GeUpdateOrderEmailContect`, image from `ApiLayer/wwwroot/images/Order{Status}.png`, tracking link `{FrontEndBaseUrl}/{TrachOrderPath}/{ApplicationId}` |
-| Delivery | Queued (OTP and order status) — never sent inline in a request; the return-application notice is sent synchronously |
-| Lifetime | `IMailService` registered **Transient**; queues and workers are singletons |
+| Delivery           | Queued (OTP and order status) — never sent inline in a request; the return-application notice is sent synchronously                                                                  |
+| Lifetime           | `IMailService` registered **Transient**; queues and workers are singletons                                                                                                           |
 
 Failures are logged and swallowed by the workers (the item is already dequeued).
 
@@ -1079,20 +1095,20 @@ Failures are logged and swallowed by the workers (the item is already dequeued).
 
 ### Non-secret configuration
 
-| Key | Purpose | Dev value |
-| --- | --- | --- |
-| `ConnectionStrings:sqlServerConnectionString` | SQL Server | `Server=.;Database=Amazon_E_Commerce_DB;…` |
-| `Serilog:*` | Console + `Logs` table sinks | see above |
-| `Redis:ConnectionString` / `Redis:InstanceName` | Redis | `localhost:6379` / `AmazonEcommerce_` |
-| `Redis:ProductsDurationInHours` | Product cache refresh interval | `12` |
-| `Jwt:Issuar` / `Jwt:Audience` / `Jwt:LifeTimeMin` | JWT validation & lifetime | `http://localhost:5157` / `http://localhost:5133` / `10` |
-| `JwtRefreshToken:LifeTimeDays` | Refresh token + cookie lifetime | `20` |
-| `Otp:LifeTimeMin` | OTP expiry | `10` |
-| `RateLimitOption:PermitLimit` / `Window` / `QueueLimit` | Fixed-window limiter | `20` / `10` / `10` |
-| `ApplicationSettings:BaseUrl` | Public API base for email images | ngrok URL in dev |
-| `ApplicationSettings:FrontEndBaseUrl` | SPA origin for links | `http://localhost:5173` |
-| `ApplicationSettings:TrachOrderPath` | Track-order path segment | `my-account/orders` |
-| `Mail:Email` / `Mail:AppPassword` / `Mail:Host` / `Mail:Port` | SMTP | Ethereal test account |
+| Key                                                           | Purpose                          | Dev value                                                |
+| ------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
+| `ConnectionStrings:sqlServerConnectionString`                 | SQL Server                       | `Server=.;Database=Amazon_E_Commerce_DB;…`               |
+| `Serilog:*`                                                   | Console + `Logs` table sinks     | see above                                                |
+| `Redis:ConnectionString` / `Redis:InstanceName`               | Redis                            | `localhost:6379` / `AmazonEcommerce_`                    |
+| `Redis:ProductsDurationInHours`                               | Product cache refresh interval   | `12`                                                     |
+| `Jwt:Issuar` / `Jwt:Audience` / `Jwt:LifeTimeMin`             | JWT validation & lifetime        | `http://localhost:5157` / `http://localhost:5133` / `10` |
+| `JwtRefreshToken:LifeTimeDays`                                | Refresh token + cookie lifetime  | `20`                                                     |
+| `Otp:LifeTimeMin`                                             | OTP expiry                       | `10`                                                     |
+| `RateLimitOption:PermitLimit` / `Window` / `QueueLimit`       | Fixed-window limiter             | `20` / `10` / `10`                                       |
+| `ApplicationSettings:BaseUrl`                                 | Public API base for email images | ngrok URL in dev                                         |
+| `ApplicationSettings:FrontEndBaseUrl`                         | SPA origin for links             | `http://localhost:5173`                                  |
+| `ApplicationSettings:TrachOrderPath`                          | Track-order path segment         | `my-account/orders`                                      |
+| `Mail:Email` / `Mail:AppPassword` / `Mail:Host` / `Mail:Port` | SMTP                             | Ethereal test account                                    |
 
 ### Secrets (User Secrets / environment variables — placeholders only)
 
@@ -1284,21 +1300,21 @@ POST /products/{id}/reviews
 
 ## Technical Highlights
 
-| Highlight | Engineering value |
-| --- | --- |
-| **Append-only order status log** | Status history, tracking, and "active row" resolution are queries, not mutable state — no lost updates on status. |
-| **Guarded raw SQL stock updates** | `UPDATE … SET NumberInStock = NumberInStock - @q WHERE NumberInStock >= @q` gives a concurrency-safe decrement without pessimistic locks; the compensating Stripe refund handles the failure case. |
-| **Dual-mode checkout** | One cart/payment model supports both immediate (COD) and asynchronous (Stripe webhook) order materialization with the same domain entities. |
-| **Idempotency filter over Redis** | Converts non-idempotent money endpoints into retryable ones with an in-progress guard and a replayed response. |
-| **Signed + encrypted JWT in HttpOnly cookies** | Tokens are never readable by JS, and the payload is both HMAC-signed and AES-encrypted. |
-| **DB-backed refresh tokens** | Logout revokes every session server-side; a stolen refresh token is useless once the user logs out. |
-| **Channel-based mail queue** | SMTP latency and failures are removed from the request path while keeping ordering per queue. |
-| **Reflection-based soft delete** | One `GenericRepository.DeleteAsync` implementation serves every entity that has `IsDeleted`/`DateOfDeletion`, and falls back to a hard delete otherwise. |
-| **Filtered unique index for default address** | The "one default address" rule is enforced by SQL, not only by application code. |
-| **Dual-language catalog with auto-detection** | Search switches projection (`NameEn`/`NameAr`) from the query itself by scanning the Arabic Unicode block. |
-| **Bilingual domain data** | `NameAr`/`NameEn` and `DescriptionAr`/`DescriptionEn` on products, categories, brands, cities, and reference rows. |
-| **Background cache warming** | The product name index is refreshed on a schedule instead of on every mutation, trading bounded staleness for a simple, predictable invalidation story. |
-| **Fail-fast options binding** | Missing required sections terminate startup rather than surfacing as runtime null refs. |
+| Highlight                                      | Engineering value                                                                                                                                                                                  |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Append-only order status log**               | Status history, tracking, and "active row" resolution are queries, not mutable state — no lost updates on status.                                                                                  |
+| **Guarded raw SQL stock updates**              | `UPDATE … SET NumberInStock = NumberInStock - @q WHERE NumberInStock >= @q` gives a concurrency-safe decrement without pessimistic locks; the compensating Stripe refund handles the failure case. |
+| **Dual-mode checkout**                         | One cart/payment model supports both immediate (COD) and asynchronous (Stripe webhook) order materialization with the same domain entities.                                                        |
+| **Idempotency filter over Redis**              | Converts non-idempotent money endpoints into retryable ones with an in-progress guard and a replayed response.                                                                                     |
+| **Signed + encrypted JWT in HttpOnly cookies** | Tokens are never readable by JS, and the payload is both HMAC-signed and AES-encrypted.                                                                                                            |
+| **DB-backed refresh tokens**                   | Logout revokes every session server-side; a stolen refresh token is useless once the user logs out.                                                                                                |
+| **Channel-based mail queue**                   | SMTP latency and failures are removed from the request path while keeping ordering per queue.                                                                                                      |
+| **Reflection-based soft delete**               | One `GenericRepository.DeleteAsync` implementation serves every entity that has `IsDeleted`/`DateOfDeletion`, and falls back to a hard delete otherwise.                                           |
+| **Filtered unique index for default address**  | The "one default address" rule is enforced by SQL, not only by application code.                                                                                                                   |
+| **Dual-language catalog with auto-detection**  | Search switches projection (`NameEn`/`NameAr`) from the query itself by scanning the Arabic Unicode block.                                                                                         |
+| **Bilingual domain data**                      | `NameAr`/`NameEn` and `DescriptionAr`/`DescriptionEn` on products, categories, brands, cities, and reference rows.                                                                                 |
+| **Background cache warming**                   | The product name index is refreshed on a schedule instead of on every mutation, trading bounded staleness for a simple, predictable invalidation story.                                            |
+| **Fail-fast options binding**                  | Missing required sections terminate startup rather than surfacing as runtime null refs.                                                                                                            |
 
 ---
 
@@ -1359,7 +1375,7 @@ There is **no test project** in this solution (the `.sln` contains only `ApiLaye
 - Provided by **Swashbuckle** (`AddSwaggerGen()` + `AddEndpointsApiExplorer()`).
 - Enabled only when `ASPNETCORE_ENVIRONMENT=Development`; `app.UseSwagger()` / `app.UseSwaggerUI()` are guarded by `app.Environment.IsDevelopment()`.
 - Default URL: `/swagger`.
-- Authentication is cookie-based, so to call protected operations from Swagger you must obtain cookies first (`POST /api/authentication/login` with *Enable credentials* / a browser session) — there is **no** `ApiKey`/`Bearer` security definition configured in Swagger.
+- Authentication is cookie-based, so to call protected operations from Swagger you must obtain cookies first (`POST /api/authentication/login` with _Enable credentials_ / a browser session) — there is **no** `ApiKey`/`Bearer` security definition configured in Swagger.
 
 ---
 
@@ -1367,40 +1383,40 @@ There is **no test project** in this solution (the `.sln` contains only `ApiLaye
 
 Verified from configuration and code:
 
-| Concern | Value |
-| --- | --- |
-| Front-end origin | `http://localhost:5173` (CORS policy `AllowWebsite`, `AllowAnyMethod/AllowAnyHeader`, **`AllowCredentials`**) |
-| Auth transport | Cookies `access_token` + `refresh_token` — the SPA must send `credentials: 'include'` |
-| Refresh strategy | Call `POST /api/authentication/refresh-token` when the access token expires (10 min in dev) |
-| External login | SPA hits `/api/authentication/login/customer/{github,google}?returnUrl=<allowed origin>/…` and is redirected back with cookies set |
-| Order emails | Links built from `ApplicationSettings:FrontEndBaseUrl` + `TrachOrderPath` + application id |
-| Checkout return | SPA supplies `successUrl` / `cancelUrl` and reads `?sessionId=` from the query string |
-| Real time | None — there is no SignalR hub; the SPA must poll for new state |
+| Concern          | Value                                                                                                                              |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Front-end origin | `http://localhost:5173` (CORS policy `AllowWebsite`, `AllowAnyMethod/AllowAnyHeader`, **`AllowCredentials`**)                      |
+| Auth transport   | Cookies `access_token` + `refresh_token` — the SPA must send `credentials: 'include'`                                              |
+| Refresh strategy | Call `POST /api/authentication/refresh-token` when the access token expires (10 min in dev)                                        |
+| External login   | SPA hits `/api/authentication/login/customer/{github,google}?returnUrl=<allowed origin>/…` and is redirected back with cookies set |
+| Order emails     | Links built from `ApplicationSettings:FrontEndBaseUrl` + `TrachOrderPath` + application id                                         |
+| Checkout return  | SPA supplies `successUrl` / `cancelUrl` and reads `?sessionId=` from the query string                                              |
+| Real time        | None — there is no SignalR hub; the SPA must poll for new state                                                                    |
 
 ---
 
 ## Trade-offs & Design Decisions
 
-| Decision | Trade-off |
-| --- | --- |
-| **Layered architecture instead of Clean Architecture / CQRS** | Simpler to navigate and fewer projects to maintain, but business logic sits in classes that reference EF entities directly, so the domain is not persistence-ignorant. |
-| **Append-only `ApplicationOrder` rows** | Full, cheap history and simple "active status" queries, at the cost of a slightly more awkward write path and no in-place status edits. |
-| **JWT in HttpOnly cookies instead of `Authorization` headers** | XSS cannot exfiltrate tokens and the browser manages expiry, but the API becomes origin-dependent (CORS with credentials, `SameSite=None`) and Swagger needs a cookie session. |
-| **DB-backed refresh tokens** | Enables real server-side revocation on logout, at the price of a DB read on every refresh. |
-| **Stock decrement only at payment time** | No phantom reservations while browsing, so overselling is prevented exactly at the transaction that matters — but a user can sit in a cart with items that sell out. |
-| **Time-scheduled cache refresh instead of write-through invalidation** | Very simple and load-friendly; accepts up to one refresh interval of staleness on the Redis product index. |
-| **Redis idempotency keys instead of Stripe idempotency keys** | Works uniformly across both payment methods and replays the exact response; requires Redis to be available for checkout. |
-| **`Channel`-based in-process mail queue** | Zero infrastructure cost and ordered processing, but messages are lost on process crash and the queue does not survive a restart. |
-| **Reflection-based soft delete in the generic repository** | One implementation for every entity, with a compile-time-unsafe string property lookup and a silent hard-delete fallback. |
-| **`DeleteBehavior.Restrict` globally** | Prevents accidental data loss, but every cleanup must be handled explicitly in code. |
-| **Server-side email templating with MailKit** | Full control over content and no third-party email API dependency, but you own deliverability and template maintenance. |
-| **Fixed-window rate limiting by IP** | Cheap and effective against bursts; less fair than a sliding window and inaccurate behind a proxy that doesn't forward the real client IP. |
+| Decision                                                               | Trade-off                                                                                                                                                                      |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Layered architecture instead of Clean Architecture / CQRS**          | Simpler to navigate and fewer projects to maintain, but business logic sits in classes that reference EF entities directly, so the domain is not persistence-ignorant.         |
+| **Append-only `ApplicationOrder` rows**                                | Full, cheap history and simple "active status" queries, at the cost of a slightly more awkward write path and no in-place status edits.                                        |
+| **JWT in HttpOnly cookies instead of `Authorization` headers**         | XSS cannot exfiltrate tokens and the browser manages expiry, but the API becomes origin-dependent (CORS with credentials, `SameSite=None`) and Swagger needs a cookie session. |
+| **DB-backed refresh tokens**                                           | Enables real server-side revocation on logout, at the price of a DB read on every refresh.                                                                                     |
+| **Stock decrement only at payment time**                               | No phantom reservations while browsing, so overselling is prevented exactly at the transaction that matters — but a user can sit in a cart with items that sell out.           |
+| **Time-scheduled cache refresh instead of write-through invalidation** | Very simple and load-friendly; accepts up to one refresh interval of staleness on the Redis product index.                                                                     |
+| **Redis idempotency keys instead of Stripe idempotency keys**          | Works uniformly across both payment methods and replays the exact response; requires Redis to be available for checkout.                                                       |
+| **`Channel`-based in-process mail queue**                              | Zero infrastructure cost and ordered processing, but messages are lost on process crash and the queue does not survive a restart.                                              |
+| **Reflection-based soft delete in the generic repository**             | One implementation for every entity, with a compile-time-unsafe string property lookup and a silent hard-delete fallback.                                                      |
+| **`DeleteBehavior.Restrict` globally**                                 | Prevents accidental data loss, but every cleanup must be handled explicitly in code.                                                                                           |
+| **Server-side email templating with MailKit**                          | Full control over content and no third-party email API dependency, but you own deliverability and template maintenance.                                                        |
+| **Fixed-window rate limiting by IP**                                   | Cheap and effective against bursts; less fair than a sliding window and inaccurate behind a proxy that doesn't forward the real client IP.                                     |
 
 ---
 
 ## Future Improvements
 
-Clearly labelled as *not yet implemented*:
+Clearly labelled as _not yet implemented_:
 
 - Unit and integration test projects (repository, service, and `WebApplicationFactory` endpoint tests).
 - Dockerfile + `docker-compose` for SQL Server, Redis, and the API.

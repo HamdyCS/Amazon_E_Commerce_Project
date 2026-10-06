@@ -55,13 +55,13 @@ namespace ApiLayer.Controllers
         }
 
 
-        [HttpGet("{ShoppingCartId}", Name = "GetShoppingCart")]
+        [HttpGet("{ShoppingCartId}", Name = "GetShoppingCartById")]
         [Authorize(Roles = Role.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<ShoppingCartDto>> GetShoppingCart(long ShoppingCartId)
+        public async Task<ActionResult<ShoppingCartDto>> GetShoppingCartById(long ShoppingCartId)
         {
             try
             {
